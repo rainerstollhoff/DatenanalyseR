@@ -1,0 +1,384 @@
+---
+title: "Zufallsvariablen in R"
+output: learnr::tutorial
+runtime: shiny_prerendered
+author: Rainer Stollhoff
+description: "Eine interaktive Einführung in die Erstellung von Zufallsvariablen mit R"
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Zufall 
+
+### Der Zufallsbegriff im Alltag
+
+* Im alltäglichen Sprachgebrauch verwenden wir das Wort Zufall um einen Prozess zu beschreiben, bei dem das Ergebnis nicht vorhergesagt werden kann bzw. keine kausale Ursache hat. Klassisches Beispiel für einen Zufallsprozess ist ein Münzwurf.
+* Als zufällig bezeichnen wir im alltäglichen Sprachgebrauch manchmal auch Ereignisse, die zwar grundsätzlich bestimmbar wären, deren tatsächliche Bestimmung aber außerhalb unserer Möglichkeiten liegt z.B. weil uns die notwendigen Informationen fehlen.
+* So wird Zufall fälschlicherweise manchmal gleichgesetzt mit Chaos. Chaotische Prozesse führen zwar auch zu scheinbar zufälligen Ergebnissen, sind allerdings grundsätzlich bestimmbar - auch wenn dies mitunter hochkomplex und außerhalb der menschlichen Fähigkeiten liegt.
+
+
+### Zufall in der Mathematik
+
+* In der Mathematik versteht man unter einer Zufallsvariablen eine Abbildung von einem Wahrscheinlichkeitsraum in einen Messraum.
+  + Bei diskreten Zufallsvariablen besteht der Messraum aus endlich vielen unterschiedlichen Werten, z.B. beim Münzwurf aus Kopf und Zahl oder beim normalen Würfel aus den Zahlen 1 bis 6.
+  + Bei stetigen Zufallsvariablen besteht der Messraum aus einem Intervall oder einem unendlichen Zahlenraum z.B. allen reellen positiven Zahlen als Zeitpunkt eines radioaktiven Zerfallsprozesses.
+* Man unterscheidet zwischen den Eigenschaften des Zufallsprozesses an sich z.B. gleiche Wahrscheinlichkeit für Kopf und Zahl beim Münzwurf und einer konkreten Realisierung einer Zufallsvariablen.
+* Man unterscheidet bei der Beschreibung von Zufallsvariablen zwischen
+  + Wahrscheinlichkeitsdichte (engl. probability density), d.h. der Wahrscheinlichkeit mit der ein bestimmtes Ergebnis erzielt wird,
+  + Wahrscheinlichkeitsverteilung (engl. probability distribution), d.h. der Wahrscheinlichkeit mit der ein Ergebnis kleiner oder gleich einem bestimmten Zahlenwert erzielt wird sowie dem
+  + Quantil der Verteilung (engl. quantile function) als der Inversen der Wahrscheinlichkeitsverteilung, d.h. dem Zahlenwert bei dem kleinere oder gleich große Ergebnisse mit einer vorgegebenen Wahrscheinlichkeit erzielt werden.
+
+
+### Zufall in Computersystemen
+* Computersysteme arbeiten in der Regel deterministisch, d.h. gleiche Eingaben führen zu gleichen Ausgaben. 
+* Prozesse innerhalb eines Computersystems folgen daher klaren kausalen - manchmal chaotischen - Wirkungsketten und sind daher niemals im engeren Sinne zufällig.
+* Echter Zufall lässt sich in einem Computer nur von außen importieren, z.B. über die Messung radioaktiver Zerfallsprozesse.
+* Um Zufallsprozesse in einem Computer zu simulieren bedient man sich Generatoren von Pseudo-Zufallszahlen - im englischen Pseudo Random Number Generators (PRNG). Diese erzeugen basierend auf einem Startwert - im Englischen random Seed - mittels rekursiver Iteration lange Sequenzen scheinbar zufälliger Zahlen.
+
+### Zufall in R
+* Mit R lassen sich Pseudo-Zufallszahlen erzeugen.
+* Standardmäßig verwendet R den sogenannten Mersenne-Twister Algorithmus.
+* Der verwendete Pseodu-ZUfallszahlengenerator lässt sich mit dem Befehl `RNGkind()` abfragen.
+* Der aktuelle Startwert (ein Vektor der Länge 626) ist in der Variable `.Random.seed` gespeichert und dient vorwiegend internen Zwecken.
+* Am einfachsten lässt sich der Startwert mit der Funktion `set.seed()` festlegen.
+* Das Speichern und Festlegen des Startwerts erlaubt es, Zufallsimulationen zu einem späteren Zeitpunkt exakt zu wiederholen.
+
+## Einfache Zufallsprozesse
+
+### Permutationen 
+Der einfachste Fall eines Zufallsprozesses ist eine Permutation. Bei einer Permutation wird eine endliche Menge an Zahlen in eine andere, zufällige Reihenfolge gebracht. Beispiel dafür ist das Mischen von Spielkarten.
+
+In R lassen sich Permutationen mit dem Befehl `sample()` erzeugen.
+
+```{r , exercise=F ,eval=T, echo=T}
+sample(c(1,2,3,4,10))
+```
+
+Die Permutationen sind nicht auf Zahlenvektoren beschränkt, sondern können auf beliebige Vektoren angewendet werden:
+
+
+```{r , exercise=F ,eval=T, echo=T}
+sample(c("Hund", "Katze", "Maus"))
+```
+
+Jeder neue Aufruf der Funktion führt in den meisten Fällen zu einer neuen Permutation
+
+
+```{r , exercise=F ,eval=T, echo=T}
+sample(c(1,2,3,4,10))
+sample(c(1,2,3,4,10))
+```
+
+Um verlässlich dieselbe Permutation zu erhalten, müssen wir den Zufall ausschalten, d.h. den Startwert festhalten.
+
+```{r , exercise=F ,eval=T, echo=T}
+Startwert <- 1
+set.seed(Startwert)
+sample(c(1,2,3,4,10))
+set.seed(Startwert)
+sample(c(1,2,3,4,10))
+```
+
+### Ziehen ohne Zurücklegen
+
+Will man aus einer vorgegebenen Menge an möglichen Ergebnissen wiederholt zufällig ziehen, ohne dass ein und dasselbe Ergebnis mehrfach ausgewählt wird, so spricht man von Ziehen ohne Zurücklegen.
+
+Gibt man in R der Funktion `sample()` zusätzlich zur Ergebnismenge auch ein Argument `size = ` mit an, so legt `size` die Anzahl der Elemente fest, die ohne zurücklegen gezogen werden.
+
+```{r , exercise=F ,eval=T, echo=T}
+sample(c(1,2,3,4,10), size=2)
+sample(c(1,2,3,4,10), size =4)
+```
+
+Wählt man für `size` die Anzahl der möglichen Ergebnisse, d.h. die Länge des Vektors, so ergibt sich eine Permutation.
+
+Die möglichen Ergebnisse beim ziehen ohne Zurücklegen müssen nicht zwingend unterschiedliche Werte haben.
+
+
+```{r , exercise=F ,eval=T, echo=T}
+sample(c(1,2,3,2,1), size=2)
+sample(c(1,2,3,2,1), size =4)
+```
+
+
+### Ziehen mit Zurücklegen
+
+Will man aus einer vorgegebenen Menge an möglichen Ergebnissen wiederholt ziehen und soll es dabei möglich sein, dass ein und dasselbe Ergebnis mehrfach gezogen wird, spricht man von Ziehen mit Zurücklegen.
+
+In R lässt sich dies in der Funktion `sample()` durch das Argument `replace = TRUE` umsetzen.
+
+```{r , exercise=F ,eval=T, echo=T}
+sample(c(1,2,3,4,10),replace= T)
+sample(c(1,2,3,4,10), size = 3, replace =T)
+```
+
+### Ziehen mit ungleichen Wahrscheinlichkeiten
+
+Standardmäßig haben bei einem Aufruf von `sample()` alle möglichen Ergebnisse dieselbe Wahrscheinlichkeit gezogen zu werden.
+
+Will man den Ergebnissen unterschiedliche Wahrscheinlichkeiten zuweisen, so geschieht dies über das Argument `prob = `. Dabei muss ein Vektor angegeben werden, der genauso lang ist wie die möglichen Ergebnisse, dessen Elemente jeweils Werte zwischen 0 und 1 sind und bei dem sich die Werte aller Elemente zu 1 summieren. 
+
+
+```{r , exercise=F ,eval=T, echo=T}
+sample(c(1,2,3,4,10),replace= T, prob = c(0.1,0.1,0.1,0.1,0.6))
+sample(c(1,2,3,4,10), replace =F, prob = c(0.1,0.1,0.1,0.1,0.6))
+sample(c(1,2,3,4,10), size = 2, replace =F, prob = c(0.1,0.1,0.1,0.1,0.6))
+
+```
+
+Wie man oben sehen kann, lassen sich die Argumente für `sample()` auch miteinander kombinieren. 
+
+**Kleine Übung**
+
+Nutzen Sie das folgende Testfeld um ein paar einfache Aufgaben zu lösen:
+
+* Erzeugen Sie eine Permutation der Zahlen zwischen 1 und 5
+* Ziehen Sie mit Zurücklegen dreimal aus den Buchstaben "A", "B", und "C"
+* Ziehen Sie ohne Zurücklegen sechsmal aus den Zahlen von 1 bis 49 - Lottospiel
+
+```{r sample, exercise=TRUE, exercise.lines = 3}
+
+```
+
+```{r sample-solution}
+sample(1:5)
+sample(c("A","B","C"), size=3, replace=T)
+sample(1:49, size=6)
+```
+
+## Zufallsvariablen in R
+
+R bietet für die Beschreibung verschiedener Verteilungen von Zufallsvariablen grundlegende Funktionen an. Der Funktionsaufruf setzt sich dabei stets zusammen aus einem Anfangsbuchstaben für die gewünschte Funktion: 
+
+* `d` für die Wahrscheinlichkeitsdichte (engl. probability density), d.h. der Wahrscheinlichkeit mit der ein bestimmtes Ergebnis erzielt wird,
+* `p` für die Wahrscheinlichkeitsverteilung (engl. probability distribution), d.h. der Wahrscheinlichkeit mit der ein Ergebnis kleiner oder gleich einem bestimmten Zahlenwert erzielt wird,
+* `q` für die Quantilsfunktion der Verteilung (engl. quantile function) als der Inversen der Wahrscheinlichkeitsverteilung, d.h. dem Zahlenwert bei dem kleinere oder gleich große Ergebnisse mit einer vorgegebenen Wahrscheinlichkeit erzielt werden und
+* `r` für die Erzeugung von Pseudozufallszahlen.
+
+und einem Kürzel für die gewünschte Verteilungsfamile, z.B. `binom` für die Binomialverteilung oder `unif` für die Gleichverteilung (engl. uniform distribution).
+
+So lassen sich mit der Funktion `rbinom()` binomialverteilte Zufallsvariablen erzeugen und mit `dunif()` die Dichte einer gleichverteilten Zufallsvariablen berechnen.
+
+Mit dem Befehl `?Distributions` lässt sich eine Übersicht über die in R verfügbaren Verteilungen anzeigen.
+
+## Diskrete Zufallsvariablen
+
+Bei diskreten Zufallsvariablen besteht der Messraum aus endlich vielen unterschiedlichen Werten, z.B. beim Münzwurf aus Kopf und Zahl oder beim normalen Würfel aus den Zahlen 1 bis 6.
+
+### Binomialverteilung
+
+Sind bei einem Zufallsexperiment nur zwei Ergebnisse möglich und wird dieses wiederholt durchgeführt (Ziehen mit Zurücklegen) so charakterisiert man mit einer Binomialverteilung die Wahrscheinlichkeiten für die unterschiedliche mögliche Anzahl der Fälle in denen das erste mögliche  Ergebnis ausgewählt wurde - die konkrete Reihenfolge ist dabei egal. Man bezeichnet das erste mögliche Ergebnis meistens als Erfolg - die Binomialverteilung charakterisiert dann die Wahrscheinlichkeiten für die unterschiedliche mögliche Anzahl der Erfolge.
+
+Klassisches Beispiel für eine Binomialverteilung ist ein wiederholter Münzwurf. Die beiden möglichen Ereignisse sind Kopf und Zahl und man wirft die Münze insgesamt `n` mal. Dann folgt die Wahrscheinlichkeit von den insgesamt `n` Würfen genau `k` mal Kopf zu erhalten einer Binomialverteilung.
+
+In R lässt sich eine Binomialverteilung mit den Funktionen `dbinom()`, `pbinom()`, `qbinom()` und `rbinom()` verwenden. Diese erwarten die Angabe von Parametern in Form von Argumenten:
+
+* Alle Funktionen erwarten das Argument `size = ` für die Anzahl `n`der Wiederholungen sowie das Argument `prob =` für die Wahrscheinlichkeit eines Erfolgs bei einem einzelnen Experiment.
+* Die Dichtefunktion `dbinom()` und die Verteilungsfunktion erwarten als Argument zusätzlich einen Zahlenwert `x =` bzw. `q = ` zwischen 0 und der Anzahl an Wiederholungen bzw. einen Vektor an Zahlenwerten für eine parallele Berechnung. 
+* Die Quantilsfunktion `qbinom()` erwartet als Argument zusätzlich eine Wahrscheinlichkeit `p = ` bzw. einen Vektor an Wahrscheinlichkeiten für eine parallele Berechnung.
+* Die Zufallszahlenfunktion `rbinom()` erwartet als Argument zusätzlich die Anzahl der gewünschten Wiederholungen bzw. zufällig erzeugten Ergebnisse.
+
+Im folgenden wird als Beispiel ein fairer Münzwurf, betrachtet mit `prob = 0.5` und `n = 10` Wiederholungen.
+
+
+```{r , exercise=F ,eval=T, echo=T}
+dbinom(x=1, size = 10, prob = 0.5) # Wahrscheinlichkeit für genau einen Erfolg
+pbinom(q=1, size = 10, prob = 0.5) # Wahrscheinlichkeit für maximal einen Erfolg
+qbinom(p=0.5,size = 10, prob = 0.5) # Maximale Anzahl Erfolge die in 50% der Fälle nicht überschritten wird
+rbinom(n=5, size = 10, prob = 0.5) # 5-malige Zufallssimulation der Anzahl der Erfolge
+```
+Um einen Komplettüberblick über die Verteilung zu erhalten bieten sich graphische Darstellungen an wie z.B. ein Säulendiagramm für Dichte- und Verteilungsfunktion oder ein Liniendiagramm für die Quantilsfunktion.
+
+
+```{r , exercise=F ,eval=T, echo=T}
+x <- 0:10
+barplot(dbinom(x, size = 10, prob = 0.5), main="Dichtefunktion", names.arg=x)
+barplot(pbinom(x, size = 10, prob = 0.5),main="Verteilungsfunktion", names.arg=x)
+y <- seq(0,1,by=.05)
+plot(y,qbinom(y,size = 10, prob = 0.5), main="Quantilsfunktion", type="b")
+```
+
+
+
+
+### Poisson-Verteilung
+
+Mit der Poisson-Verteilung lässt sich messen, wie oft sich Ereignisse in einem festgelegten Zeit- oder Ortsintervall wiederholen, wenn das Auftreten der einzelnen Ereignisse voneinander unabhängig und mit einer konstanten mittleren Rate erfolgt. Die Rate gibt die relative Häufigkeit an, mit der das Ereignis im Durchschnitt innerhalb des festgelegten Zeit- oder Ortsintervalls auftritt, z.B. 0,5 mal pro Minute oder 10 mal pro Quadratmeter. 
+
+Beispiele für Poisson-Prozesse sind Bestellvorgänge bei einem Onlineshop, der Ausfall eines Kreditnehmers bei einer Bank, Mängel in einem Produktionsprozess oder jährliche Sterbefälle in der Bevölkerung.
+
+In R lässt sich eine Poission-Verteilung mit den Funktionen `dpois()`, `ppois()`, `qpois()` und `rpois()` verwenden. 
+Diese erwarten das Argument `lambda = ` für die mittlere Rate, d.h. relative Häufigkeit, mit der ein Ereignis innerhalb eines festen Zeit- oder Ortsintervalls auftritt, sowie die funktionsspezifischen Argumente vergleichbar der Binomialverteilung.
+
+Im folgenden wird als Beispiel ein Poisson-Prozess betrachtet mit einer mittleren Rate von `lambda = 8` z.B. durchschnittlich acht Bestellungen pro Stunde.
+
+
+```{r , exercise=F ,eval=T, echo=T}
+dpois(x=8, lambda = 8) # Wahrscheinlichkeit für genau achtmaliges Auftreten
+ppois(q=8, lambda = 8) # Wahrscheinlichkeit für maximal achtmaliges
+qpois(p=0.5, lambda = 8) # Maximale Anzahl des Auftretens die in 50% der Fälle nicht überschritten wird
+rpois(n=5,  lambda = 8) # 5-malige Zufallssimulation der Anzahl des Auftretens
+```
+
+Auch hier lässt sich mit einer grafischen Darstellung ein besserer Überblick erzielen:
+
+Um einen Komplettüberblick über die Verteilung zu erhalten bieten sich graphische Darstellungen an wie z.B. ein Säulendiagramm für Dichte- und Verteilungsfunktion oder ein Liniendiagramm für die Quantilsfunktion.
+
+
+```{r , exercise=F ,eval=T, echo=T}
+x <- 0:20
+barplot(dpois(x, lambda = 8), main="Dichtefunktion", names.arg=x)
+barplot(ppois(q=x, lambda = 8),main="Verteilungsfunktion", names.arg=x)
+y <- seq(0,1,by=.05)
+plot(y,qpois(p=y, lambda = 8), main="Quantilsfunktion", type="b")
+```
+
+
+**Kleine Übung**
+
+Nutzen Sie das folgende Testfeld um ein paar einfache Aufgaben zu lösen:
+* Berechnen Sie die Wahrscheinlichkeit mit der bei 20 Wiederholungen eines fairen Münzwurfs genau 7 mal ein Erfolg erzielt wird.
+* Ein Pizzalieferdienst erhält im Durchschnitt 30 Bestellungen pro Stunde. Wie hoch ist die Wahrscheinlichkeit mit der innerhalb einer Stunde maximal 20 Bestellungen eingehen? 
+* Zu einer Hochzeit werden 200 Gäste eingeladen. Die Wahrscheinlichkeit das ein eingeladener Gast tatsächlich erscheint, liegt bei 90%. Mit wie vielen Gästen muss man in 80% der Fälle maximal rechnen?
+
+```{r discrete, exercise=TRUE, exercise.lines = 3}
+
+```
+
+```{r discrete-solution}
+dbinom(x=7, size =20, prob=0.5)
+ppois(q=20, lambda=30)
+qbinom(p=0.8, size=200, prob=.9)
+```
+## Stetige Zufallsvariablen
+
+Bei stetigen Zufallsvariablen besteht der Messraum aus einem Intervall bzw. einer [überabzählbaren Menge](https://de.wikipedia.org/wiki/%C3%9Cberabz%C3%A4hlbare_Menge) wie den reellen Zahlen. Beispiel für stetige Zufallsvariablen sind der Zeitpunkt eines radioaktiven Zerfallsprozesses oder allgemeiner Wartezeiten auf ein Ereignis.
+
+### Gleichverteilung
+
+Bei einer Gleichverteilung wird davon ausgegangen, dass innerhalb eines vorgegebenen Intervalls jeder Wert gleich wahrscheinlich ist. Die Gleichverteilung entspricht damit einer verstetigten Variante des einmaligen Ziehens ohne Zurücklegen, wobei die möglichen Ergebnisse allen Zahlenwerten im Intervall entsprechen.
+
+Ein Beispiel für gleichverteilte Zufallsprozesse sind Wartezeiten. Nehmen wir an, eine S-Bahn fährt regelmäßig genau alle 20 Minuten. Wenn Sie ohne auf den Fahrplan zu schauen spontan zur Haltestelle gehen, ist ihre Wartezeit zufällig und gleichverteilt auf das Intervall zwischen 0 und 20 Minuten.
+
+In R lässt sich eine Gleichverteilung mit den Funktionen `dunif()`, `punif()`, `qunif()` und `runif()` verwenden. 
+Diese erwarten die Argumente `min = ` und `max = ` für die Untergrenze und Obergrenze des zulässigen Zahlenintervalls. 
+
+Im folgenden zur Illustration eine Streudiagramm von 1000 gleichverteilt aus dem Intervall $[0,1]$ gezogenen Zufallswerten.
+
+```{r , exercise=F ,eval=T, echo=T}
+x <- runif(n=1000,min=0,max=1)
+plot(x, type="p")
+```
+
+Im Streudiagramm lässt sich kein Muster, keine Häufung der Zahlenwerte in bestimmten Bereichen erkennen. Die Gleichverteilung entspricht damit am ehesten der alltäglichen Vorstellung von Zufall.
+
+### Normalverteilung
+
+Die neben der Gleichverteilung bedeutendste stetige Wahrscheinlichkeitsverteilung ist die Normalverteilung - auch Gauß-Verteilung genannt nach C.F. Gauß. Ihre Bedeutung ergibt sich einerseits aus der Theorie. So sind nach dem zentralen Grenzwertsatz alle standardisierten Summen von Zufallsvariablen näherungsweise normalverteilt. Andererseits zeigt sich, dass reale Daten sehr häufig einer Normalverteilung folgen, z.B. die Körpergröße von Menschen oder Fehler in der Messtechnik.
+
+Die Dichtefunktion der Normalverteilung wird aufgrund ihrer charakteristischen Form auch als Glockenkurve bezeichnet.
+
+```{r , exercise=F ,eval=T, echo=T}
+x <- seq(-4,4,by=.1)
+plot(x, dnorm(x), type="l")
+```
+
+In R lässt sich eine Normalverteilung mit den Funktionen `dnorm()`, `pnorm()`, `qnorm()` und `rnorm()` verwenden. 
+In diesen lassen sich durch die Argumente `mean = ` und `sd = ` der Mittel- bzw. Erwartungswert und die Standardabweichung festlegen, durch welche eine Normalverteilung eindeutig charakterisiert wird. Als Kurzschreibweise wird die Bezeichnung $N(\mu,\sigma)$ verwendet, wobei der griechische Buchstabe \mu (sprich: mü) für den Mittel- bzw. Erwartungswert steht und der griechische Buchstabe $\sigma$ (sprich: sigma) für die Standardabweichung. Eine Normalverteilung mit Mittel- bzw. Erwartungswert 0 und Standardabweichung 1 bezeichnet man auch als Standardnormalverteilung.
+
+```{r , exercise=F ,eval=T, echo=T}
+x <- seq(-4,4,by=.1)
+plot(x, dnorm(x,mean=0,sd=1), type="l")
+lines(x,dnorm(x,mean=1,sd=1),col=2)
+lines(x,dnorm(x,mean=0,sd=2),col=3)
+legend("topleft",legend = c("Standardnormalverteilung","N(1,1)", "N(0,2)"), col=1:3, lty=1)
+
+
+```
+
+Im Gegensatz zur Gleichverteilung weisen normalverteilte Werte eine Häufung um den Mittel- bzw. Erwartungswert auf. Diese Häufung wird durch die Standardabweichung bestimmt. So treten mit einer Wahrscheinlichkeit von ca. 68% Werte im Bereich von Mittelwert plusminus Standardabweichung auf und mit einer Wahrscheinlichkeit von ca. 95% Werte im Bereich von Mittelwert plusminus zweimal Standardabweichung.
+
+Im folgenden überprüfen wir diese Häufung empirisch an einer Zufallsstichprobe von 5000 Beobachtungen. In der folgenden Übung sollen Sie dies analytisch anhand der Verteilungsfunktion zeigen.
+
+
+```{r , exercise=F ,eval=T, echo=T}
+x <- rnorm(n=5000,mean=80,sd=50)
+plot(x, type="p")
+
+mean(x>(80-50) & x<(80+50)) # Die Bedingung ergibt 1, wenn der Wert im Intervall liegt, sonst 0. Der Mittelwert über die Bedingung ergibt dann die Häufigkeit, mit der Werte im Intervall liegen.
+mean(x>(80-2*50) & x<(80+2*50))
+
+```
+
+
+
+**Kleine Übung**
+
+Überprüfen Sie die Aussage zur Häufung der Werte um den Mittelwert, indem Sie mit der Funktion `pnorm()` die Wahrscheinlichkeiten für die Intervalle [Mittelwert minus Standardabweichung, Mittelwert plus Standardabweichung] (`Wkeit1`) bzw. [Mittelwert minus zweimal Standardabweichung, Mittelwert plus zweimal Standardabweichung] (`Wkeit2`) berechnen - für verschiedene Zahlenwerte für Mittelwert (`MW`) und Standardabweichung (`SD`).
+
+
+```{r norm, exercise=TRUE, exercise.lines = 10}
+MW <- 80
+SD <- 50
+Wkeit1 <- 
+Wkeit2 <- 
+
+```
+
+
+```{r norm-hint-1}
+ ## Die Wahrscheinlichkeit eines Intervalls lässt sich Berechnen als Verteilungswert der oberen Grenze minus Verteilungswert der unteren Grenze.
+ ## Der nächste hint/Tipp ist schon die Musterlösung - also nicht gleich weiter klicken...
+
+
+```
+
+
+```{r norm-hint-2}
+MW <- 80
+SD <- 50
+Wkeit1 <- pnorm(MW+SD,mean=MW, sd=SD) - pnorm(MW-SD,mean=MW, sd=SD)
+Wkeit1
+Wkeit2 <- pnorm(MW+2*SD,mean=MW, sd=SD) - pnorm(MW-2*SD,mean=MW, sd=SD)
+Wkeit2
+
+```
+
+Normalverteilte Zufallsvariablen können prinzipiell jeden Wert im Bereich der reellen Zahlen annehmen. Allerdings sind wie oben dargestellt sehr große Abweichungen vom Mittel-bzw. Erwartungswert extrem unwahrscheinlich. Deshalb verwendet man die Normalverteilung selbst dann als Modell, wenn der Wertebereich der Zufallsvariablen real  eingeschränkt ist, wie z.B. bei Körpergrößen von Menschen, die mit Sicherheit größer als Null sind.
+
+
+## Quiz
+Ein paar Fragen, um das Verständnis der Lehrinhalte zu überprüfen.
+
+```{r quiz}
+quiz(
+  question("Welcher Zufallsprozess beschreibt ein Lottospiel - 6 aus 49?",
+    answer("Eine 6-fache Permutation von 49 Elementen."),
+    answer("Die Gleichverteilung zwischen 6 und 49."),
+    answer("Das 6-fache Ziehen ohne Zurücklegen aus den Zahlen von 1 bis 49", correct = TRUE),
+    answer("Eine Normalverteilung mit Mittelwert 6 und Standardabweichung 49.")
+  ),
+  question("Welches Ergebnis ist mit dem  folgenden Befehl möglich: `sample(1:5,size=10,replace=F)`",
+    answer("` [1]  1  2  3  4  5  6  7  8  9 10 `"),
+    answer("`Error ...`", correct = TRUE),
+    answer("`[1] 10  8  9  3  1`"),
+    answer("`[1] 5 4 2 3 1`")
+  ),
+   question("Mit welchen der folgenden Befehle kann man den Wurf eines sechsseitigen Würfels (näherungsweise) simulieren?",
+    answer("`sample(1:6, size=1)`", correct = TRUE),
+    answer("`sample(1:6)[1]`", correct = TRUE),
+    answer("`floor(runif(1,min=1,max=7))`", correct = TRUE),
+    answer("`sample(1:6, size=1, replace=F)`", correct = TRUE)
+  ),
+   question("Durch welche Parametern wird eine Normalverteilung eindeutig festgelegt?",
+    answer("Minimum"),
+    answer("mittlere Rate"),
+    answer("Mittelwert", correct = TRUE),
+    answer("Standardabweichung", correct = TRUE)
+  )
+)
+```
+

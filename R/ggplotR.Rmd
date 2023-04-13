@@ -1,0 +1,728 @@
+---
+title: "Graphische Darstellung (ggplot) in R"
+output: learnr::tutorial
+runtime: shiny_prerendered
+author: Rainer Stollhoff
+description: "Eine interaktive Einführung in die graphische Darstellung mit der grammar of graphic(ggplot) in R"
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(ggplot2)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+## Allgemeines
+
+* R bietet bereits in der Basisausstattung - daher der Zusatz `(base)` vielfältige Möglichkeiten, um Daten graphisch darzustellen. Diese verbleiben aber auf einem grundlegenden Niveau:
+  + Die graphischen Darstellungsformen der Basisausstattung lassen sich zwar durch einzelne Funktionspakete erweitern. 
+  + Die Erweiterungen beziehen sich aber in der Regel auf die Visualisierung bestimmter statistischer Verfahren.
+  + Eine übergreifende Ordnung oder Weiterentwicklung der grundlegenden Visualisierungstechnik der Basisausstattung findet in den Einzelpaketen daher nicht statt.
+* Das Paket `ggplot2` bietet eine vollumfassende Überarbeitung der graphischen Darstellungsmöglichkeiten der Basisausstattung:
+  + `ggplot2` basiert auf einer eigenen Struktur zum Erstellen von Graphiken - der *grammar of graphics*.
+  + Jeder Plot wird erstellt als Summe von Daten, Graphik (`geom`), Koordinatensystem, Layout (`facet`), Skalierung, Beschriftung (`labels`) und Darstellung (`theme`)
+
+
+
+### Grammar of Graphics
+
+Jeder Plot wird in `ggplot2` erstellt als Summe von Daten, Graphiktyp (`geom`), Koordinatensystem, Layout (`facet`), Skalierung, Beschriftung (`labels`) und Darstellung (`theme`). Diese werden im Funktionsaufruf nacheinander festgelegt, getrennt durch das `+`-Zeichen.
+
+![Schematische Übersicht der grammar of graphics](./images/gg_basics.png){width=50%}
+
+Als Beispiel für diese Grammatik dient uns das folgende Streudiagramm:
+
+
+```{r, eval = T, echo = T}
+ggplot(data=mpg) +
+  geom_point(mapping = aes(x= displ, y=hwy))
+
+```
+
+Der erste Aufruf `ggplot()` öffnet dabei die graphische Ausgabe und legt den Datensatz fest.
+Der zweite Aufruf `geom_point()` fügt der graphischen Ausgabe eine Graphik vom Typ `point` hinzu. Für diesen zweiten Aufruf müssen wir noch mit dem Argument `mapping = ` angeben, welche Variable des Datensatzes auf welche Dimension der Graphik (`aes` für aesthetic) abgebildet wird. Hier bilden wir die Variable `displ` auf die x-Koordinate und die Variable `hwy` auf die y-Koordinate ab.
+
+Der Aufruf  `ggplot() + geom_...(mapping=aes( ... ))` stellt das Minimum eines vollständigen `gg` Graphen dar. Darüberhinaus lassen sich noch weitere Festlegungen treffen zu
+* Koordinatensystem, 
+* Layout (`facet`), 
+* Achsenskalierung, 
+* Beschriftung (`labels`) und 
+* Darstellung (`theme`).
+
+Diese werden dem vorangehenden Befehlsaufruf mit einem `+` hinzugefügt:
+
+![Befehlsaufrufe zum Erstellen einer `gg`-Graphik](./images/ggplot_template.png){width=50%}
+
+Für einfachere Graphiken gibt es auch die Kurzform `qplot()`, bei der Daten, Graphiktyp und Dimensionen direkt im Funktionsaufruf als Argumente mit angegeben werden:
+
+![Vereinfachter Befehlsaufruf mit `qplot()`](./images/qplot_template.png){width=50%}
+
+Im Folgenden das obige Beispiel in Kurzschreibweise:
+
+```{r, eval = T, echo = T}
+qplot(data=mpg,geom="point",x= displ, y=hwy)
+```
+
+
+
+### Weitere Beispiele und Vergleich zur Basisfunktionalität
+
+Mit `ggplot2` erstellte Graphiken sehen bereits auf den ersten Blick anders aus, als Graphiken aus den Basispaketen. Im Folgenden ein paar Beispiele zur Illustration.
+
+***Einfaches Streudiagramm***
+```{r, echo = T}
+x <-  c(5,7.2,13,2)
+y <- c(15,22,34,11)
+plot(x,y)
+plot(x)
+
+library(ggplot2)
+qplot(x,y)
+
+```
+
+
+***Liniendiagramm***
+```{r, echo = T}
+y <- c(15,22,34,11)
+plot(y,type="l")
+
+library(ggplot2)
+qplot(y,x=1:4,geom="line")
+
+```
+
+
+***Säulendiagramm***
+```{r, echo = T}
+x <-  c("rot","gelb","blau","braun")
+y <- c(15,22,34,11)
+barplot(y,names.arg=x)
+
+qplot(x=x,y=y,geom="col")
+
+```
+
+### Datentabelle `mpg` 
+
+Die Darstellungsmöglichkeiten in `ggplot2` sind grundsätzlich auf Datentabellen ausgerichtet. Um einfache Vektoren darzustellen, müssend diese daher zunächst in Datentabellen umgewandelt werden. Wir verwenden zur Illustration den in R mitgelieferten Datensatz `mpg`.
+
+Eine kurze Übersicht des Datensatzes:
+
+```{r, echo = T, eval = T}
+summary(mpg)
+```
+
+Der Datensatz enthält metrische Variablen:
+* `displ`: Hubraum (displacement)
+* `year`: Baujahr
+* `cyl`: Anzahl der Zylinder (cylinders)
+* `cty`: Reichweite in der Stadt (city, in miles per gallon)
+* `hwy`: Reichweite über Land (highway, in miles per gallon)
+
+Und kategorische (nominelle und ordinale) Variablen:
+* `manufacturer`: Hersteller
+* `model`: Modell
+* `trans`: Getriebe- und Kupplungsart (transmission)
+* `drv`: Antriebsart (drive)
+* `fl`: Kraftstoffart (fuel)
+* `class`: Fahrzeugtyp
+
+### Installation
+
+Zum Installieren und Einbinden des Pakets `ggplot2` verwenden wir die Funktionen `install.packages()` und `library()`:
+
+```{r, echo = T, eval = F}
+install.packages("ggplot2") #Dateien werden heruntergeladen und lokal gespeichert
+library("ggplot2") # Das Paket wird in die aktuelle R Umgebung geladen und die enthaltenen Funktionen bereit gestellt
+```
+
+### Hilfestellung und Referenz
+
+Die Bibliothek `ggplot2` wurde von Hadley Wickham und einem Autorenkollektiv entwickelt. Mehr Informationen finden sich auf der [englischsprachigen Seite des Projekts](https://ggplot2.tidyverse.org/).
+
+Eine Übersicht über die in `ggplot2` implementierten Funktionen findet sich auch in dem [ggplot2-cheatsheet](./www/data-visualization-2.1.pdf).
+
+
+## Einfache Diagramme
+
+### Einfache Streudiagramme
+
+Ein einfaches Streudiagramm als Abbildung zweier metrischer Variablen lässt sich gemäß der grammar of graphics (gg) wie folgt erzeugen:
+
+```{r, eval = T, echo = T}
+ggplot(data=mpg) +
+  geom_point(mapping = aes(x= displ, y=hwy))
+
+```
+
+Der erste Aufruf `ggplot()` öffnet dabei die graphische Ausgabe und legt den Datensatz fest.
+Der zweite Aufruf `geom_point()` fügt der graphischen Ausgabe eine Graphik vom Typ `point` hinzu. Für diesen zweiten Aufruf müssen wir noch mit dem Argument `mapping = ` angeben, welche Variable des Datensatzes auf welchen Graphikbestandteil (`aes` für aesthetic) abgebildet wird. Hier bilden wir die Variable `displ` auf die x-Koordinate und die Variable `hwy` auf die y-Koordinate ab.
+
+***Kleine Übung ***
+
+Verändern Sie den obenstehenden Aufruf von `ggplot()`und geben Sie die Variable `cty` auf der y-Koordinate und die Variable `hwy` auf der x-Koordinate aus :
+
+```{r ggplot_simple, exercise = TRUE}
+ggplot(data=mpg) +
+  geom_point(mapping = aes(x= displ, y=hwy))
+```
+
+
+```{r ggplot_simple-solution}
+ggplot(data=mpg) +
+  geom_point(mapping = aes(x= hwy, y=cty))
+```
+
+
+### Streudiagramme mit mehreren Dimensionen
+
+Der Graphiktyp `geom_point` lässt neben der Angabe von x- und y-Koordinate noch weitere Dimensionen zu - insbesondere:
+
+* `color = ` Farbe der Symbole
+* `shape = ` Form der Symbole
+* `size = ` Größe der Symbole
+* `alpha = ` Sättingungsgrad / Transparenz
+
+Während die x- und y-Dimension nur bei numerischen - insbesondere metrischen - Werten eine sinnvolle Darstellung ermöglicht, ist dies bei den anderen Dimensionen teilweise umgekehrt - z.B. `color` oder `shape`. Letztere verfügen meist nur über endlich viele verschiedene Ausprägungen z.B. für `shape`:
+
+![Darstellung der unterschiedlichen Symbolformen](./images/aes_shape.png)
+
+Integriert man mehrere Dimensionen gleichzeitig in das Streudiagramm ergibt sich eine etwas unübersichtliche Graphik - hier nur zu Illustrationszwecken:
+
+```{r, eval = T, echo = T}
+ggplot(data=mpg) +
+  geom_point(mapping = aes(x= displ, y=hwy,
+                           color = manufacturer,
+                           shape = class,
+                           size = cyl,
+                           alpha = year))
+
+```
+
+### Verwackelte Streudiagramme
+
+Trägt man in einem Streudiagramm auf einer der Koordinaten eine Variable auf, die nur wenige unterschiedliche Werte annehmen kann, so überlagern sich die Punkte mitunter:
+
+```{r, eval = T, echo = T}
+ggplot(data=mpg) +
+  geom_point(mapping = aes(x= cyl, y=hwy))
+
+```
+
+Eine erste Abhilfe kann hier das leichte Verwackeln der Datenpunkte darstellen. Dabei wird dem exakten Zahlenwert aus dem Datensatz ein kleiner Fehlerterm hinzugefügt, bevor dieser als Koordinatenwert eingezeichnet wird. Dies geschieht in `ggplot2` durch den Graphiktyp `geom_jitter()`:
+
+```{r, eval = T, echo = T}
+ggplot(data=mpg) +
+  geom_jitter(mapping = aes(x= cyl, y=hwy))
+
+```
+
+Durch das leichte Wackeln sind die einzelnen Datenpunkte wieder erkennbar. Aber Vorsicht bei der Interpretation der Graphiken: Die abgebildeten Werte sind künstlich verfälscht! Insbesondere gibt es kein Auto mit 4,2 Zylindern.
+
+
+### Häufigkeitstabellen als Punktewolken
+
+Trägt man in einem Streudiagramm kategorische Merkmale auf einer Achse auf, so überlagern sich die anzuzeigenden Punkte so sehr, dass auch ein Wackeln nicht viel weiterhilft.
+
+```{r, eval = T, echo = T}
+ggplot(data=mpg) +
+  geom_point(mapping = aes(x= class, y=drv))
+ggplot(data=mpg) +
+  geom_jitter(mapping = aes(x= class, y=drv))
+
+```
+
+Der Informationsgehalt der beiden obigen Abbildungen ist entsprechend sehr gering. Im ersten Fall wird nur gezeigt, ob eine bestimmte Kombination auftritt. Im zweiten Fall lassen sich die unterschiedlichen Kombinationen nicht mehr visuell voneinander trennen.
+
+Abhilfe schafft hier die Funktion `geom_count()` die für die Kombinationen deren Häufigkeit zählt und entsprechend die Symbolgröße festlegt:
+
+```{r, eval = T, echo = T}
+ggplot(data=mpg) +
+  geom_count(mapping = aes(x= class, y=drv))
+
+```
+
+
+***Kleine Übungsaufgabe***
+
+Erstellen Sie im Folgenden ein Streudiagramm bzw. eine Punktewolke für die beiden kategorischen Variablen `trans` und `drv`
+
+```{r ggplot_count, exercise = TRUE, exercise.lines=6}
+
+
+```
+
+```{r ggplot_count-solution}
+ggplot(data=mpg) +
+  geom_count(mapping = aes(x= trans, y=drv))
+```
+
+
+Im Folgenden Abschnitt werden weitere Graphiktypen vorgestellt, die eine derartige statistische Darstellung ermöglichen.
+
+## Statistische Darstellungen
+
+### Histogramme
+
+Bei einem Histogramm wird der Wertebereich einer einzelnen metrischen Variable in üblicherweise gleich große Intervalle (`bins`) aufgeteilt und dann die Anzahl(`count`) bzw. relative Häufigkeit `frequency` angegeben, mit der Beobachtungen innerhalb des jeweiligen Intervalls liegen.
+
+Mit dem Graphiktyp `geom_histogram()` lassen sich Histogramme erstellen:
+
+
+```{r, echo = T}
+ggplot(data=mpg) +
+  geom_histogram(mapping = aes(x= displ))
+```
+
+
+Neben der eindimensionalen Darstellung ermöglicht die Angabe weiterer Dimensionen auch gestapelte, gruppierte bzw. verschachtelte Histogramme:
+
+```{r, echo = T}
+ggplot(data=mpg) +
+  geom_histogram(mapping = aes(x= displ,
+                               fill = drv))
+```
+
+
+***Kleine Übungsaufgabe***
+
+Erstellen Sie im Folgenden ein Histogramm für die innerstädtische Reichweite `cty` farblich getrennt nach Fahrzeugtyp `class`
+
+```{r ggplot_hist, exercise = TRUE, exercise.lines=6}
+
+
+```
+
+```{r ggplot_hist-solution}
+ggplot(data=mpg) +
+  geom_histogram(mapping = aes(x= cty, fill=class))
+```
+
+### Dichteschätzer
+
+
+Dichteschätzer sind die kontinuierliche Variante eines Histogramms. Hier wird der Wertebereich  kontinuerlich durchlaufen und die relativen Häufigkeiten durch einen gleitenden Durchschnittswert (genauer: durch die Faltung mit einem Dichtekern) ermittelt.
+
+Mit dem Graphiktyp `geom_density()` lassen sich Dichteschätzer erstellen:
+
+```{r, echo = T}
+ggplot(data=mpg) +
+  geom_density(mapping = aes(x= displ), kernel = "gaussian")
+```
+
+Der Parameter für die Dichteschätzung, d.h. die Angabe des für die Faltung verwendeten Dichtekerns, wird dabei als eigenes Argument des Funktionsaufrufs von `geom_density()` übergeben - insbesondere ist er kein Bestandteil der graphischen Abbildung in `mapping = `. 
+
+Diese Auftrennung in graphische Paramater - festgelegt in `mapping`bzw. `aes()` und Parameter der eingesetzten statistischen Verfahren als eigene Argumente wird auch bei anderen statistischen Darstellungen verwendet.
+
+### Dichteschätzer mit mehreren Dimensionen
+
+Durch Angabe weiterer Dimensionen lassen sich die Dichteschätzer auch getrennt berechnen und anzeigen:
+
+```{r, echo = T}
+ggplot(data=mpg) +
+  geom_density(mapping = aes(x= displ, color =drv), kernel = "gaussian")
+```
+
+
+### Boxplots
+
+Boxplots sind eine auf die Angabe der wesentlichen statistischen Kenngrößen (Mittelwert, Quantile zu 25\%, 50\% und 75\% sowie Wertebereich) reduzierte graphische Darstellung der Werteverteilung. 
+
+Diese lassen sich mit `geom_boxplot()` eindimensional 
+```{r, echo = T}
+ggplot(data=mpg) +
+  geom_boxplot(mapping = aes(y= displ))
+```
+
+oder mehrdimensional erzeugen:
+```{r, echo = T}
+ggplot(data=mpg) +
+  geom_boxplot(mapping = aes(y= displ,x=class,fill=drv))
+```
+
+Bei der Gruppierung berücksichtigt `ggplot2` automatisch, wenn manche Kombinationen nicht vorkommen. So sind im Datensatz `mpg`beispielsweise unter den zweisitzigen Autos (`class = 2seater`) nur solche mit Hinterradantrieb (`drv = r`) enthalten. Entsprechend erstreckt sich im Boxplot die Box für `drv=r` über den gesamten x-Abschnitt von `2seater`. Demgegenüber ist der x-Abschnitt von `subcompact` aufgeteilt in drei farblich markierte Gruppen von `drv`: `4``, `f` und `r`. 
+
+
+## Kombination von Graphiken
+
+### Mehrlagige Graphiken
+
+Bereits in der Basisfunktionalität lassen sich verschiedene Graphiktypen umsetzen. Eine der großen Stärken von `ggplot2`liegt darin, dass sich diese auch einfach miteinander kombinieren lassen.
+Dies geschieht, indem man einem bestehenden Plot mit dem Zusatz `+` weitere Elemente hinzufügt.
+
+Die Dimensionen der beiden Graphiktypen sollten dabei identisch bzw. zueinander kompatibel sein. Dies gelingt am einfachsten, indem die Dimensionsangabe nicht mehr im Graphiktypen erfolgt, sondern bereits im Aufruf von `ggplot()`.
+
+Mit dem Befehl `geom_smooth()` lässt sich beispielsweise einem Streudiagramm eine geglättete Regressionslinie hinzufügen, die neben dem durchschnittlichen vorhergesagten Wert auch ein Konfidenzband anzeigt:
+
+
+```{r, eval = T, echo = T}
+ggplot(data=mpg, mapping = aes(x= displ, y=hwy)) +
+  geom_point() +
+  geom_smooth()
+
+```
+
+Das Übereinanderlegen funktioniert nicht nur bei einfachen sondern auch bei mehrdimensionalen Diagrammen:
+
+```{r, eval = T, echo = T}
+ggplot(data=mpg, mapping = aes(x= displ, y=hwy, color=drv)) +
+  geom_point() +
+  geom_smooth()
+
+```
+
+Hier zeigt sich, dass `ggplot2` automatisch den Bereich der Regressionslinien auf den Wertebereich der Daten in der jeweiligen Gruppe anpasst.
+
+### Graphikraster (`facets`)
+
+Der Versuch mehrdimensionale Darstellungen in eine Graphik zu packen, geht häufig zu Lasten der Übersichtlichkeit. Eine Alternative zum übereinanderlegen von Informationen ist das nebeneinanderstellen.
+
+Dazu dienen in `ggplot2` die mit `facet` bezeichneten Grafikraster. Diese trennen eine Graphik anhand von einer oder zwei kategorischen Variablen in mehrere Einzelgraphiken auf.
+
+Die einfachste Variante ist die Einteilung in ein rechteckiges Format mit `facet_wrap()`
+
+```{r, eval = T, echo = T}
+ggplot(data=mpg, mapping = aes(x= cty, y=hwy)) +
+  geom_point() +
+  facet_wrap(vars(drv))
+
+```
+
+Je nach Anzahl der Kategorien in der Gruppenvariable, wählt `ggplot2` selbstständig eine passende Anzahl von Spalten oder Zeilen. 
+
+
+Will man mehr als eine Variable für die Gruppeneinteilung verwenden, so geht dies mit dem Befehl `facet_grid()`, dem man je eine Variable für die Spalten `cols=` und eine für die Zeilen `rows=`übergibt:
+
+```{r, eval = T, echo = T}
+ggplot(data=mpg, mapping = aes(x= cty, y=hwy)) +
+  geom_point() +
+  facet_grid(rows=vars(drv),cols=vars(cyl))
+```
+
+Lässt man beim Aufruf von `facet_grid` eine der beiden Angaben weg, so erhält man wahlweise nur Zeilen oder nur Spalten.
+
+***Umfangreichere Übungsaufgabe***
+
+Stellen Sie in einem Streudiagramm die Daten im Datensatz `mpg` wie folgt dar:
+
+* die Variable `cty` auf der x-Koordinate,
+* die Variable `hwy` auf der y-Koordinate,
+* in getrennten Graphiken für die einzelnen Hersteller (`manufacturer`),
+* mit unterschiedlicher Farbe für die Symbole gemäß des Fahrzeugtyps `class`,
+* unterschiedlicher Größe gemäß der Variable `cyl`
+
+
+```{r ggplot_facet, exercise = TRUE, exercise.lines=10}
+
+
+```
+
+```{r ggplot_facet-hint-1}
+ggplot(data=mpg,mapping = aes(x= cty, y = hwy,
+                              
+                              
+                              )) +
+  geom_point()+
+  facet_wrap()
+```
+
+```{r ggplot_facet-hint-2}
+ggplot(data=mpg,mapping = aes(x= cty, y = hwy,
+                              color=class
+                              )) +
+  geom_point()+
+  facet_wrap(vars(manufacturer))
+```
+
+
+```{r ggplot_facet-solution}
+ggplot(data=mpg,mapping = aes(x= cty, y = hwy,
+                              color=class,
+                              size=cyl)) +
+  geom_point()+
+  facet_wrap(vars(manufacturer))
+```
+
+
+## Beschriftungen
+
+Neben der reinen graphischen Darstellung bietet `ggplot2` auch vielfältige Möglichkeiten, die Beschriftung anzupassen.
+
+### Titel, Untertitel, Beschreibungen
+
+Mit der Funktion `labs()` lassen sich einer Graphik erklärende Beschriftungen hinzufügen:
+
+* `title =` Titel oberhalb der Graphik
+* `subtitle = ` Untertitel als Text unterhalb des Titels
+* `caption = ` Bildbeschreibung rechts unten
+* `tag = ` Kennzeichnungstext links oben
+
+
+```{r, echo = T}
+ggplot(data=mpg) +
+  geom_histogram(mapping = aes(x= displ,
+                               fill = drv)) +
+  labs(
+    title = "Werteverteilung des Hubraums (displacement)",
+    subtitle = "Histogramm mit n=30 Intervallen",
+    caption = "Datensatz mpg, eigene Berechnungen",
+    tags = "mpg, histogram"
+  )
+```
+
+### Kennzeichnung der Graphik-Dimensionen
+
+Standardmäßig werden die Graphik-Dimensionen - also x- und y-Koordinate, Farb- und Symbolskala usw. - mit dem zugehörigen Variablennamen beschriftet. Mit `labs()` lässt sich dies auch manuell festlegen:
+
+* `x = ` Achsenbeschriftung x-Koordinate
+* `y = ` Achsenbeschriftung y-Koordinate
+* `color = ` Legendenbeschriftung Farbskala
+* `fill = ` Legendenbeschriftung Farbskala
+* `symbol = ` Legendenbeschriftung Symbolskala
+* usw.
+
+
+
+```{r, echo = T}
+ggplot(data=mpg) +
+  geom_histogram(mapping = aes(x= displ,
+                               fill = drv)) +
+  labs(
+    title = "Werteverteilung des Hubraums",
+    subtitle = "Histogramm mit n=30 Intervallen",
+    caption = "Datensatz mpg, eigene Berechnungen",
+    x = "Hubraum [l]",
+    y = "Anzahl der Beobachtungen",
+    fill = "Antriebsart"
+    
+  )
+```
+
+
+### Textkommentare
+
+Direkte Texteingaben in die Graphik kann man mit der Funktion `annotate()` vornehmen.  Die Position wird durch eine absolute oder relative Positionsangabe bestimmt Dies geschieht durch die Argumente `x = ` und `y = ` für die vertikale bzw. horizontale Ausrichtung. 
+
+```{r, eval = T, echo = T}
+ggplot(data=mpg,mapping = aes(x= displ, y=hwy)) +
+  geom_point()+
+  annotate(geom="text",
+           label="Achtung Überlagerung: Einzelne Punkte können mehrere Beobachtungen umfassen.",
+            x = 4,
+            y = 5)
+
+```
+
+
+### Datenbeschriftungen
+
+Sofern sich die Textkommentare auf ausgewählte Datenpunkte beziehen, kann man sie mit der Funktion `geom_text()` direkt an die Datenpunkte ransetzen.
+
+Im Folgenden beschriften wir alle Autos des Herstellers `nissan` mit ihrer Modellbezeichnung.
+
+```{r, eval = T, echo = T}
+ggplot(data=mpg,mapping = aes(x= displ, y=hwy)) +
+  geom_point()+
+  geom_text(mapping = aes(label=model), data = mpg[mpg$manufacturer=="nissan",], nudge_y =.5)
+
+```
+
+Dem Graphiktyp `geom_text()`haben wir dazu im Argument `mapping = ` mitgeteilt, was als Text-Dimension zu schreiben ist, nämlich der Wert der Variable `model`. Die Auswahl haben wir getroffen, indem wir aus dem Datensatz nur die Beobachtungen ausgewählt haben, die in der Variable `manufacturer`den Wert `nissan` aufweisen. Zusätzlich haben wir den Text mit dem Argument `nudge_y` gegenüber der Position des Datenpunktes um $0,5$ Punkte nach oben verschoben.
+
+Verwendet man `geom_label()` statt `geom_text()` so wird der Text in ein rechteckiges Textfeld geschrieben:
+
+```{r, eval = T, echo = T}
+ggplot(data=mpg,mapping = aes(x= displ, y=hwy)) +
+  geom_point()+
+  geom_label(mapping = aes(label=model), data = mpg[mpg$manufacturer=="nissan",], nudge_y =.5)
+
+```
+
+***Kleine Übung***
+
+Ergänzen Sie die folgende Graphik um einen Titel, einen Untertiel und deutschsprachige Achsenbeschriftungen.
+
+```{r label, exercise = TRUE, exercise.lines=20}
+ggplot(data=mpg) +
+  geom_count(mapping = aes(x= class, y=drv))
+
+```
+
+
+## Skalierung und Maßstäbe
+
+Unter Skalierung versteht man die Zuordnung von Zahlenwerten zu graphischen Elementen. Je nach Art der Darstellung gibt es unterschiedliche Arten der Festlegung:
+
+* Achsenskalierung,
+* Farbskala,
+* Größenmaßstab für Symbole, u.s.w
+
+
+### Achsenskalierung
+
+Durch die Achsenskalierung wird die Abbildung der Zahlenwerte auf der x- und y-Koordinate festgelegt. Die Skalierung kann für die x- und y-Koordinate separat festgelegt werden. Dies geschieht durch Zusatzangaben zur Graphik. Dabei wählt man in der Regel zwischen einer Darstellung:
+
+* der direkten Zahlenwerte also ohne Veränderungen (standardmäßig),
+* in umgekehrter Reihenfolge (`+ scale_x_reverse()`),
+* mit logarithmischem Maßstab (`+ scale_x_log10()`) sowie 
+* mit einem Maßstab als Quadratwurzel(`+ scale_x_square()`)
+
+
+```{r, eval = T, echo = T}
+ggplot(data=mpg,mapping = aes(x= displ, y=hwy)) +
+  geom_point()+
+  scale_y_log10() +
+  scale_x_reverse()
+``` 
+
+Beachten Sie in der obigen Graphik die 
+* umgedrehte Skalierung der x-Koordinate sowie die
+* logarithmische Skalierung der y-Koordinate
+
+### Farbskalen
+
+Standardmäßig werden in `ggplot2` Farbskalen anhand des größten und kleinsten Zahlenwertes in den Daten automatisch festgelegt. Man kann diese allerdings auch manuell mit Hilfe der Funktionen `scale_fill_...` für Farbfüllungen bzw. `scale_color_...` für Farbumrandungen festlegen.
+
+Dabei stehen für kategorische Variablen zur Auswahl - hier für das Beispiel der Farbfüllung `_fill_`:
+
+* `scale_fill_grey` eine Graustufenskala mit Startwert `start = ` und Endwert `end = ` als Zahlenwerte zwischen 0 (schwarz) und 1 (weiss) sowie
+* `scale_fill_brewer()` eine Farbskala anhand einer vorgegebenen Palette (für eine Übersicht führe den Befehl `RColorBrewer::display.brewer.all()` aus )
+
+
+
+```{r, eval = T, echo = T}
+ggplot(data=mpg) +
+  geom_histogram(mapping = aes(x= hwy,fill = drv)) +
+  scale_fill_grey(start=.1,end=.5) 
+``` 
+
+Für metrische Variablen lässt sich dies festlegen durch:
+
+* `scale_fill_distiller()` für eine feste Palette,
+* `scale_fill_gradient()` für einen Farbverlauf zwischen `low = `Anfangspunkt und `high = `Endpunkt,
+* `scale_fill_gradient2()` für einen Farbverlauf zwischen `low = `Anfangspunkt und `high = `Endpunkt mit einem Mittelpunkt `mid = ` beim Zahlenwert `midpoint =`
+* `scale_fill_gradientn()` für einen Farbverlauf auf einer Palette mit einer vorgegeben Anzahl an Abstufungen,
+
+
+```{r, eval = T, echo = T}
+ggplot(data=mpg,mapping = aes(x= displ, y=hwy)) +
+  geom_point(mapping = aes(color = cyl)) +
+  scale_color_gradient2(low="red",high="blue",mid="green",midpoint = 6)
+``` 
+
+### Größenskalen
+
+Die Größe der Punkte bzw. Symbole ist eine weitere Graphikdimension, die man auch manuell skalieren kann. 
+
+Dies lässt sich festlegen durch die Wahl der Symbole als diskrete Skala mittels `scale_shape()` und `scale_shape_manual()` oder als metrische Skala für die Größe der Symbole mittels `scale_size()` für eine Skalierung gemäß der Fläche, `scale_radius()` für eine Skalierung gemäß des Radius. Dabei lässt sich mittels des Argument `range = ` der Wertebereich festlegen.
+
+```{r, eval = T, echo = T}
+ggplot(data=mpg,mapping = aes(x= displ, y=hwy)) +
+  geom_point(mapping = aes(size = cyl, shape=drv)) +
+  scale_shape_manual(values=c("4","f","r")) +
+  scale_size(range = c(4,8))
+``` 
+
+
+## Graphiken speichern
+
+Grundsätzlich lassen sich auch `ggplot2`-Graphiken mit denselben Methoden speichern wie bei der Basisausstattung von R, z.B. direkt aus der GUI (vgl. Kapitel zu Graphiken (base) ). Darüberhinaus bietet `ggplot2`auch weitere Speicherfunktionen:`ggsave()` nimmt als Argument einen Dateinamen und speichert die aktuelle Graphik im Plot-Fenster mit der aktuellen Größe ab. Das Dateiformat wird durch die Dateinamenendung bestimmt z.B. `.pdf` für PDF.
+
+In `ggsave()` lassen sich auch weitere Angaben zum gewünschten Graphikformat machen wie beispielsweise:
+
+* `dev = `  manuelle Angabe des Dateiformats
+* `fig.width`= `, `fig.height = ` und `fig.asp =` zur Angabe der Breite, Höhe und des Seitenverhältnisses der Graphik - die Maßeinheit kann durch Angabe von `units = ` festgelegt werden z.B. `units = cm`
+* `out.width = ` und `out.height = ` zur Angabe der Anzeigenbreite und -größe im Zieldokument - hier sind auch relative Angaben möglich wie z.B. `out.width = 50%` für die halbe Zeilenbreite
+
+
+
+## Umfangreiche Übung
+
+Anstelle eines Quizzes schließt dieses Kapitel mit einer umfangreicheren Übung.
+
+Stellen Sie in einem Streudiagramm die Daten im Datensatz `mpg` wie folgt dar:
+
+* die Variable `cty` auf der x-Koordinate - skaliert nach `log10`,
+* die Variable `hwy` auf der y-Koordinate - skaliert nach `log10`,
+* in getrennten Graphiken für die einzelnen Hersteller (`manufacturer`),
+* mit unterschiedlicher Farbe für die Symbole gemäß des Fahrzeugtyps `class`,
+* unterschiedlicher Größe gemäß der Variable `cyl` - mit Größen zwischen 1 und 4
+
+und ergänzen Sie die Graphik durch deutschsprachige Beschriftungen (Titel, Achsen,....)
+
+
+```{r ggplot_all, exercise = TRUE, exercise.lines=20}
+
+
+```
+
+```{r ggplot_all-hint-1}
+ggplot(data=mpg,mapping = aes(x= cty, y = hwy,
+                              
+                              
+                              )) +
+  geom_point()+
+  facet_wrap()
+```
+
+```{r ggplot_all-hint-2}
+ggplot(data=mpg,mapping = aes(x= cty, y = hwy,
+                              color=class
+                              )) +
+  geom_point()+
+  facet_wrap(vars(manufacturer))
+```
+
+
+```{r ggplot_all-hint-3}
+ggplot(data=mpg,mapping = aes(x= cty, y = hwy,
+                              color=class
+                              )) +
+  geom_point()+
+  scale_x_log10()+
+  scale_size()+
+  facet_wrap(vars(manufacturer)) +
+  labs(
+    
+  )
+```
+
+```{r ggplot_all-hint-4}
+ggplot(data=mpg,mapping = aes(x= cty, y = hwy,
+                              color=class
+                              )) +
+  geom_point()+
+  scale_x_log10()+
+  scale_size()+
+  facet_wrap(vars(manufacturer)) +
+  labs(
+    x = "Reichweite Stadt",
+    y = "Reichweite Land",
+    size = "Zylinderzahl",
+    title = "Treibstoffverbrauch verschiedener PKWs"
+  )
+```
+
+```{r ggplot_all-solution}
+ggplot(data=mpg,mapping = aes(x= cty, y = hwy,
+                              color=class,
+                              size=cyl)) +
+  geom_point()+
+  scale_x_log10()+
+  scale_y_log10()+
+  scale_size(range = c(1,4))+
+  facet_wrap(vars(manufacturer))+
+  labs(
+    x = "Reichweite Stadt",
+    y = "Reichweite Land",
+    size = "Zylinderzahl",
+    color = "Fahrzeugtyp",
+    title = "Treibstoffverbrauch verschiedener PKWs",
+    subtitle = "getrennt nach Hersteller",
+    caption = "Datensatz mpg, eigene Berechnungen"
+
+  )
+```
+

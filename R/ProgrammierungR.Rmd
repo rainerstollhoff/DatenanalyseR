@@ -1,0 +1,420 @@
+---
+title: "Programmierung R"
+output: learnr::tutorial
+runtime: shiny_prerendered
+author: Rainer Stollhoff
+description: "Grundlagen der Programmierung mit  R"
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+knitr::opts_chunk$set(echo = F)
+```
+
+
+## Allgemeines zur Programmierung
+
+Mit Hilfe von Programmierung kann man einen Computer anweisen bestimmte Berechnungen bzw. Prozesse der Informationsverarbeitung automatisiert oder in Interaktion mit dem Benutzer durchzuführen. In gewisser Hinsicht stellt die Interaktion mit der Kommandozeile in R schon eine einfache Art der Programmierung dar: Als Benutzer weist man den Computer durch Übergabe von Funktionsaufrufen z.B. `plot()` an, bestimmte Berechnungen und Informationsverarbeitungen durchzuführen. Die auf das Aufrufen von Funktionen beschränkte Programmierung lässt sich ausweiten, um komplexere Programme zu erstellen.
+
+
+### Anwendungsfall 1: Automatisierung
+
+Das interaktive Aufrufen von Befehlen in R ermöglicht einen manuell gesteuerte Informationsverarbeitungsprozess. Dieser kann in Skripten zusammengefasst und automatisiert werden. Um in diesem Prozess mehrfach hintereinander vergleichbare Operationen auf unterschiedliche Daten anzuwenden oder je nach Berechnungsergebnis vorangehender Schritte unterschiedliche Folgeanalysen durchzuführen, eine sogenannte Fallunterscheidung, kann man in R Kontrollstrukturen verwenden. Die beiden wohl am häufigsten verwendeten Kontrollstrukturen sind Bedingungen und  Schleifen.
+
+### Anwendungsfall 2: Implementieren neuer Algorithmen
+
+R verfügt bereits in der Basisausstattung über einen großen Umfang an Funktionen in denen häufig verwendete Algorithmen zur Informationsverarbeitung implementiert sind. Durch Pakete lässt sich dieser Funktionsumfang deutlich erweitern, so dass die meisten Algorithmen aus dem Bereich Statistik oder Maschinelles Lernen in der ein oder anderen Form direkt verfügbar sind.
+
+Sofern man Algorithmen in R verwenden will, die weder in der Basisausstattung noch in den verfügbaren Paketen vorhanden sind, so muss man diese in der Regel selber implementieren. Die Erstellung eigener Funktionen ist ein Anwendungsfall der Programmierung mit R.
+
+
+## Fallunterscheidungen
+
+### Logische Operatoren
+
+Eine logische Variable hat zwei mögliche Werte: wahr (`TRUE`) oder falsch (`FALSE`). Logische Variablen können direkt als solche angelegt werden. In der Regel sind Sie allerdings das Ergebnis logischer Operatoren. 
+
+Häufig verwendete logische Operatoren sind (Un-)gleichungsoperatoren der Form `VARIABLE1 OPERATOR VARIABLE2`:
+
+* `==`  Gleichheit
+* `!=` Ungleichheit
+* `<`  Kleiner 
+* `>` Größer 
+
+```{r, echo = T}
+x <- 8
+x/2==4
+x/2!=4
+x*2<8
+x*2>8
+```
+
+Logische Variablen lassen sich auch miteinander verknüpfen. Häufig verwendete Verknüpfungen sind:
+
+* `&`  logisches UND
+* `|` logisches ODER?
+
+Verknüpft man mehrere logische Operatoren, sollten diese in Klammern gesetzt werden. Ansonsten kann es Verwirrung geben, in welcher Reihenfolge die Operationen abgearbeitet werden.
+
+```{r, echo = T}
+x <- 8
+(x/2==4) & (x*2>8)
+(x/2!=4) | (x*2>8)
+```
+
+
+### Einfache Fallunterscheidungen
+
+Ausgangspunkt einer Fallunterscheidung ist eine logische Bedingung. Diese kann beispielsweise in der direkten Abfrage einer logischen Variable mit den zulässigen Werten `TRUE` oder `FALSE` bestehen. Oder die Bedingung kann durch einen logischen Ausdruck angegeben werden z.B. `x > 7`. Wenn diese Bedigung erfüllt ist (engl. if), soll der Computer anschließend bestimmte Befehle ausführen. Wenn die Bedingung nicht erfüllt ist (engl. else), soll der Computer andere Befehle ausführen.
+
+In R werden Fallunterscheidungen durch die Kontrollstruktur `if (BEDINGUNG){BEFEHLE}else{BEFEHLE}` gesteuert. Dem Aufruf `if`folgt dabei in runden Klammern die Bedingung. Anschließend folgen in geschweiften Klammern die Befehlsaufrufe für den Fall, dass die Bedingung erfüllt ist. Sofern gewünscht können daran anschließend mit dem Aufruf `else` Befehlsaufrufe anschließen für den Fall, dass die Bedingung nicht erfüllt ist.
+
+Im folgenden Beispiel wird die Fallunterscheidung an einem einfachen Beispiel vorgestellt.
+
+```{r, echo = T}
+x <- 17
+x>10
+if (x>10){
+  x/2
+  x*2
+}else{
+  x <- x-10
+  x*2
+}
+```
+
+***Kleine Übung ***
+
+* Führen Sie die Befehle zunächst direkt aus und analysieren Sie das Ergebnis - auf welchem Wege wurde das Ergebnis berechnet, wurde die Bedingungen erfüllt,...?
+* Verändern Sie anschließend die Eingangsvariable, um die Bedingung zu verändern und den anderen Fall zu erhalten und analysieren Sie das Ergebnis - wie wurde es berechnet?
+
+
+```{r fall, exercise=TRUE}
+x <- 17
+x>10
+if (x>10){
+  x/2
+  x*2
+}else{
+  x <- x-10
+  x*2
+}
+```
+
+### Einfache Fallunterscheidungen - Kurzversion
+
+Das oben beschriebene `if (){..}else{..}` lässt beliebige Befehlsaufrufe für beide Fälle zu. Falls man in der Fallunterscheidung jeweils höchstens nur einen einzigen Befehlsaufruf durchführen will und auch nur einfache Rückgabewerte vorkommen, kann man auch die Funktion `ifelse()` als Kurzversion verwenden. Diese nimmt als erstes Argument die Beendigung, als zweites Argument den Befehlsaufruf, falls die Bedingung erfüllt ist und als drittes Argument den Befehlsaufruf, falls die Bedingung nicht erfüllt ist.
+
+Für das obige Beispiel ergibt sich damit die Kurzversion  
+```{r, echo = T}
+x <- 17
+ifelse(x>10,x*2,(x-10)*2)
+```
+
+Die Kurzversion spart Platz, ist für den Leser aber meist weniger schnell verständlich.
+
+
+### Mehrfache Fallunterscheidungen
+
+Einfache Fallunterscheidungen anhand einer logischen Variablen lassen nur zwei diskrete Fälle zu. Will man auf diese Weise mehrere Fälle betrachten, so muss man einfache Fallunterscheidungen verschachteln. 
+Ein interaktives Beispiel für verschachtelte einfache Fallunterscheidungen in der Kurzversion:
+ 
+```{r kurz, exercise=TRUE, echo = T}
+x <- 17
+ifelse(x>10,ifelse(x>20,x*2,x),ifelse(x<0,x*10,(x-10)*2))
+```
+
+Die Verschachtelung erschwert allerdings die Lesbarkeit und Nachvollziehbarkeit - insbesondere in der Kurzversion.
+
+R bietet mit der Funktion `switch()` die Möglichkeit, direkt eine mehrfache Fallunterscheidung für einfache Berechnungen anzulegen. Das erste Argument der Funktion `switch()` ist dabei die Bedingung für die Fallunterscheidung in Form eines Zahlenwertes oder einer Zeichenkette des Typs `character`. Anschließend erfolgt eine Aufzählung der möglichen Fälle und der entsprechenden Rückgabewerte - entweder Werte oder einfache Berechnungen.
+
+Im folgenden Beispiel verwenden wir die Division mit Rest (in R: `%/%`), um für eine Monatszahl das Quartal als Zeichenkette auszugeben:
+
+```{r, echo = T}
+x <- 7
+y <- 1+x%/%3
+switch(y,
+          "Erstes Quartal",
+          "Zweites Quartal",
+          "Drittes Quartal",
+          "Viertes Quartal"
+)
+```
+
+Sofern die Bedingung für die Fallunterscheidung wie hier aus einem Zahlenwert besteht, wird der Wert zurückgegeben, der an der Position der Bedingung steht. In diesem Fall für `y=1`der erste Rückgabewert, für `y=2`der zweite, usw.
+
+Sofern die Bedingung aus einer Zeichenkette besteht, müssen die Rückgabewerte benannt werden in der Form `name=wert`. Sofern ´name´ Leer-oder Sonderzeichen beinhaltet, muss dieser in Anführungszeichen gesetzt werden.
+Zur Illustration kehren wir die obige Abfrage um:
+
+```{r, echo = T}
+x <- "Drittes Quartal"
+switch(x,
+          "Erstes Quartal"=1:3,
+          "Zweites Quartal"=4:6,
+          "Drittes Quartal"=7:9,
+          "Viertes Quartal"=10:12
+)
+```
+
+
+***Kleine Übung***
+
+* Ergänzen Sie den folgenden lückenhaften Programmcode.
+* Testen Sie mit dem vorgegebenen Ausgangswert von x
+* Testen Sie für `x="Gurke"
+
+```{r auswahl, exercise=TRUE, exercise.lines = 6}
+x <- "Banane"
+switch(x,
+       ="Obst",
+       Apfel="Obst",
+       Gurke=,
+       Kartoffel="Gemuese")
+```
+
+```{r auswahl-solution}
+x <- "Banane"
+switch(x,
+       Banane="Obst",
+       Apfel="Obst",
+       Gurke="Gemuese",
+       Kartoffel="Gemuese")
+```
+
+
+## Schleifen
+
+Mit einer Schleife können Befehlsaufrufe mehrfach wiederholt bzw. nacheinander auf die einzelnen Elemente einer Liste bzw. einer ein- oder mehrdimensionalen Variable angewendet werden. Man unterscheidet zwischen:
+
+* Schleifen mit einer festgelegten Durchlaufzahl, bei denen die Anzahl der Wiederholungen im voraus bekannt ist und
+* Schleifen mit einem Abbruchkriterium, bei denen so lange wiederholt wird, bis ein bestimmtes Kriterium erfüllt ist.
+
+### `for`- Schleifen mit fester Durchlaufzahl
+
+Schleifen mit einer festen Durchlaufzahl werden verwendet, wenn die Berechnung für alle Elemente in einer bestimmten Menge  wiederholt werden sollen. In R geschieht dies durch die Kontrollstruktur (`for (INDEX in MENGE){BEFEHLE}`). Die Befehlsaufrufe innerhalb der geschweiften Klammern werden von R alle der Reihe nach ausgeführt, aber nicht an die Konsole zurückgegeben. 
+
+```{r, echo = T}
+for(i in 1:10){
+  i*2
+}
+# Bis hierhin keine Ausgabe
+# Erst jetzt kommt die Ausgabe 
+i*10
+```
+
+Innerhalb des Befehlsbereichs können beliebige Befehle ausgeführt werden. Insbesondere können auch Veränderungen an anderen Variablen vorgenommen werden. Will man aus dem Befehlsbereich heraus Werte an die Konsole ausgeben, so muss man dies explizit mit der Funktion `print()` anweisen.
+
+```{r, echo = T}
+x <- 1:10
+x
+for(i in 1:length(x)){
+  x[i] <- x[i]*2
+  print(x[i]) # Direkte Ausgabe
+}
+x
+```
+
+
+***Kleine Übung***
+
+Berechnen Sie mit Hilfe einer Schleife für jeden Eintrag im Vektor x seine Quadratwurzel und speichern Sie das Ergebnis wieder in den Vektor x ab.
+
+```{r schleife, exercise=TRUE}
+x <- c(3,6,2,9)
+
+
+
+x
+```
+
+```{r schleife-hint-1}
+x <- c(3,6,2,9)
+for(i in 1:length(x)){
+  
+}
+x
+```
+
+```{r schleife-hint-2}
+x <- c(3,6,2,9)
+for(i in 1:length(x)){
+  x[i] <- sqrt(x[i])
+}
+x
+```
+
+
+### `while`- Schleifen mit Abbruchkriterium
+
+Bei einer Schleife mit Abbruchkriterium steht die Anzahl der Wiederholungen nicht im voraus fest. Vielmehr soll so lange wiederholt werden, so lange eine bestimmte Bedingung noch erfüllt ist. 
+
+In R geschieht dies durch die Kontrollstruktur `while (BEDINGUNG){BEFEHLE}`.
+Die Befehlsaufrufe werden dabei so lange wiederholt, so lange die Bedingung erfüllt ist. 
+
+
+```{r, echo = T}
+x <- 16
+while(x > 1.1){
+  print(x)
+  x <- sqrt(x)
+}
+sqrt(x)
+```
+
+> Wichtig: Computer folgen stets den Anweisungen, die Ihnen gegeben wurden. Wenn Sie eine Schleife mit Abbruckkriterium so aufschreiben, dass die Bedingung immer erfüllt ist, wird der Computer diese nie abbrechen! Daher ist es sehr wichtig, im voraus genau zu prüfen, ob und wann die Bedingung erfüllt ist, bevor man den Computer leichtfertig in eine unendliche Wiederholung schickt. Da dies nicht immer ganz so einfach ist und man schnell mal Fehler macht, verwendet man häufig ein zusätzliches Zählkriterium und verknüpft dieses durch ein logisches und - in R `&`.
+
+Das folgende Beispiel beinhaltet einen einfachen Fehler in der Abbruchbedingung, der durch ein paralleles Hochzählen der Schrittanzahl mit einer festen Obergrenze behoben wird.
+
+```{r, eval = FALSE, echo = T}
+x <- 16
+i <- 0
+while(x > 1 & i<10){  # hier liegt der mathematische Fehler 
+  print(x)
+  x <- sqrt(x)
+  i <- i+1
+}
+sqrt(x)
+```
+
+Genauso wie bei `for`-Schleifen kann man auch bei `while`Schleifen beliebige Befehle aufrufen und Variablen verändern. 
+
+## Funktionen erstellen
+
+Neben dem Einsatz vordefinierter Funktionen, kann man auch eigene Funktionen definieren, um häufig verwendete Ketten von Befehlsaufrufen zusammen zu fassen. 
+
+In R geschieht dies durch die Kontrollstruktur `NAME = function(ARGUMENTE){BEFEHLE}`. Die Definition einer Funktion selbst geschieht ohne Ausgabe in der Konsole. Um zu testen, ob die Funktion so funktioniert, wie gewollt, muss man diese aufrufen.
+
+```{r, echo = T}
+wurzel <- function(x){
+  sqrt(x)
+}
+wurzel(4)
+```
+
+Die Befehlsaufrufe innerhalb der geschweiften Klammern werden von R alle der Reihe nach ausgeführt. Mit der Funktion `return()` lassen sich die Rückgabewerte auch explizit festlegen. Nur wenn `return()` fehlt, gibt R den letzten Befehlsaufruf zurück.
+
+
+```{r, echo = T}
+wurzel <- function(x){
+ return(x)  # So wird das Ergebnis vor der Berechnung ausgegeben.
+ x <- sqrt(x)
+}
+wurzel(4)
+```
+
+Sie können auch Funktionen erstellen, die mehrere Argumente entgegen nehmen.
+
+
+```{r, echo = T}
+produkt <- function(x,y){
+ x*y
+}
+produkt(3,7)
+```
+
+
+### Exkurs: Guter Programmierstil
+
+Spätestens wenn man eigene Funktionen schreibt, sollte man sich ein paar Gedanken zur Lesbarkeit und Verständlichkeit des geschriebenen Programmcodes machen.
+
+Für den Einstieg ein paar Grundregeln aus einem [Artikel von Golo Roden auf heise.de](https://heise.de/-4671909)]:
+
+* Einheitliche Formatierung (Einrückungen, Klammern, Leerzeichen) - Unterschiede nur, wenn diese eine Bedeutung haben
+* Variablen- und Funktionsnamen informativ gestalten - sie sollen die Intention widerspiegeln
+* Einheitlicher Detail- bzw Abstraktionsgrad - sehr spezifische Anweisungen ggf. in eine Funktion mit aussagekräftigem Namen auslagern
+* Komplexe Konstrukte nur verwenden, wenn dies wirklich nötig und sinnvoll ist
+* Kommentare sollten sich weniger auf das **was** und mehr auf das **warum** beziehen - was gemacht wird, steht schon im Programmcode selber, für andere ist wichtiger warum dies gerade so und nicht anders umgesetzt wurde
+
+Es handelt sich hierbei um gut gemeinte Vorschläge und nicht um bindende Vorgaben.
+
+
+## Übung 
+Erstellen Sie im Folgenden eine Funktion `spaltensumme()`, die 
+* eine Datentabelle einliest, 
+* in einer Schleife durch die Spalten des Datensatzes geht (Tipp: `ncol()`für die Anzahl Spalten), 
+* dabei für jede Spalte mit der Funktion `sum()` die  Summen berechnet und 
+* die Spaltensummen als Vektor wieder ausgibt.
+
+Testen Sie die Funktion, indem Sie die Spaltensummen des Datensatzes `trees` berechnen.
+
+*Die Übungsaufgabe ist etwas umfangreicher und benötigt auch Kenntnisse aus den anderen Abschnitten der Einführung in R. Versuchen Sie dennoch soweit wie möglich ohne die Hinweise auszukommen.*
+
+```{r spaltensumme, exercise=TRUE, exercise.lines=20}
+spaltensumme = 
+
+
+
+
+
+
+
+spaltensumme(trees)
+```
+
+```{r spaltensumme-hint-1}
+spaltensumme = function(data){
+
+}
+spaltensumme(trees)
+```
+
+```{r spaltensumme-hint-2}
+spaltensumme = function(data){
+ nc <- ncol(data) 
+ 
+ for(i in 1:nc){
+    <- sum(data[,i])
+ }
+return()
+}
+spaltensumme(trees)
+```
+
+
+```{r spaltensumme-solution}
+spaltensumme = function(data){
+ nc <- ncol(data) 
+ summen <- 1:nc   # Vektor wird mit richtiger Laenge angelegt. Inhalte werden nachher ueberschrieben.
+ for(i in 1:nc){
+   summen[i] <- sum(data[,i])
+ }
+return(summen)
+}
+spaltensumme(trees)
+## Hinweis: Dieselbe Funktionalität ist auch in der Funktion colSums() implementiert.
+```
+
+
+
+## Quiz
+Ein paar Fragen, um das Verständnis der Lehrinhalte zu überprüfen.
+
+```{r quiz, echo=F}
+quiz(
+  question("Welche der folgenden Aufrufe kann als Bedingung in einer Fallunterscheidung verwendet werden?",
+    answer("x <- 7"),
+    answer("x=7"),
+    answer("x==7", correct = TRUE),
+    answer("x<7", correct = TRUE)
+  ),
+  question("Was passiert bei folgender Kontrollstruktur `while(x*x >0)`?",
+    answer("Der Computer ist in den meisten Fällen in einer unendlichen Schleife gefangen.", correct = TRUE),
+    answer("Der Computer stoppt bei x=0.", correct = TRUE),
+    answer("Der Computer berechnet das Quadrat von x.", correct = TRUE),
+    answer("Die Bedingung ist fast immer wahr.", correct = TRUE)
+  ),
+   question("Mit welcher Kontrollstruktur kann man eine Fallunterscheidung durchführen?",
+    answer("`if(...){...}else{...}`", correct = TRUE),
+    answer("ifelse(...,...,...)", correct = TRUE),
+    answer("for(... in ...){...}"),
+    answer("switch(...,...)", correct = TRUE)
+  ),
+   question("Welche der folgenden Funktionsdefinitionen liefert beim Aufruf mit `quadrat(2)` das Ergebnis `4`?",
+    answer("`quadrat=function(x){x*x}`", correct = TRUE),
+    answer("`quadrat=function(x){x**2}`", correct = TRUE),
+    answer("`quadrat=function(x){x*2}`", correct = TRUE),
+    answer("`quadrat=function(x){4}`", correct = TRUE)
+  )
+)
+```
+

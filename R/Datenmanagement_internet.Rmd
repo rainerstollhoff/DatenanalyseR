@@ -1,0 +1,389 @@
+---
+title: "Datenmanagement - Import von Online Datenquellen"
+output: learnr::tutorial
+runtime: shiny_prerendered
+author: Rainer Stollhoff
+description: "Das Tutorial zeigt, wie man mit Hilfe spezieller R Pakete Daten aus Onlinequellen schnell und einfach einlesen kann."
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+knitr::opts_chunk$set(echo = FALSE)
+library(Quandl)
+Quandl.api_key("KTgBzn84d6v-JQJB8v76")
+
+
+```
+
+## Übersicht
+
+### Ebenen der Einbindung von Datenquellen in R
+
+R bietet vielfältige Möglichkeiten, externe Datenquellen einzubinden.
+
+Auf unterster Ebene geschieht dies mit Systembefehlen wie
+
+* `file()` und `url()` zum Herstellen einer Verbindung zu einer Datei
+
+Auf der nächsten Ebene erfolgt das Einlesen angebundener Datenquellen aus einer Datei mit Befehlen wie
+
+* `read.table()` für das Einlesen von strukturierten Datenquellen oder
+* `readLines()` für das zeilenweise Einlesen
+
+Komfortabler sind allerdings Pakete, die einen Zugriff auf eine oder mehrere Datenbanken bieten und die abgerufenen Daten direkt in einem einheitlichen und für die spätere Analyse geeigneten Format bereitstellen.
+
+### Online Datenquellen
+
+Für jeden Themenbereich gibt es Online eine große Zahl an Datenquellen. Diese unterscheiden sich hinsichtlich 
+
+* der Verfügbarkeit zwischen öffentlich zugänglichen Daten, mit einem kostenlosen Account, abrufbaren Daten und bezahlpflichtigen Daten
+* des Umfangs zwischen Datenquellen für einzelne spezielle Daten, einer thematisch eingegrenzten umfangreichen Datensammlung oder einem Universalanbieter mit einer Vielzahl an Daten zu unterschiedlichen Themen
+* der Möglichkeit zur Einbindung zwischen dem manuellen Zugriff auf Daten in einem Webportal, der Möglichkeit zum Download einzelner Daten als Datei oder der Einbindung mittels Programmschnittstelle (API)
+
+Im Folgenden wird eine Auswahl an Paketen vorgestellt, die 
+
+* in R eine automatisierte Anbindung externer Datenquellen mittels API ermöglichen,
+* den Zugriff auf eine möglichst umfangreiche Datensammlung bieten und
+* deren Datenquellen öffentlich oder mit einem kostenlosen Account nutzbar sind.
+
+Dabei wird thematisch unterschieden zwischen Paketen, deren Datenquellen einen Schwerpunkt haben in den Bereichen
+
+* Volkswirtschaftliche und demographischen Daten (z.B. Eurostat)
+* Finanzmarktdaten (z.B. Yahoo Finance)
+
+Eine umfangreiche Übersicht über R Pakete zur Anbindung öffentlicher Datenquellen findet sich unter <https://github.com/ropensci/opendata>
+
+## Exkurs: Der Datentyp `xts`
+
+Der Zeitreihendatentyp `ts` ermöglicht eine einfache Verarbeitung von Zeitreihendaten. 
+
+Das Paket `xts` stellt mit dem Datentyp `xts` eine Erweiterung dar, die ein komfortableres Arbeiten mit Zeitreihen ermöglicht. Insbesondere erleichtert es die Einschränkung auf bestimmte Zeiträume und bietet eine ansprechendere Visualisierung mit `plot()`.
+
+
+```{r , exercise=F ,eval=T, echo=T}
+#install.packages("xts")
+library(xts)
+co2_xts <- as.xts(co2)
+plot(co2_xts)
+plot(co2_xts["1988/1992"])
+```
+
+Im Folgenden werden Finanzdaten in der Regel im `xts` Datentyp eingelesen und verarbeitet. 
+
+## Finanzdaten
+
+### Originäre Datenquellen
+
+(@) Finanzmarktdaten (z.B. Wertpapierkurse)
+
+Originäre Anbieter von Finanzmarktdaten sind die Börsen. Diese stellen die Kurse der bei Ihnen gehandelten Wertpapiere in der Regel öffentlich zur Verfügung. Für den Zugriff müssen in der Regel übergeben werden:
+
+* die Identifikationskennung  des Wertpapiers (über ISIN, WKN, Ticker, Symbol),
+* der Zeitraum, 
+* die Frequenz (z.B. täglich) und
+* ggf. die Art des Kurses (z.B. Schlusskurs oder Höchstwert)
+
+Neben dem direkten Zugriff auf die Börsendaten bieten verschiedene Anbieter die Kursdaten aufbereitet und aggregiert über verschiedene Handelsplätze an. Zu den bekanntesten kommerziellen Anbietern gehören Bloomberg oder Reuters. Öffentliche oder kostenlos nutzbaren Zugang bieten `finance.yahoo.com` oder `quandl.com`.
+
+(@) Unternehmensdaten (z.B. Jahresabschlüsse)
+
+Unternehmensdaten wie Jahresabschlüsse werden in der Regel von den Unternehmen auf eigenen Seiten veröffentlicht und je nach gesetzlichen Regeln auch in einem öffentlichen Register hinterlegt. 
+
+Einen Zugriff auf aufbereitete und aggregierte Daten bieten kommerzielle Anbieter wie Datastream, Compustat oder Reuter. Das Projekt bzw. die Webseite `simfin.com` bietet einen öffentlichen oder kostenlosen Zugriff.
+
+
+## Das R Paket `quantmod` 
+
+Das R Paket `quantmod` ist eine umfangreiche Bibliothek mit Werkzeugen und Methoden zur quantitativen Analyse von Handelsmodellen. Wir werden hier auf die Importfunktionen zurückgreifen.
+
+Als Datenquelle werden `finance.yahoo.com` und `oanda.com` verwendet. Diese Seite bietet hinsichtlich Qualität und Umfang für die meisten Fälle ausreichende Daten sowie eine gute API.  
+
+Zum Abruf von Finanzdaten gibt es die Funktionen
+
+* `getSymbols()` und `getDividends()` zum Abrufen von Aktienkursen bzw. Dividendenzahlungen von `finance.yahoo.com`
+* `getFX()` und `getMetal()` zum Abrufen von Metallpreisen bzw. Wechselkursen von `oanda.com`
+
+Im Folgenden beschränken wir uns auf Aktienkurszeitreihen. 
+
+Die Daten werden als Datentyp `xts` gespeichert, einer Erweiterung des Zeitreihendatentyps `ts` aus dem Basispaket. 
+
+### Aktienkurse mit `quantmod` laden und anzeigen
+
+Ausgangspunkt für die Kursabfrage ist der Identifikationscode der Aktie bei `finance.yahoo.com`, das sogenannte `Symbol`. Dies lässt sich über `https://de.finance.yahoo.com/lookup/` recherchieren.
+
+Wir verwenden als Beispiel die Aktienkurse der Siemens AG, mit dem Symbol `SIE.DE`, und der Microsoft Corporation mit dem Symbol `MSFT`.
+
+Die Aktienkurse werden mit dem Befehl `getSymbols()` geladen. Dieser erwartet die Argumente:
+* `Symbols = ` Ein Zeichenvektor mit den abzufragenden Symbolcodes.
+* `src = ` Auswahl der Datenquelle, Standard ist `yahoo`.
+
+```{r , exercise=F ,eval=T, echo=T}
+#install.packages("quantmod")
+library(quantmod)
+getSymbols(Symbols= c("SIE.DE","MSFT"),src="yahoo")
+```
+
+Die Funktion `getSymbols` legt zum Speichern der Daten Variablen an mit dem Namen des Symbols. Die Variable beinhaltet für jede Aktie sechs verschiedene Kurse: `Open`, `Low`, `High`, `Close` (OLHC) und `Adjusted`. Man spricht von einer mehrdimensionalen Zeitreihe.
+
+Die Kursdaten lassen sich nun auf unterschiedliche Daten rauslesen und anzeigen. Wir demonstrieren dies für die Kurswerte im April 2020.
+
+Zunächst als erweiterten Handelschart (Candlestick) mit `chartSeries()`, welche neben OLHC insbesondere das Handelsvolumen mit einschließt (Detail über die Hilfefunktion `?chartSeries`)
+
+```{r , exercise=F ,eval=T, echo=T}
+chartSeries(SIE.DE["2020-03"])
+```
+
+> Der Candlechart zeigt Open, Close, High und Low und farblich kodiert einen Tagesgewinn in grün oder -verlust in rot.
+
+Das Paket `quantmod` bietet vielfältige Möglichkeiten das Chart um sogenannte technische Indikatoren zu erweitern, z.B. 
+* `addBBands()` für Bollinger Bänder
+* `addSMA()` oder`addWMA()` für den einfachen bzw. gewichteten gleitenden Mittelwert 
+
+
+```{r , exercise=F ,eval=T, echo=T}
+chartSeries(SIE.DE["2020-03"])
+addWMA(n=4,wts=rep(1/4,4))
+```
+
+### Allgemein: `xts` Zeitreihen plotten
+
+Allgemein lassen sich `xts` Zeitreihen mit der Funktion `plot()` anzeigen. Für mehrdimensionale Zeitreihen muss man zunächst den gewünschten Kurs auswählen.
+
+```{r , exercise=F ,eval=T, echo=T}
+plot(SIE.DE$SIE.DE.Adjusted["2020-03"])
+```
+
+> Hier erkennt man sehr gut die Wochenendpausen zwischen den Handelstagen.
+
+Um mehrere Kursverläufe in denselben Plot zu integrieren, verwendet man die `xts` Funktion `addSeries()`. Standardmäßig wird die neue Kurve in einem eigenen Plot dargestellt. Durch das Argument `on=1` erreicht man eine Aufnahme in den bestehenden Plot. Dabei muss man allerdings darauf achten, dass der Wertebereich der unterschiedlichen Kurswerte eine Darstellung in demselben Plot zulässt. Zusätzlich lassen sich mit `addEventLines()` ausgewählte Zeitpunkte als vertikale Linie abbilden.
+
+```{r , exercise=F ,eval=T, echo=T}
+plot(SIE.DE$SIE.DE.Adjusted["2020-03"], ylim=c(0,200), main="Adjustierte Schlusskurse")
+addSeries(MSFT$MSFT.Adjusted, on=1, col=2)
+addLegend(legend.names = c("Siemens","Microsoft"),lty=1, col=1:2)
+addEventLines(xts("Vorlesungsbeginn",as.Date("2020-03-16")),pos=1,col=3)
+```
+
+Grundsätzlich lassen sich Zeitreihendaten nach Extraktion und Konvertierung der rohen numerischen Daten auch als Vektor mit `plot()` darstellen.
+
+```{r , exercise=F ,eval=T, echo=T}
+plot(as.numeric(SIE.DE$SIE.DE.Adjusted))
+```
+
+Diese Darstellungsform ist allerdings am wenigsten ansprechend. Ich habe Sie hier der Vollständigkeit halber aufgenommen und auch um zu demonstrieren, wie man aus der heruntergeladenen `xts` Variablen die reinen Kurswerte als Zahlen extrahieren kann.
+
+### Kleine Übung
+
+Verwenden Sie die Funktionen der Pakete `quantmod` und `xts` und
+
+* laden Sie die Kursdaten der Tesla Inc. (Symbol `TSLA`) von `finance.yahoo.com`,
+* erstellen Sie ein `quantmod` Chart mit OLHC für die Jahre 2018 bis 2020,
+* erstellen Sie einen `xts` Plot für die Jahre 2018 bis 2020,
+* ergänzen Sie im `xts` Plot den Zeitpunkt, als Tesla den Werksbau in Brandenburg öffentlich bekanntgegeben hat, den 12.11.2019
+
+
+```{r quantmod_xts, exercise=TRUE, exercise.lines =10 }
+
+
+
+```
+
+
+```{r quantmod_xts-hint-1}
+getSymbols(Symbols= "TSLA",src="yahoo")
+
+
+```
+
+```{r quantmod_xts-hint-2}
+getSymbols(Symbols= "TSLA",src="yahoo")
+chartSeries(TSLA)
+plot(TSLA$TSLA.Adjusted)
+addEventLines(xts(    "",as.Date("2019-11-12")),pos=1,col=3)
+
+```
+
+
+```{r quantmod_xts-solution}
+getSymbols(Symbols= "TSLA",src="yahoo")
+chartSeries(TSLA["2018/2020"])
+plot(TSLA$TSLA.Adjusted["2018/2020"])
+addEventLines(xts("TSLA in BB",as.Date("2019-11-12")),pos=1,col=3)
+
+```
+
+
+## Das Portal `quandl.com`und das R Paket `Quandl`
+
+Das Portal `quandl.com` bietet Zugriff auf umfassende Finanz- und Wirtschaftsdaten. Darunter finden sich auch viele kostenlose Datenbanken. In der Webversion ist der Zugriff öffentlich, für den Zugriff über die API benötigen Sie eine Registrierung und einen API-Key.
+
+Die Registrierung ist kostenlos und erlaubt einen Zugriff auf freie Daten mittels API.
+
+In der R Umgebung auf dem Server ist mein persönlicher API-Key hinterlegt. Ich bitte Sie daher, sich vernünftig zu verhalten und in der Lernumgebung nicht übermäßig viele bzw. häufig Kursdaten abzurufen. Sollten sich Probleme ergeben, werde ich die Übungen abschalten müssen.
+
+
+Für einen eigenen API key und die Nutzung in Ihrer lokalen R Installation:
+* Rufen Sie die Seite `quandl.com` auf und registrieren Sie sich als Nutzer
+* Loggen Sie sich als Nutzer auf `quandl.com` ein und öffnen Sie die Nutzereinstellungen (*Account Settings*) 
+* Kopieren Sie den API Key, eine längere Folge von Buchstaben, Nummern und Zeichen.
+
+In R initialisieren wir das Paket und übergeben den API-Key
+
+```{r , exercise=F ,eval=F, echo=T}
+#install.packages("Quandl")
+library(Quandl)
+Quandl.api_key("1234567890XYZ_YourKey")   ## Diese Werte durch Ihren API-Key ersetzen
+```
+
+Im Folgenden werde ich den Einsatz von Quandl an einem Beispiel kurz demonstrieren. Weitere Informationen zur Verwendung von Quandl in R finden sich Online auf den Hilfeseiten von Quandl <https://docs.quandl.com/docs/>. Dort finden sich neben allgemeinen Angaben auch Dokumentationen zu den R-Befehlen und Beispielaufrufe.
+
+### Datenquellen auf `quandl.com`
+
+`Quandl.com` ist ein Portal. Die verfügbaren Datensätze werden von unterschiedlichen Quellen bezogen:
+
+* Internationale Institutionen (z.B. IMF, Weltbank, EZB, Bundesbank)
+* Börsen- / Handelsplätze (z.B. NASDAQ, Euronext, Frankfurter Börse, EUREX)
+* Forschungseinrichtungen und Universitäten (z.B. Yale, U Michigan)
+
+Zu Beginn des Datenimports muss geklärt werden, welche Daten aus welcher Quelle importiert werden sollen. Dies geschieht durch eine Suchanfrage auf `Quandl.com`. Über die Suche erhalten wird den Identifikationscode über den die Daten in `Quandl` abrufbar sind.
+
+### Zeitreihendaten mit `Quandl()` laden und analysieren 
+
+Der Abruf von Daten erfolgt mit der Funktion `Quandl()`. Diese hat als Argumente:
+
+* `code = ` der Identifikationscode der Zeitreihe - eine notwendige Angabe
+* `type = ` legt den Datentyp fest - möglich sind u.a. `raw`, `ts` und `xts`, wir verwenden `xts`
+* `start_date =` und `end_date = ` für Start- und Endzeitpunkt
+* `transform = ` erlaubt eine Vortransformation der Daten z.B. `diff` für die Differenzzeitreihe
+* `collapse = ` zum Aggregieren der Daten z.B. `monthly` für Monatswerte
+
+Anders als `getSymbols()` aus dem Paket `quantmod`  erzeugt der Aufruf der Funktion `Quandl()` nicht direkt neue Variablen. Die Daten werden heruntergeladen und angezeigt. Zum Abspeichern müssen die Werte einer Variablen zugewiesen werden, wie bei anderen Funktionsaufrufen auch. 
+
+Je nach Zeitreihe können die heruntergeladenen Daten nur eine Datenreihe beinhalten oder sind mehrdimensionale Zeitreihendaten.
+
+Im Folgenden analysieren wir die Goldpreise der London Bullion Market Association mit dem Identifikationscode `LBMA/GOLD` für den Zeitraum seit 2010 und laden diese als `xts`herunter.
+
+```{r , exercise=F ,eval=F, echo=T}
+gold <- Quandl("LBMA/GOLD",start_date="2010-01-01",type="xts")
+names(gold)
+```
+
+Der Datensatz beinhaltet mehrere Preisangaben: Einerseits in drei Referenzwährungen, andererseits für vormittags (AM) und nachmittags (PM) festgelegte Preise.
+
+Wir betrachten die Goldpreise in Euro für das Nachmittags-Fixing für das Jahr 2020. 
+
+```{r , exercise=F ,eval=F, echo=T}
+plot(gold$`EURO (PM)`["2020"])
+```
+
+
+
+### Kleine Übung
+
+Erstellen Sie eine Graphik, in der die **Silber**preise der London Bullion Market Association für das Jahr **2018**  in EUR und USD in demselben Plot dargestellt werden. Ergänzen Sie eine Legende und vergeben Sie einen passenden Titel.
+
+```{r quandl, exercise=TRUE, exercise.lines =10 }
+
+```
+
+```{r quandl-hint-1}
+silver <- Quandl("LBMA/SILVER",type="xts")
+plot(silver$USD)
+
+```
+
+```{r quandl-hint-2}
+silver <- Quandl("LBMA/SILVER",start_date="2018-01-01", end_date="2018-12-31",type="xts")
+# Zur Reduktion des Download-Volumens schränken wir hier schon den Datenabruf zeitlich ein
+plot(silver$USD, main="Vergleich der Silberpreise")
+
+addLegend(legend.names = c("USD","EUR"),lty=1, col=1:2)
+
+```
+
+
+```{r quandl-solution}
+silver <- Quandl("LBMA/SILVER",start_date="2018-01-01", end_date="2018-12-31",type="xts")
+plot(silver$USD, main="Vergleich der Silberpreise",ylim=c(10,18))
+addSeries(silver$EUR, on=1, col=2)
+addLegend(legend.names = c("USD","EUR"),lty=1, col=1:2)
+
+```
+
+
+## Weitere R Pakete zu Finanzmarktdaten
+
+Die Pakete `quantmod` und `Quandl` ermöglichen den einfachen Zugriff auf eine große Bandbreite an Finanzmarktdaten. Sie setzen in R lediglich das Paket `xts` voraus und sind direkt öffentlich bzw. mit einem kostenlosen Account nutzbar.
+
+Neben diesen beiden Paketen gibt es noch eine Vielzahl weiterer Pakete, die einen Datenzugriff ermöglichen. Eine umfangreiche Übersicht über R Pakete zur Anbindung öffentlicher Datenquellen findet sich unter <https://github.com/ropensci/opendata>.
+
+Im Folgenden will ich noch kurz zwei weitere Pakete vorstellen:
+
+* `GetQuandlData`: greift auf `quandl.com` zu, speichert und verarbeitet die Daten dann allerdings im `tidyverse` Format als `tbl` weiter
+* `simfinR`: greift auf Daten von `simfin.com`zu, einem Portal, das auch Fundamentaldaten von Unternehmen anbietet, speichert und verarbeitet die Daten dann allerdings im `tidyverse` Format als `tbl` weiter
+
+<!-- ## Ökonomische und demographische Daten -->
+
+<!-- ### Originäre Datenquellen -->
+
+<!-- Ökonomische Daten wie z.B. BIP-Daten oder Zinssätze der Zentralbanken und statistische Daten w.B. zu Erwerbstätigkeit oder Bildungsabschluss werden in der Regel von den Sie festlegenden bzw. erhebenden offiziellen Institutionen bereitgestellt (z.B. dem Statistical Data Warehouse der EZB `sdw.ecb.europa.eu`) -->
+
+<!-- Darüber bieten Portale eine aggregierten Zugriff auf mehrere Quellen, kommerziell z.B. `statista.com` für eine umfassende Sammlung und frei z.B. `Quandl.com` für Finanz- und Wirtschaftsdaten (siehe oben). -->
+
+<!-- ### Das R Paket `SDMX` -->
+<!-- Die sdmx (*Statistical Data and Metadata eXchange*) Initiative hat die Verbesserung des Austausches von statistischen Daten und Metadaten zum Ziel. Kern ist das Setzen von Standards zur Formatierung, Indizierung und Informationsverarbeitung von Daten. -->
+
+<!-- Mittlerweile beteiligen sich die meisten auf internationaler Ebene bedeutsamen öffentlichen Institutionen an der Initiative u.a. UN, Weltbank, OECD, IMF, Eurostat, EZB und BIS.  -->
+
+<!-- Das Paket `rsdmx` wurde von sdmx entwickelt und bereitgestellt und dient dazu, in R Daten nach dem sdmx Stndard von öffentlichen Institutionen abzurufen. -->
+
+<!-- Der Abruf der Daten erfolgt mit der Funktion `readSDMX()`. Diese akzeptiert zwei verschiedene Arten des Verweises auf die Daten: -->
+
+<!-- 1. Angabe einer `url` des Webportals der Institution mit dem Argument `file =`. -->
+<!-- 2. Separate Angabe von  -->
+<!--   + Datenbereitsteller mit dem Argument `providerID = `,  -->
+<!--   + Datentyps mit dem Argument `resoource = ` - möglich sind `data` und `metadata`, -->
+<!--   + Datenkennung mit dem Argument `ressourceID = ` -->
+
+
+
+<!-- Weitere Informationen finden sich unter:  <https://github.com/opensdmx/rsdmx/wiki> -->
+
+
+
+<!-- ```{r , exercise=F ,eval=F, echo=T} -->
+<!-- #install.packages("rsdmx") -->
+<!-- library(rsdmx) -->
+<!-- as.data.frame(getSDMXServiceProviders()) # Eine Übersicht der teilnehmenden Institutionen -->
+<!-- ``` -->
+
+<!-- ### Das R Paket `wiesbaden` -->
+
+
+
+## Quiz
+Ein paar Fragen, um das Verständnis der Lehrinhalte zu überprüfen.
+
+```{r quiz}
+quiz(
+  question("Warum verwendet man für den Datenabruf eine API?",
+    answer("Da eine API zu einer höheren Qualität der bereitgestellten Daten führt."),
+    answer("Da eine API eine einheitliche Schnittstelle für Datenformatierung und -abruf bereitstellt.", correct = TRUE),
+    answer("Da sich durch eine API Datenabrufe besser automatisieren lassen.", correct = TRUE),
+    answer("Da eine API für offizielle Institutionen gesetzlich vorgeschrieben ist.")
+  ),
+  question("Was versteht man unter einer mehrdimensionalen Zeitreihe? ",
+    answer("Beobachtungen mehrerer Variablen zu denselben Zeitpunkten.", correct = TRUE),
+    answer("Beobachtungen mehrerer Variablen zu mehreren Zeitpunkten."),
+    answer("Beobachtungen einer Variablen zu mehreren Zeitpunkten."),
+    answer("Beobachtungen einer Variablen zu denselben Zeitpunkten.")
+  ),
+   question("Über welche Argumente übergibt man in `Quandl()` und ``getSymbols()` die Indentifikationskennung der gewünschten Daten?",
+    answer("`ID`"),
+    answer("`Symbols`", correct = TRUE),
+    answer("`code`", correct = TRUE),
+    answer("`ticker`")
+  )
+)
+```
+
