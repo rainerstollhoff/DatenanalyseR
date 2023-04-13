@@ -1,0 +1,607 @@
+---
+title: "Grundlagen R"
+output: learnr::tutorial
+runtime: shiny_prerendered
+author: Rainer Stollhoff
+description: "Eine interaktive Einführung in die Grundlagen der Bedienung von R"
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+## Allgemeines zu R
+
+### Hintergrund R
+* R ist eine kostenfreie, quelloffene Software zur statistischen Programmierung und Datenanalyse. 
+* R wird unter der GNU GPL lizensiert
+* R verfügt über eine Vielzahl an Methoden zur statistischen Datenanalyse
+* R lässt sich über die Grundfunktionen hinaus durch Palete flexibel erweitern
+* R verfügt über eine große Community an Nutzern und aktiven Entwicklern
+
+### Hintergrund R Studio
+* R Studio ist eine Benutzeroberfläche, die die Bedienbarkeit von R erleichtert
+* R Studio wird kommerziell vertrieben, ist aber immer auch in einer kostenfreien Variante verfügbar
+* R Studio lässt sich auch auf einem Server aufsetzen, so dass Nutzer nur einen Webbrowser benötigen
+
+### Hilfe in R
+* R verfügt zu jedem Befehl über eine eingebaute Hilfe bzw. Dokumentation
+* Die Hilfen oder Dokumentationen lassen sich mit dem Befehl `help()` aufrufen
+
+```{r help, exercise=F,eval=F}
+help(help)
+help(sum)
+```
+
+* Alternativ kann man auch die Kurzschreibweise `?`verwenden
+```{r help_short, exercise=F ,eval=F}
+?sum
+```
+
+* Die Hilfe gliedert sich in 
+
+  + `Description`: Kurzbeschreibung
+  + `Usage`: Vollständiger Funktionsaufruf
+  + `Arguments`: Erläuterung der Funktionsargumente
+  + `Details`: Ausführliche Beschreibung
+  + `Value`: Beschreibung der Rückgabe der Funktion
+  + `References`: Literatur
+  + `See also`: Verweis auf andere R-Funktionen
+  + `Examples`: Beispiele 
+
+## Rechnen mit R
+
+### Einfache Operationen
+
+Einfache Mathematische Operationen wie z.B.  
+
+* `+`  Addition
+* `-` Substraktion
+* `*`  Multiplikation 
+* `/` Division 
+* `^` Potenz
+
+können direkt eingegeben werden.
+
+```{r simple, exercise=F ,eval=T, echo=T}
+2+2
+5*5
+6^2
+```
+
+** Wichtig: R arbeitet im amerikanischen System. Die Dezimalstelle wird hier durch einen Punkt abgetrennt und nicht wie in Deutschland üblich durch ein Komma. Verwendet man ein Komma erhält man einen Fehler. **
+
+
+```{r dec, exercise=F ,eval=T, echo=T}
+2*1.2
+```
+
+
+
+
+**Kleine Übung**
+
+Berechnen Sie im folgenden Feld das Produkt von 7 und 1,4.
+
+```{r prod, exercise=TRUE, exercise.lines = 1}
+
+```
+
+
+### Mathematische Funktionen
+
+R verfügt bereits über die gängigen mathematischen Funktionen und Konstanten.
+Diese lassen sich über Ihren englischen Namen bzw. eine Abkürzung dessen aufrufen:
+
+* `sqrt()` Quadratwurzelfunktion
+* `exp()` Exponentialfunktion
+* `log()` natürlicher Logarithmus
+* `log10()` Logarithmus zur Basis 10
+* `pi`  die Kreiszahl Pi
+
+Dabei werden Funktionen immer mit Klammern () aufgerufen. Konstanten direkt.
+
+
+Funktionen können dabei auch verschachtelt aufgerufen werden. 
+```{r}
+log(exp(1))
+```
+
+Dabei wird zunächst die innere Funktion - hier`exp(1)` - ausgewertet und der Funktionswert dann als Argument an die äußere Funktion - hier `log()` übergeben. 
+
+
+### Funktionen mit mehreren Argumenten
+
+Manche Funktionen lassen weitere Argumente zu bzw. erwarten diese sogar.
+So berechnet die Funktion `log()` den natürlichen Logarithmus, d.h. zur Basis e. Allerdings lassen sich mit `log()` auch Logarithmen zu jeder anderen Basis berechnen. Dies geschieht durch Angabe der Basis als zweites Argument. Die Argumente werden dann durch ein Komma voneinander getrennt.
+
+```{r, echo = T}
+log(8,2)
+```
+
+Der obige Aufruf berechnet den Logarithmus von 8 zur Basis 2. Die Reihenfolge der Argumente ist dabei entscheidend. 
+
+```{r, echo = T}
+log(2,8)
+```
+
+In den obigen Kurzschreibweisen ist nur aus der Reihenfolge ersichtlich, welches der Argumente die Eingangszahl x und welches die Basis ist.
+
+Neben der Reihenfolge gibt es in R auch die Möglichkeit, über die Argumente eine Benennung klar zuzuordnen. Die Namen der Argumente sind dabei durch die Funktion vorgegeben und lassen sich beispielsweise durch die Hilfefunktion in Erfahrung bringen.
+
+Die Logarithmusfunktion in R erlaubt beispielsweise zwei Argumente
+* `x` als Eingangszahl und
+* `base`als Basis.
+Benannte Argumente übergibt man nach dem Muster `name=argumentwert`.
+Sofern Namen genannt wurden, ist die Reihenfolge egal.
+
+```{r, echo = T}
+log(x = 2,base = 8)
+log(x = 8,base = 2)
+log(base = 8,x = 2)
+```
+
+
+
+**Kleine Übung**
+
+Berechnen Sie im Folgenden Feld den Logarithmus von 256 zur Basis 2.
+
+```{r log, exercise=TRUE, exercise.lines = 1}
+
+```
+
+```{r log-solution}
+log(x= 256,base=2)
+```
+
+### Erweiterte Funktionen
+
+
+## Variablen in R
+
+### Anlegen von Variablen
+
+Neben der direkten Ein- und Ausgabe können Werte auch in Variablen gespeichert werden.
+
+```{r var, echo = T}
+a <- 3+4
+```
+
+Das Ergbnis wird dann nicht direkt angezeigt, sondern in der Variable `a` abgespeichert. Diese lässt sich über Ihren Namen wieder aufrufen - * genauso wie die Konstante `pi`*.
+
+```{r var_out, echo = T}
+a
+```
+
+### Vektorvariablen
+
+Neben einer konstanten Zahl kann R auch vektorwertige Variablen anlegen.
+Dabei werden die Werte durch ein Komma voneinander getrennt und mit der Funktion `c()` (aus dem Englischen concatenate) zusammengefasst.
+
+```{r, echo = T}
+a <- c(2,4,1,5)
+a
+```
+
+Der Zugriff auf die einzelnen Elemente des Vektors erzeugt durch Indexierung, d.h. der Angabe der Stelle des Elements. Die Indexierung erfolgt bei Vektoren durch eckige Klammern `[]`. Als Indexierung kann man eine einzelne Zahl angeben oder auch einen Vektor verwenden, um mehr als einen Wert abzurufen.
+
+```{r, echo = T}
+a
+a[1]
+a[c(2,3)]
+```
+
+Man kann die Indexierung nicht nur zur Anzeige einzelner Werte verwenden, sondern damit auch gezielt einzelne Werte einer Variable verändern.
+
+
+```{r, echo = T}
+a <- c(2,4,1,5)
+a
+a[1] <- 100
+a
+```
+
+**Vorsicht: Durch die Zuweisung werden die Variablen bzw. die darin enthaltenen Werte überschrieben. Ein `Undo` bzw. `Rückgängig` gibt es nicht! **
+
+**Kleine Übung**
+
+Erstellen Sie im folgenden zunächste die Variable `b` welche die Zahlen 8, 2, 7 und 6 enthält. Geben Sie dann das 2te und das 4te Element von `b aus
+
+```{r varidx, exercise=TRUE, exercise.lines = 3}
+
+```
+
+```{r varidx-solution}
+b <- c(8,2,7,6)
+b[2]
+b[4]
+```
+
+### Erzeugen von Sequenzen
+
+Will man alle Zahlenwerte in einem bestimmten Bereich als Vektor ausgeben, z.B. alle Zahlen zwischen 1 und 10, so muss man diese nicht mühsam einzeln eigeben, sondern kann die Kurzschreibweise `Start:Ende` verwenden.
+
+```{r, echo = T}
+a <- 1:10
+a
+```
+
+Will man einen Vektor erzeugen, bei dem sich bestimmte Werte mehrfach wiederholen, so kann man die Funktion `rep()` verwenden. Man übergibt der Funktion mehrere Argumente: Zuerst den Wert bzw. Vektor mit Werten und anschließend  die Anzahl der gewünschten Wiederholungen (`times =`) und/oder die Häufigkeit mit der jedes Element wiederholt werden soll (`each = `). 
+
+```{r, echo = T}
+rep(1,times = 4)
+rep(c(1,2),times = 4)
+rep(c(1,2),each = 4)
+rep(c(1,2),times = 4, each = 4)
+```
+
+### Länge eines Vektors
+
+Umgekehrt lässt sich die Anzahl der Elemente, auch als Länge des Vektors bezeichnet, mit der Funktion `length()` anrufen.
+```{r, echo = T}
+length(c(1,2,3))
+length(1*2.4)
+length(c("a","b","c"))
+```
+
+
+
+## Rechnen mit Variablen
+
+Mit den in Variablen gespeicherten Werten kann man wie gewohnt rechnen:
+
+```{r vektorrechnen1, echo = T}
+a <- c(2,4,1,5)
+a[1] + a[2]
+```
+
+Wenn man Operationen auf eine Vektorvariable anwendet, so führt R diese in der Regel für jedes Element einzeln aus. Dies gilt für elementare mathematische Operationen und für einfache Funktionen.
+
+```{r vektorrechnen2, echo = T}
+a <- c(2,4,1,5)
+2*a
+sqrt(a)
+```
+
+Werden zwei Vektorvariablen miteinander verknüpft, ist die Anweisung nicht immer eindeutig. R versucht dann sein bestes und gibt im Zweifelsfall eine Warnmeldung aus.
+
+```{r vektoroperation, echo = T}
+c(2,4,5) * 2
+c(2,4,5) + c(1,2,3)
+c(2,4,5) + c(1,2)
+```
+
+
+**Kleine Übung**
+
+Berechnen Sie im folgenden alle Quadrate der Zahlen zwischen 1 und 10, d.h. $1*1$, $2*2$, usw.
+
+```{r varmult, exercise=TRUE, exercise.lines = 5}
+
+```
+
+```{r varmult-solution}
+a <- 1:10
+a*a
+```
+
+
+**Anspruchsvollere Übung**
+
+Berechnen Sie das kleine Einmaleins, d.h. die wechselseitigen Produkte aller Zahlen zwischen 1 und 9 also $1*1$, $1*2$,$1*3$, ..., $2*1$, $2*2$, $2*3$,...
+
+```{r varmult2, exercise=TRUE, exercise.lines = 5}
+
+```
+
+```{r varmult2-solution}
+a <- rep(1:9, times = 9)
+b <- rep(1:9, each = 9)
+a*b
+```
+
+
+
+## Vektorartige Variablen 
+
+In R sind Variablen standardmäßig als Vektoren angelegt. Ein Vektor enthält dabei eine feste Anzahl von Einträgen desselben Typs. Vektoren binden damit verschiedene Werte zusammen. Je nach dem Typus der Werte unterscheidet man zwischen:
+
+* `logical` binäre Variable mit Werten TRUE oder FALSE
+* `integer` ganze Zahlen
+* `numeric` oder `double` Fließkommazahlen
+* `character` beliebige (alphanumerische) Zeichenketten, werden immer mit Anführungsstrichen eingegeben 
+* `factor` Nominal- oder ordinalskalierte Daten (z.B. Farben oder Präferenzen)
+
+Der Datentyp einer Variable lässt sich mit der Funktion `typeof()` abfragen.
+
+```{r, echo = T}
+typeof(c(1,2,3))
+typeof(1*2.4)
+typeof(c("a","b","c"))
+```
+
+### Zeitreihen
+
+Zeitreihen sind eine besondere Art von Vektor. Sie beinhalten neben den Zahlenwerten auch eine spezielle zeitliche Indexierung. Dabei wird angenommen, dass alle Elemente der Zeitreihe in gleichen Zeitabständen voneinander angeordnet sind - man nennt dies auch äquidistant.
+
+Zusätzlich hat man die Möglichkeit auch periodisch wiederkehrende Zeitstrukturen anzugeben, die sich in Grundzeitpunkt und Periodenabschnitt aufteilen z.B. Monate eines Jahres. 
+
+Zeitreihen kann man in R erzeugen, indem man der Funktion `ts()` 
+
+* `data =` Zahlenwerte als Vektor
+* `start =` Startpunkt und 
+* `frequency =` Frequenz der Zeitreihe 
+
+übergibt.
+
+
+```{r, echo = T}
+a <- c(2,5,3,5,6,7,3,9)
+a_ts <- ts(data=a, start=2020, frequency = 10)
+a_ts
+```
+
+Bei Frequenzen von 12 vermutet R Monatsangaben und bei Frequenzen von 4 Quartalsangaben und formatiert die Ausgabe entsprechend.
+
+```{r, echo = T}
+a <- c(2,5,3,5,6,7,3,9)
+ts(data=a, start=2020, frequency = 12)
+ts(data=a, start=2020, frequency = 4)
+```
+
+Der Start kann entweder als eine Zahl angegeben werden oder als ein Vektor von zwei Zahlen. 
+Bei einer Zahl wird diese als Grundzeitpunkt interpretiert und angenommen, dass die erste Beobachtung zum ersten Periodenabschnitt gehört, z.B. der erste Monat des Jahres oder das erste Quartal. 
+Bei einem Vektor mit zwei Zahlen wird die erste Zahl als Grundzeitpunkt und die zweite als Periodenabschnitt interpretiert.
+
+ ein od
+```{r, echo = T}
+a <- c(2,5,3,5,6,7,3,9)
+ts(data=a, start=2020, frequency = 4)
+ts(data=a, start=c(2020,3), frequency = 4)
+```
+
+**Kleine Übung **
+
+Erstellen Sie eine Zeitreihe, die für zwei Jahre für jeden Monat die Anzahl an Tagen ausgibt (Schaltjahre bitte ignorieren). Startpunkt ist Januar 2016.
+
+```{r ts, exercise =TRUE, exercise.lines = 5}
+
+
+```
+
+```{r ts-solution}
+tage <- c(31,28,31,30,31,30,31,31,30,31,30,31)
+ts(rep(tage, times=2), start = 2016, frequency =12)
+
+```
+
+
+**Anspruchsvollere Übung **
+
+Erstellen Sie eine Zeitreihe, die für zwei Jahre für jeden Monat die Anzahl an Tagen ausgibt (Schaltjahre bitte ignorieren). Startpunkt ist der aktuelle Monat, d.h. Oktober 2020.
+
+```{r ts2, exercise =TRUE, exercise.lines = 5}
+
+
+```
+
+```{r ts2-solution}
+tage <- c(31,28,31,30,31,30,31,31,30,31,30,31)
+ts(rep(tage[c(10:12,1:9)], times =2), start = c(2020,10), frequency =12)
+
+```
+
+
+### Faktoren
+
+Faktoren sind eine weitere besondere Art von Vektor. Die darin gespeicherten Werte sind einzelnen Kategorien, sogenannten Faktoren zugeordnet. Faktoren sind daher gut geeignet Gruppenzugehörigkeiten abzubilden wie z.B. Farben ,Automodelle oder Wohnorte.
+
+Ein Faktor beinhaltet neben den Werten auch eine Auflistung der zulässigen Kategorien - in R `levels`genannt, die mit Bezeichungen - in R `labels - versehen werden können.
+
+Faktoren kann man in R erzeugen, indem man der Funktion `factor()` 
+
+* `data =` Werte als Vektor
+
+übergibt. In der Regel reicht dieser Aufruf, da R selbständig passende `level`und `labels` erzeugt. Zusätzlich ist es aber auch möglich, diese mit
+
+* `levels =` Kategorien in den Werten
+* `labels =` Bezeichnungen  
+
+selber festzulegen.
+
+```{r, echo = T}
+a <- c("Berlin","Hamburg","Hamburg","Dresden","Hamburg")
+a_f <- factor(a)
+a_f
+```
+
+## Mehrdimensionale Variablen 
+
+### Matrizen
+Matrizen - in R `matrix()`- sind eine Erweiterung von Vektoren auf zwei Dimensionen (vgl. Lineare Algebra aus einführenden Mathematik-Lehrveranstaltungen). Die Werte in einer Matrix sind in Zeilen (erste Dimension) und Spalten (zweite Dimension) strukturiert.
+
+Eine Matrix lässt sich in R auf verschiedene Weisen erzeugen, die gebräuchlichsten sind:
+
+(@) Direkt durch die Angabe eines Datenvektors, der Anzahl Zeilen (`nrow`) und der Anzahl Spalten (`ncol`):
+
+```{r, echo = T}
+a <- c(2,4,3,1,5,6)
+a_m <- matrix(data=a, nrow = 2, ncol = 3)
+a_m
+```
+
+(@) Durch das Zusammenfügen von Vektoren spaltenweise (`cbind`) oder zeilenweise (`rbind`)
+
+```{r, echo = T}
+a <- c(2,4,3)
+b <- c(1,5,6)
+cbind(a,b)
+rbind(a,b)
+```
+
+Auf die einzelnen Elemente einer Matrix kann man durch Indexierung zugreifen. Hierzu müssen zwei Werte angegeben werden: Zuerst die Reihennummer und anschließend die Spaltennummer. Lässt man die Zeilenangabe weg, so werden alle Zeilen ausgegeben - für Spalten analog.
+
+```{r, echo = T}
+a <- c(2,4,3,1,5,6)
+a_m <- matrix(data=a, nrow = 2, ncol = 3)
+a_m[1,2]
+a_m[1:2,2]
+a_m[,1]   #erste Spalte
+a_m[1,1] <- 1000
+a_m
+```
+
+Mit den Funktionen `nrow()`, `ncol()` und `dim()` lassen sich für eine beliebige Matrix die Anzahl Zeilen, die Anzahl Spalten und die Dimension (Zeilenanzahl, Spaltenanzahl) ausgeben.
+
+```{r, echo = T}
+a_m
+nrow(a_m)
+ncol(a_m)
+dim(a_m)
+```
+
+**Kleine Übung **
+
+Erstellen Sie eine Matrix mit dem kleinen Einmaleins (siehe vorangehende anspruchsvolle Übung). Die Zahlenwerte sind schon vorgegeben, bringen Sie diese nun in Matrixform.
+
+```{r varmult2m, exercise =TRUE, exercise.lines = 5}
+a <- rep(1:9, times = 9)
+b <- rep(1:9, each = 9)
+
+
+
+```
+
+```{r varmult2m-solution}
+a <- rep(1:9, times = 9)
+b <- rep(1:9, each = 9)
+a*b
+matrix(a*b, nrow = 9, ncol =9)
+
+```
+
+### Datentabellen
+
+Datentabellen - in R `data.frame()` - sind eine Erweiterung von Matrizen. Während Matritzen nur Einträge desselben Datentyps aufnehmen - also nur Zahlen, nur Text,... - lassen Datentabellen für jede Spalte einen eigenen Datentyp zu. Die Spalten nennt man dann auch Variablen der Datentabelle.Diese haben üblicherweise einen Namen, die Zeilen werden durchnummeriert.
+
+Datentabellen lassen sich auf unterschiedliche Weise erzeugen. Häufig verwendet werden:
+
+(@) Konversion einer Matrix zu einer Datentabelle mit `as.data.frame()`
+
+```{r, echo = T}
+a <- c(2,4,3,1,5,6)
+a_m <- matrix(data=a, nrow = 2, ncol = 3)
+as.data.frame(a_m)
+```
+
+(@) Erzeugen einer Matrix durch Angabe der einzelnen Spalten bzw. Variablen. Dabei können die Spalten bzw. Variablen unterschiedlichen Datentyps sein, müssen aber immer genau gleich lang sein.
+
+
+```{r, echo = T}
+toys <- data.frame("animal"=factor(c("Bird","Cat","Cat")),
+                   "color" = factor(c("yellow","red","brown")),
+                   "cost" = c(0.99, 1.99,3.49))
+toys
+```
+
+Auf die Werte einer Datentabelle kann einerseits genauso wie bei einer Matrix durch Indexierung der Zeilen und Spalten zugegriffen werden:
+
+```{r, echo = T}
+toys[1,2]
+toys[,3]
+```
+
+Andererseits kann man die Spalten bzw. Variablen auch mit Nennung des Namens aufrufen. Entweder in der Indexierung mit Anführungszeichen oder mittels `$`-Anhang direkt an die Datentabelle.
+
+```{r, echo = T}
+toys[,3]
+toys[,"cost"]
+toys$cost
+```
+
+Mit den Befehlen `names()`und `summary()` kann man sich die Variablennamen ausgeben lassen bzw. eine Übersicht über die Datentabelle erzeugen. Ebenso wie bei einer Matrix kann man sich mit den Funktionen `nrow()`, `ncol()` und `dim()` die Anzahl Zeilen, die Anzahl Spalten und die Dimension (Zeilenanzahl, Spaltenanzahl) ausgeben.
+
+
+
+```{r, echo = T}
+names(toys)
+summary(toys)
+nrow(toys)
+ncol(toys)
+dim(toys)
+```
+
+Mit `View()` erhält man in R Studio eine separate Ansicht in einem eigenen Tab.
+
+```{r, echo = F, eval =F}
+View(toys)
+```
+
+
+### Listen
+
+Listen sind die allgemeinste Form einer Variable. Listen können beliebige Datentypen beliebiger Länge beinhalten. Sie lassen sich wie Datentabellen direkt erzeugen indem man der Funktion `list()`benannte Listeneinträge übergibt. 
+
+```{r, echo = T}
+BM <- list("Name"="Business Management", "Semesterzahl" = 4, "Richtungen" = c("Finanzmanagement","Marketing"))
+BM
+```
+
+Auf die Werte in einer Liste kann man mit Indexierung oder durch Namensnennung zurückgreifen. Die Indexierung erfolgt hier durch doppelte, eckige Klammern `[[ ]]`.
+
+```{r, echo = T}
+BM[[1]]
+BM$Semesterzahl
+```
+
+Die Indexierung funktioniert auch verschachtelt, dabei wird von links nach rechts eingelesen und von der äußersten zur innersten Listenebene ausgewertet.
+
+```{r, echo = T}
+BM
+BM[[3]]
+BM[[3]][2]
+```
+
+
+
+## Quiz
+Ein paar Fragen, um das Verständnis der Lehrinhalte zu überprüfen.
+
+```{r quiz}
+quiz(
+  question("Wodurch zeichnet sich R gegenüber anderen Statistikpaketen aus?",
+    answer("R ist kostenfrei und quelloffen.", correct = TRUE),
+    answer("R hat eine intuitiv zu bedienende Benutzeroberfläche."),
+    answer("R verfügt über eine große Community an Anwendern und Entwicklern.", correct = TRUE),
+    answer("R lässt sich auf Windows und Apple Computern verwenden.")
+  ),
+  question("Wie lässt sich die Hilfe zum Befehl `matrix` anzeigen?",
+    answer("help(matrix)", correct = TRUE),
+    answer("matrix?"),
+    answer("matrix(help)"),
+    answer("?matrix", correct = TRUE)
+  ),
+   question("Wie kann man die Zahlen von 4 bis 6 als Vektor ausgeben?",
+    answer("c(4,5,6)", correct = TRUE),
+    answer("c(4-6)"),
+    answer("4-6"),
+    answer("4:6", correct = TRUE)
+  ),
+   question("Worin unterscheiden sich Zeitreihen von einfachen Vektoren?",
+    answer("Zeitreihen können Werte mit unterschiedlichen Datentypen speichern."),
+    answer("Zeitreihen können nur Werte desselben Datentyps speichern."),
+    answer("Zeitreihen haben eine spezielle zeitliche Indexierung.", correct = TRUE),
+    answer("Vektoren sind immer Zahlenwerte.")
+  ),
+  question("Welcher Variablentyp ist der allgemeinste, d.h. lässt sich mit beliebigen Datentypen in beliebigem Format befüllen?",
+    answer("Vektor"),
+    answer("Matrix"),
+    answer("Liste", correct = TRUE),
+    answer("Datentabelle")
+  )
+)
+```
+
