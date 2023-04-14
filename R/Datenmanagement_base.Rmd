@@ -112,7 +112,7 @@ Im vorliegenden Fall einer Zeitreihe mit Gewinnen und Verlusten (engl. Profits a
 Nach Klicken auf `Import` werden die Daten eingelesen und mit dem `View()` Befehl in der RStudio Benutzerumgebung angezeigt. Der dabei verwendete Funktionsaufruf wird in der Konsole ausgegeben. Im Beispiel ist dies:
 
 ```{r , exercise=F ,eval=T, echo=T}
-PnL <- read.csv2("/data/PnL.csv")
+PnL <- read.csv2("../data/PnL.csv")
 ### entspricht read.table("./PnL.csv", header=TRUE, sep=";", dec=",")
 ```
 
