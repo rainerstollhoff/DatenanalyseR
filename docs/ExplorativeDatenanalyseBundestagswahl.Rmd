@@ -1,0 +1,241 @@
+---
+title: "Explorative Datenanalye in R"
+output: html_notebook
+author: Rainer Stollhoff
+description: "Eine Demonstration der explorativen Datenanalyse mit R (tidyverse)"
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+```{r setup, echo = T}
+library(tidyverse)
+
+```
+
+
+# Einleitung
+
+In diesem Notebook werden die Ergebnisse der Bundestagswahl 2017 auf Ebene der Wahlkreise analysiert. Im Fokus stehen dabei die Direktmandatein den einzelnen Wahlkreisen. Als ergänzende Variablen werden sozio-demographische Merkmale betrachtet. 
+
+# Datenmanagement
+
+## Datenquelle
+
+Die offiziellen Wahlergebnisse und die Strukturdaten zu den Wahlkreisen wurden von den [Internetseiten des Bundeswahlleiters]<https://www.bundeswahlleiter.de/bundestagswahlen/2017> bezogen.
+
+## Import und Einlesen der Datensätze
+
+
+Die Daten wurden zuerst heruntergeladen und lokal zwischengespeichert.
+Die für das Einlesen verwendeten Parameter wurden interaktiv im RStudio GUI bestimmt.
+
+### Wahlergebnisse
+
+Die Wahlergebnisse werden in der Datei "btw17_kerg.csv" in einem umständlichen Format bereitgestellt. Dieses muss zunächst in eine Datentabelle überführt werden.
+
+Dazu werden die Variablennamen getrennt von den eigentlichen Datenwerten eingelesen. Die Metadaten in den ersten fünf Zeilen der Datei werden ignoriert. Die Variablennamen werden anschließend in gültige Spaltennamen überführt.
+
+Anschließend werden die Datenwerte mit den erzeugten Spaltennamen eingelesen. Leere Zeilen und Zeilen mit aggregierten Werten je Bundesland werden entfernt.
+
+```{r wahlergebnisse, echo = T}
+btw17_kerg_header <- read.table(
+  file= "./www/btw17_kerg.csv",
+  sep = ";", skip = 5, nrows = 3, header = F, encoding = "UTF-8", na.strings = "")
+## Auffüllen fehlender Werte ab Spalte 4
+btw17_kerg_header_base <- t(apply(btw17_kerg_header[,-(1:3)],1,zoo::na.locf))
+## Zusammenfügen der aufgefüllten Werte
+btw17_kerg_header_base <- apply(btw17_kerg_header_base,2,paste,collapse="_")
+## Erstellen des Vektors mit Spaltennamen
+btw17_kerg_colnames <- as.character(c(btw17_kerg_header[1,1:3],btw17_kerg_header_base))
+
+## Daten mit Spaltennamen einlesen, Leerzeilen entfernen, Bundeslandzeilen entfernen
+btw17_kerg <-   read_delim(file = "./www/btw17_kerg.csv",
+  delim = ";", escape_double = FALSE, trim_ws = TRUE, skip = 8,
+  col_names = btw17_kerg_colnames,
+  locale = locale(date_names = "de", decimal_mark = ",", grouping_mark = ".", encoding = "UTF-8")) %>% 
+  filter(!is.na(Nr)) %>% 
+  filter(`gehört zu` != 99)
+dim(btw17_kerg)
+head(btw17_kerg)
+
+```
+
+
+### Strukturdaten
+
+Die Strukturdaten lassen sich direkt einlesen.
+
+```{r strukturdaten, echo = T}
+btw17_strukturdaten <- read_delim(
+  "./www/btw17_strukturdaten.csv",
+  delim = ";", escape_double = FALSE, trim_ws = TRUE, skip = 8, 
+  locale = locale(date_names = "de", decimal_mark = ",", grouping_mark = ".", encoding = "ISO-8859-1"))
+dim(btw17_strukturdaten)
+head(btw17_strukturdaten)
+
+```
+
+## Erstellen des Analysedatensatzes
+
+Fokus der Analyse sind die Direktmandate. Diese müssen zuerst anhand der Erststimmenergebnisse ermittelt werden. Anschließend werden die Direktmandate mit den Strukturdaten zusammengeführt.
+
+### Bestimmen der Direktmandate
+
+Die Direktmandate werden an die Partei mit den meisten Erststimmen vergeben.
+
+```{r direktmandate, echo = T}
+btw17_erststimmen <- btw17_kerg %>% 
+  select(contains("Erststimmen_endgültig")) %>% 
+  select(!contains(c("Wahlberechtigte","Wähler","Ungültige","Gültige")))
+
+btw17_Parteien <- sapply(colnames(btw17_erststimmen),function(inp) strsplit(inp,"_")[[1]][1],simplify=T)
+
+btw17_direkt <- select(btw17_kerg,1:3) %>%
+  mutate(Direktmandat=btw17_Parteien[apply(btw17_erststimmen,1,which.max)]) %>% 
+  rename(`Wahlkreis-Nr.`=Nr)
+
+btw17_direkt %>% 
+  group_by(Direktmandat) %>% 
+  count()
+```
+
+Die meisten Direktmandate gingen an die CDU, gefolgt von SPD, CSU, DIE LINKE, AfD und B90/G.
+
+### Kombination der Datensätze
+
+Den Direktmandate werden nun die Struturdaten hinzugefügt.
+Zur Illustration eine Darstellung der Direktmandate pro Bundesland.
+
+```{r anaylsedaten, echo = T}
+btw17_direkt <- left_join(btw17_direkt, btw17_strukturdaten,by = "Wahlkreis-Nr.")
+
+btw17_direkt %>% 
+  ggplot(aes(x=Land,y=Direktmandat)) +
+  geom_count()+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+
+
+### Kurzschreibweisen der Parteien
+
+Die offiziellen Parteinamen sind mitunter etwas lang und erschweren die Darstellung. Für die weitere Analyse ergänzen wir daher die Kurzschreibweisen in der Variable Gewinner.
+
+
+```{r anaylsedaten_kurz, echo = T}
+Parteien_kurz <- c("CDU","SPD","Linke","B90G","AfD","CSU")
+names(Parteien_kurz) <- unique(btw17_direkt$Direktmandat)
+Parteien_kurz
+
+btw17_direkt <- mutate(btw17_direkt, Gewinner = recode(Direktmandat,!!!Parteien_kurz))
+```
+
+
+# Explorative Datenanalyse
+
+## Analyse der Zielvariablen
+
+```{r, echo = T}
+ggplot(data = btw17_direkt,
+       aes(x = Gewinner,group=0)) +
+  geom_bar(aes(y=..prop..),stat="count")+
+  geom_text(aes(label=..count..,y=..prop..),stat="count",vjust=-.25)+
+  ylab("Relativer Anteil und absolute Zahl Direktmandaten")+
+  xlab("Partei")+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+```
+
+## Zusammenhang mit Strukturdaten
+
+### Bevölkerungszahl und Fläche
+ 
+Betrachten wir zunächst den Zusammenhang der Direktmandate mit der Bevölkerungszahl und der Fläche der Wahlkreise.
+
+```{r, echo = T}
+btw17_direkt %>% 
+ggplot(aes(x = `Bevölkerung am 31.12.2015 - Insgesamt (in 1000)`,
+          y = `Fläche am 31.12.2015 (km²)`,
+          color=Gewinner))+
+  geom_point()
+
+```
+Bei genauem Hinsehen zeigt sich ein möglicher Zusammenhang zwischen der Fläche des Wahlkreises und dem Direktmandat. So enstand das Mandat für B90G in einem Wahlkreis mit sehr kleiner Fläche. Ebenso die Mandate für die Linke. Diese sind am unteren Bildrand zu finden. Zudem erscheint es, als ob die Mandate für die SPD in flächenmäßig kleineren Wahlkreisen erzielt wurden, als die für CDU.
+
+Hinsichtlich der Bevölkerungszahl zeigen sich kaum systematischen Zusammenhänge. Dies ist auch nicht weiter verwunderlich. Wahlkreise sollten stets eine vergleichbare Zahl an Wahlberechtigten haben. Unterschiede in der Bevölkerungszahl ergeben sich daher aus dem Anteil der Wahlberechtigten an der Gesamtbevölkerung. 
+
+
+ 
+```{r, echo = T}
+btw17_direkt %>% 
+ggplot(aes(x = `Fläche am 31.12.2015 (km²)`,
+          color=Gewinner))+
+    stat_bin(aes(fill=Gewinner),position=position_dodge())
+
+```
+
+Betrachtet man nur den Einfluss der Fläche so bestätigt sich das oben gewonnene Bild: B90G und Die Linke mit urbanen Wahlkreisen, SPD gegenüber CDU ebenso eher in urbaneren Wahlkreisen. In Wahlkreisen mit großer Fläche ("auf dem Land") gehen die Direktmandate an CDU oder CSU.
+
+## Religionszugehörigkeit und Migrationshintergrund
+
+Im nächsten Schritt untersuchen wir den Einfluß der Anteile der Bevölkerung nach  Religionszugehörigkeit und mit Migrationshintergrund. Für die Religionszugehörigkeit sind im Datensatz drei Variablen enthalten: Römisch-Katholisch, Evangelisch und Sonstige/Keine/ohne Angabe. Wir verwenden letztere Variable.
+ 
+```{r, echo = T}
+ggplot(btw17_direkt,aes(x =`Zensus 2011, Bevölkerung nach Migrationshintergrund am 09.05.2011 - mit Migrationshintergrund (%)`,
+                        y=`Zensus 2011, Bevölkerung nach Religionszugehörigkeit am 09.05.2011 - Sonstige, keine, ohne Angabe (%)`,
+          color=Gewinner))+
+    geom_point()
+
+```
+
+Es zeigt sich, dass die Mandate für die AfD in Wahlkreisen mit geringem Migrationshintergrund und geringer Zugehörigkeit zur römisch-katholischen oder evangelischen Kirche erzielt wurden. Die Mandate für B90G und Die Linke ebenso mit geringer Zugehörigkeit zu diesen beiden Religionen, dagegen etwas höherem Migrationsanteil.
+
+Auuffällig ist hier noch der Zusammenhang zwischen Migrationsanteil und Religionszugehörigkeit. Es scheint, dass mit steigendem Migrationsanteil der Anteil derjenigen ohne Zugehörigkeit zur Römisch-Katholischen oder Evangelischen Religion zunimmt. Vermutlich sind dies Angehörige anderer Religionen wie z.B. dem Islam. 
+
+Ebenso zeigt sich eine deutliche Zweiteulung der Wahlkreise in Wahlkreise mit  geringem Migrationsanteil und geringer Religionszugehörigkeit  zur Römisch-Katholischen oder Evangelischen Religion einerseits und Wahlkreise mit  mittelerem bis hohem Migrationsanteil und geringer bis hoher Religionszugehörigkeit  zur Römisch-Katholischen oder Evangelischen Religion. Die Vermutung liegt nahe, dass es sich hier um die Unterscheidung zwischen alten und neuen Bundesländern handelt. 
+
+Wir ergänzen daher die Variable "NeuesBundesland" und ersetzen  den Gewinner durch das Bundesland:
+
+```{r, echo = T}
+btw17_direkt %>% mutate(NeuesBundesland=Land%in%c("Brandenburg","Mecklenburg-Vorpommern","Sachsen","Sachsen-Anhalt","Thüringen")) %>% 
+ggplot(aes(x =`Zensus 2011, Bevölkerung nach Migrationshintergrund am 09.05.2011 - mit Migrationshintergrund (%)`,
+                        y=`Zensus 2011, Bevölkerung nach Religionszugehörigkeit am 09.05.2011 - Sonstige, keine, ohne Angabe (%)`,
+          color=Land, shape = NeuesBundesland))+
+    geom_point()
+
+```
+
+
+## Einkommen und Arbeitslosigkeit
+
+Das Verfügbare Einkommen ist im Originaldatensatz mit dem Zusatz `(€ je Einwohner)` bezeichnet. Dieser Zusatz beinhaltet das Sonderzeichen `€` welches nicht angezeigt werden kann und daher gelöscht wird.
+
+```{r, echo = T}
+btw17_direkt %>% setNames(gsub("\u0080","",names(.))) %>% 
+ggplot(aes(y = `Arbeitslosenquote März 2017 - insgesamt`,
+                        x = `Verfügbares Einkommen der privaten Haushalte 2014 ( je Einwohner)`,
+          color=Gewinner))+
+    geom_point()
+
+```
+
+Die grpahische Analyse lässt vermuten, dass die AfD die Direkmandate in Wahlkreisen mit mittlerer bis hoher Arbeitslosigkeit und geringerem Einkommen erzielt hat. Vergleichbares gilt für die Wahlkreise der SPD und der Linken.
+
+Zudem zeigt sich ein deutlicher, erwartbarer Zusammenhang zwischen Arbeitslosenquote und verfügbarem Einkommen. Je höher die Arbeitslosigkeit, umso geringer das mittlere verfügbare Einkommen.
+
+# Fazit
+
+Zusammenfassend hat diese verkürzte explorative Datenanalyse gezeigt:
+
+* Nur sechs Parteien haben Direktmandate erreicht und dies in sehr unterschiedlichem Umfang.
+* Die Direkmandate sind geographisch, d.h. je nach Bundesland unterschiedliche auf die Parteien verteilt.
+* Es zeigen sich Zusammenhänge zwischen den Direktmandaten der Parteien und 
+  + geographsichen Faktoren (Fläche des Wahlkreises)
+  + soziographischen Faktoren (Religionszugehörigkeit und Migrationshintergrund) und 
+  + ökonomischen Faktoren (Arbeitslosigkeit und Einkommen)
+* Die strukturellen Merkmale weisen untereinander Abhängigkeiten auf.
+
+Die explorative Datenanalyse ließe sich über die obigen Analysen hinaus noch umfassend erweitern z.B. auf demographische Faktoren, multivariate Darstellungen oder Darstellungen getrennt nach Bundesland.
+
+> Eine Anmerkung zum Arbeitsaufwand: Die Originaldaten wurden leider in einem ungewöhnlichen Format und mit aufwendigen Merkmalsbezeichnungen (Länge und verwendete Sonderzeichen) bereit gestellt. Diese Datenformatierung hat nicht nur zu erheblichem Mehraufwand geführt. Ebenso leidet die Darstellung unter den langen Merkmalsnamen. Leider sind derartige Probleme in der Praxis sehr häufig, so dass in der Regel ein großer Teil der Arbeit für Datenaufbereitung verwendet werden muss. Durch den zunehmenden Einsatz automatisierter Datenerhebung und von zentralem Datenmanagement z.B. mit Data-Warehouse Konzepten, werden diese Probleme hoffentlich abnehmen.
+
