@@ -1,0 +1,725 @@
+---
+title: "Portfolio-Analyse mit R (Rmetrics)"
+output: learnr::tutorial
+runtime: shiny_prerendered
+author: Rainer Stollhoff
+description: "Eine interaktive Einführung in die Portfolio-Analyse und Optimierung in R mit dem Paket fPortfolio von Rmetrics"
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+knitr::opts_chunk$set(warning = FALSE, echo = TRUE)
+library(fPortfolio)
+library(Quandl)
+Quandl.api_key("KTgBzn84d6v-JQJB8v76")
+
+```
+
+## Einleitung
+
+### Die `Rmetrics`Sammlung und das Paket `fPortfolio`
+
+In R finden sich viele verschiedene Pakete, die Funktionen zur Analyse von Finanzdaten bereitstellen. Viele dieser Pakete gehören zur `Rmetrics` Sammlung. Sie erkennen die Pakete von `Rmetrics` gewöhnlich daran, dass sie mit einem kleinen `f` beginnen, gefolgt vom Themenbereich, z.B. das bereits verwendete Paket `fGarch`.
+
+Die Pakete der `Rmetrics` Sammlung zeichnen sich durch einen untereinander ähnlichen Aufbau der R-Objekte (Funktionen, Datentypen, etc.) aus. Sie bieten einen großen Funktionsumfang, der deutlich über die in diesem Kurs behandelten Themen hinausgeht. Zudem steht über die Webseite [Webseite des Rmetrics Projekts(http://rmetrics.org/) eine umfangreiche Dokumentation zur Verfügung. 
+
+Aufgrund des größeren Funktionsumfangs sind die `Rmetrics` Pakete in der Bedienung allerdings etwas gewöhnungsbedürftig, unterscheiden sich auch von der Bedienung der sonstigen R-Pakete und werden nur noch unregelmäßg aktualisert. Deshalb verwende ich Sie in diesem Kurs nur, wenn es keine anderen Pakete mit vergleichbarem Funktionsumfang gibt. Für die Portfolioanalyse ist dies der Fall.
+
+Für die Analyse von Portfoliodaten verwenden wir das Paket `fPortfolio`. Es beinhaltet eine Reihe von Funktionen, um Portfolios zu analysieren und zu optimieren.
+
+
+```{r, echo = FALSE}
+# install.packages("fPortfolio")
+library(fPortfolio)
+```
+
+Die folgende Darstellung ist eng angelehnt an das Buch "Portfolio Optimization with R/Rmetrics" von Diethelm Würtz et al. (2015). Sie können das Buch von der R-Metrics Webseite kostenlos beziehen: [https://www.rmetrics.org/ebooks-portfolio](https://www.rmetrics.org/ebooks-portfolio)
+
+### Datensätze
+
+Für die Lehrveranstaltung und die Klausur verwenden wir die im Paket `fPortfolio` enthaltenen Datensätze. Wenn Sie darüber hinaus eigene Portfolios erzeugen und analysieren wollen, finden Sie die dazu nötigen Schritte im Exkurs am Ende dieser Lerneinheit unter *Exkurs: Portfoliodaten selber erstellen* 
+
+Das Paket ´fPortfolio` beinhaltet die folgenden Datensätze:
+
+> Data Sets:
+`SWX`: Daily Swiss equities, bonds, and reits series
+`LPP2005`: Daily Pictet Swiss pension fund benchmarks
+`SPISECTOR`:  Swiss Performance sector indexes
+`GCCINDEX`: Gulf Cooperation Council equity indexes
+`SMALLCAP`: Monthly selected US small capitalized equities
+
+Alle Datensätze sind einerseits mit den Kurs- bzw. Indexwerten vorhanden. Zusätzlich kann man auch direkt auf die Renditen zugreifen.
+
+```{r }
+head(SWX)
+head(SWX.RET)
+```
+
+## Grundlagen zur Portfolioanalyse mit `fPortfolio`
+
+###  Graphische Übersicht 
+
+Als ersten Einstieg in die Portfolioanalyse bietet `fPortfolio`mit der Funktion `portfolioFrontier()` eine Möglichkeit, Portfoliodaten für eine weitere Analyse aufzubereiten. 
+
+
+Die Funktion `portfolioFrontier()` benötigt als Argument `data = `notwendigerweise einen Datensatz mit Renditen. Darüber hinaus lassen sich mit den Argumenten `constraints = ` und `spec = ` weitere Spezifikationen des Portfolios vornehmen (siehe unten).
+
+Die Ergebnisse lassen sich mit `plot()` als Übersicht darstellen. In einer regulären R-Umgebung können Sie die Parameter interaktiv ein- und ausschalten. In dieser Lernumgebung funktioniert nur eine statische Darstellung.
+
+Wir analysieren als Beispiel die ersten drei Bestandteile der `SWX` Daten:
+
+```{r }
+SWX_sub.pf <- portfolioFrontier(SWX.RET[,1:3])
+# plot(SWX_sub.pf)
+### Aufruf in interaktiver Umgebung
+
+plot(SWX_sub.pf, which = "all")
+
+```
+
+Die Graphik enthält:
+
+* Die einzelnen Bestandteile des Portfolios als farbige Raute
+* Ein Portfolio mit gleichen Bestandteilen der Einzelwerte als blaues Quadrat
+* Mögliche Portfolios mit zufällig gezogenen Gewichten als kleine schwarze Punkte
+* Der effiziente Rand des Portfolios als dicke schwarze Punkte
+* Die effizienten Ränder von Portfolios mit nur zwei der Bestandteile als graue Linien
+* Die Sharpe-Ratio für die Punkte auf dem effizienten Rand als blaue gepunktete Linie (Skala auf der rechten Seite)
+* Das Portfolio mit optimalem Sharpe-Quotienten als Kreis mit Tangentenlinie in Türkis
+
+Die manuelle Konstruktion der unterschiedlichen dargestellten Portfolios werden wir in den folgenden Abschnitten eingehender besprechen.
+
+### Spezifikation von Portfolios
+
+Portfolios lassen sich auch manuell festlegen. Dazu dient die Funktion `portfolioSpec()`.
+Diese lässt sich zunächst ohne weitere Argumente aufrufen, um eine Standardspezifikation zu erzeugen. 
+
+```{r }
+test_spec <- portfolioSpec()
+print(test_spec)
+
+```
+
+Anschließend lassen sich einzelne Randbedingungen spezifizieren. Im folgenden eine Auswahl:
+
+* `setWeights()`: Festlegen von Portfoliogewichten
+* `setTargetReturn()`: Festlegen einer Zielrendite
+* `setRiskFreeRate()`: Festlegen des risikofreien Zinssatzes
+
+Wir verwenden diese Spezifikationen im Folgenden um verschiedene Portfolios zu erstellen.
+
+Ausgangsbasis sind die ersten drei Einzelwerte im Datensatz `SWX` -  zur besseren Vergleichbarkeit mit der graphischen Analyse. 
+
+
+## Portfolio mit festen Gewichten
+
+Wir legen zunächst die Spezifikation des Portfolios fest. Dazu geben wir einen festen Gewichtsvektor vor:
+
+```{r }
+fix_spec <- portfolioSpec()
+setWeights(fix_spec) <- c(1/3,1/3,1/3) #Feste Verteilung für die drei ersten Bestandteile des SWX
+```
+
+Anschließend erstellen wir das Portfolio mit der Funktion `feasiblePortfolio()`. Diese erwartet als Argumente einen Datensatz mit `data = `, die Portfoliospezifikation mit den Argumenten `spec = ` und `constraints = `. 
+
+```{r }
+fix_pf <- feasiblePortfolio(
+  data = SWX.RET[,1:3],
+  spec = fix_spec,
+  constraints = "LongOnly") #Keine Shorts, d.h. nur positive Gewichte
+print(fix_pf)
+getTargetReturn(fix_pf) # Anzeige des Returns mit mehr Nachkommastellen 
+getTargetRisk(fix_pf)   # Anzeige des Risikos mit mehr Nachkommastellen 
+```
+
+Das getestete Portfolio hat eine mittlere Rendite von `r getTargetReturn(fix_pf)` und ein Risiko (Cov) von `r getTargetRisk(fix_pf)`. Es entspricht dem grauen Quadrat mit der Beschriftung `EWP` (Equally Weighted Portfolio) im folgenden Schaubild.
+
+```{r }
+tailoredFrontierPlot(SWX_sub.pf)
+```
+
+Wir analysieren die Zusammensetzung des Portfolios und die Beiträge der Einzelbestandteile zu den Renditen als Kuchendiagramme mit den Funktionen `weightsPie()`und  `weightedReturnsPie()`
+
+```{r }
+weightsPie(fix_pf)
+weightedReturnsPie(fix_pf)
+
+```
+
+Das erste Kuchendiagramm zeigt wie erwartet die Gleichverteilung der Portfoliogewichte.
+
+Dem zweiten Kuchendiagramm können wir entnehmen, dass nicht alle Bestandteile gleichmäßig zur Rendite beigetragen haben. So wird die Rendite des Gesamtportfolios von SII und SPI in nahezu gleichen Teilen getragen. SBI trägt dagegen - trotz eines Portfolioanteils von einem Drittel - nur unwesentlich zur Gesamtrendite bei. 
+
+
+***Kleine Übung*
+
+Erweitern Sie die Analyse auf alle Einzelbestandteile des SWX. Legen Sie dazu feste Gewichte fest. 
+
+```{r fix, exercise=TRUE, exercise.lines = 10}
+fix_spec <- portfolioSpec()
+setWeights(fix_spec) <- c(1/2,1/3,1/6) #Verändern Sie hier die Gewichte
+
+fix_pf <- feasiblePortfolio(
+  data = SWX.RET[,1:3],
+  spec = fix_spec,
+  constraints = "LongOnly")
+
+print(fix_pf)
+
+getTargetReturn(fix_pf)  
+getTargetRisk(fix_pf)   
+```
+
+
+## Portfolio mit minimaler Varianz bei fester Rendite 
+
+
+Wir legen zunächst die Spezifikation des Portfolios fest. Dazu geben wir eine Zielgröße für die mittlere Rendite vor. 
+
+***Achten Sie bei der Vorgabe darauf, dass die mittlere Rendite eines Portfolios niemals größer sein kann, als die maximale Rendite der Einzelbestandteile. Wählen Sie einen unerreichbaren Wert (hier z.B. eine Rendite von 0.1), so erhalten Sie fehlerhafte Rückgaben.***
+
+```{r }
+target_spec <- portfolioSpec()
+setTargetReturn(target_spec) <- 0.0001
+```
+
+Anschließend erstellen wir das Portfolio mit der Funktion `efficientPortfolio()`. Diese erwartet als Argumente einen Datensatz mit `data = `, die Portfoliospezifikation mit den Argumenten `spec = ` und `constraints = `. 
+
+```{r }
+target_pf <- efficientPortfolio(
+  data = SWX.RET[,1:3],
+  spec = target_spec,
+  constraints = "LongOnly") #Keine Shorts, d.h. nur positive Gewichte
+print(target_pf)
+```
+
+Das getestete Portfolio hat die vorgegebene mittlere Rendite von `r getTargetReturn(target_pf)["mean"]`. Das zugehörige Risiko (Cov) beträgt `r getTargetRisk(target_pf)["Cov"]`. 
+
+Das Risiko entspricht in der obigen graphischen Analyse dem Schnittpunkt des effizienten Rands mit der Horizontalen bei 0,0001.
+
+
+```{r }
+tailoredFrontierPlot(SWX_sub.pf)
+
+```
+
+
+
+Wir analysieren die Zusammensetzung des Portfolios und die Beiträge der Einzelbestandteile zu den Renditen als Kuchendiagramme mit den Funktionen `weightsPie()`und  `weightedReturnsPie()`
+
+```{r }
+weightsPie(target_pf)
+weightedReturnsPie(target_pf)
+
+```
+
+Im Portfolio sind enthalten:
+
+* SBI mit einem Gewicht von rund `r round(getWeights(target_pf)["SBI"],2)`
+* SII mit einem Gewicht von rund `r round(getWeights(target_pf)["SII"],2)`
+* SPI mit einem Gewicht von rund `r round(getWeights(target_pf)["SPI"],2)`
+
+Dies ist graphisch im ersten Kuchendiagramm dargestellt.
+
+
+Für die Renditen zeigen sich erneut von der Gewichtung abweichende Beiträge der einzelnen Komponenten. Der überwiegende Beitrag zur Portfoliorendite entsteht durch den SII Anteil im Portfolio. 
+
+Dies lässt sich wie folgt plausibilisieren:
+
+* SII und SPI haben nahezu gleiche Renditen, allerdings hat SII ein deutlich geringeres Risiko. Damit wird in der Regel SII gegenüber SPI bevorzugt. Nur bei sehr hohen Renditeanforderungen oberhalb der Rendite von SII wird SPI ein stärkeres Gewicht erhalten.
+* SBI hat nur eine sehr kleine Rendite, allerdings auch ein geringes Risiko. Der Anteil  von SBI im Portfolio (ggü. den Anteilen von SII und SPI) legt damit das Verhältnis von Rendite zu Risiko fest. Da hier eine Zielrendite in etwa mittig zwischen SBI und SII bzw. SPI vorgegeben wurde, werden beide ähnliche Gewichte im Gesamtportfolio haben. Der Beitrag zur Gesamtrendite fehlt allerdings ungleich aus (vgl. das gleichgewichtete Portfolio).
+
+
+
+***Kleine Übung*
+
+Untersuchen Sie, wie sich die Portfoliozusammensetzung ändert, wenn Sie die Zielrendite etwas erhöhen bzw. verringern 
+
+```{r target, exercise=TRUE, exercise.lines = 10}
+target_spec <- portfolioSpec()
+setTargetReturn(target_spec) <- 0.0001  # Verändern Sie hier die Zielrendite 
+
+target_pf <- efficientPortfolio(
+  data = SWX.RET[,1:3],
+  spec = target_spec,
+  constraints = "LongOnly") #Keine Shorts, d.h. nur positive Gewichte
+print(target_pf)
+```
+
+## Portfolio mit global minimaler Varianz 
+
+Für ein Portfolio mit global minimaler Varianz müssen keine weiteren Spezifikationen festgelegt werden. Die Standardspezifikationen reichen aus.
+
+
+```{r }
+global_spec <- portfolioSpec()
+```
+
+
+Anschließend erstellen wir das Portfolio mit der Funktion `minvariancePortfolio()`. Diese erwartet als Argumente einen Datensatz mit `data = `, die Portfoliospezifikation mit den Argumenten `spec = ` und `constraints = `. 
+
+```{r }
+global_pf <- minvariancePortfolio(
+  data = SWX.RET[,1:3],
+  spec = global_spec,
+  constraints = "LongOnly") #Keine Shorts, d.h. nur positive Gewichte
+print(global_pf)
+```
+
+Das Portfolio hat eine mittlere Rendite von `r getTargetReturn(global_pf)["mean"]` und ein Risiko (Cov) von `r getTargetRisk(global_pf)["Cov"]`. 
+
+Das Portfolio entspricht im Folgenden Schaubild dem roten Punkt am linken Rand des effizienten Rands.
+
+
+```{r }
+tailoredFrontierPlot(SWX_sub.pf)
+
+```
+
+
+
+
+Wir analysieren die Zusammensetzung des Portfolios und die Beiträge der Einzelbestandteile zu den Renditen als Kuchendiagramme mit den Funktionen `weightsPie()`und  `weightedReturnsPie()`
+
+```{r }
+weightsPie(global_pf)
+weightedReturnsPie(global_pf)
+
+```
+Die Analyse zeigt einen hohen Anteil des risikoarmen, renditeschwachen SBI. Die risikoreicheren SII und SPI werden nur zu geringeren Anteilen beigemischt, tragen jedoch aufgrund der höheren Renditen maßgeblich zur Portfoliorendite bei.
+
+
+## Portfolio mit optimalem Sharpe-Quotient
+
+Für ein Portfolio mit optimalem Sharpe-Quotienten muss der risikofreie Zinssatz festgelegt werden. Wir verwenden hier der Einfachheit halber den Wert 0.
+
+
+```{r }
+sh_spec <- portfolioSpec()
+setRiskFreeRate(sh_spec) <- 0.0000
+```
+
+
+Anschließend erstellen wir das Portfolio mit der Funktion `tangencyPortfolio()`. Diese erwartet als Argumente einen Datensatz mit `data = `, die Portfoliospezifikation mit den Argumenten `spec = ` und `constraints = `. 
+
+```{r }
+sh_pf <- tangencyPortfolio(
+  data = SWX.RET[,1:3],
+  spec = sh_spec,
+  constraints = "LongOnly") #Keine Shorts, d.h. nur positive Gewichte
+print(sh_pf)
+```
+
+Das Portfolio hat eine mittlere Rendite von `r getTargetReturn(sh_pf)` und ein Risiko (Cov) von `r getTargetRisk(sh_pf)`. 
+
+
+Das Portfolio entspricht im Folgenden Schaubild dem türkisfarbenen Kreis auf dem  effizienten Rand.
+
+
+```{r }
+tailoredFrontierPlot(SWX_sub.pf)
+
+```
+
+
+Wir analysieren die Zusammensetzung des Portfolios und die Beiträge der Einzelbestandteile zu den Renditen als Kuchendiagramme mit den Funktionen `weightsPie()`und  `weightedReturnsPie()`
+
+```{r }
+weightsPie(sh_pf)
+weightedReturnsPie(sh_pf)
+
+```
+
+Die Interpretation der Gewichte ist analog zu den obigen Portfolios. Allerdings fällt hier der Anteil der risikoreichen und renditestarken SII und SPI im Vergleich höher aus und der Anteil des risikoarmen und renditeschwachen SBI geringer.
+
+Entsprechend ergibt sich auch eine höhere Rendite und ein höheres Risiko.
+
+***Kleine Übung*
+
+Untersuchen Sie, wie sich die Portfoliozusammensetzung ändert, wenn Sie den risikolosen Zinssatz etwas erhöhen. 
+
+```{r sharpe, exercise=TRUE, exercise.lines = 10}
+sh_spec <- portfolioSpec()
+setRiskFreeRate(sh_spec) <- 0.0000  # Verändern Sie hier den Zinssatz
+
+sh_pf <- tangencyPortfolio(
+  data = SWX.RET[,1:3],
+  spec = sh_spec,
+  constraints = "LongOnly") #Keine Shorts, d.h. nur positive Gewichte
+print(sh_pf)
+```
+
+
+## Analyse von Portfolios auf dem effizienten Rand
+
+```{r }
+tailoredFrontierPlot(SWX_sub.pf)
+
+```
+
+
+Der Rand umfasst alle Portfolios, die für eine gegebene Renditeerwartung das Risiko minimieren. Die erreichbaren Renditen liegen dabei zwischen der geringsten Rendite der Einzelwerte und der höchsten Rendite der Einzelwerte. Diese bilden entsprechend die Endpunkte des Rands.
+
+Für einen Teil des Rands gibt es bei gegebenem Risiko zwei unterschiedliche Portfoliozusammensetzungen mit unterschiedlichen Renditen. In diesem Fall würde jeder rationale Investor die Portfoliozusammensetzung mit der höheren Rendite bei gleichem Risiko bevorzugen. Diese Portfolios bilden den effizienten Rand. Die Endpunkte des effizienten Rands sind das Portfolio mit der global minimalen Varianz und der Einzelwert mit der höchsten Rendite.
+
+Um den Rand genauer analysieren zu können, erzeugen wir zunächst mit der Funktion `portfolioFrontier()` eine Repräsentation (siehe oben)
+
+
+```{r }
+SWX_sub.pf <- portfolioFrontier(SWX.RET[,1:3])
+```
+
+
+Alle Punkte auf dem  Rand lassen sich durch eine unterschiedliche Gewichtung der Einzelwerte im Portfolio erreichen. Bewegt man sich von einem Endpunkt des Rands zum anderen Endpunkt, so ergeben sich unterschiedliche Gewichtungen der Einzelwerte und unterschiedliche Beiträge zur Gesamtrendite. Diese lassen sich in `fPortfolio` mit den Funktionen `weightsPlot()` und `weightedReturnsPlot()` darstellen.
+
+```{r }
+weightsPlot(SWX_sub.pf)
+```
+
+Das Säulendiagramm zeigt wie sich die Gewichtung der Einzelwerte im Portfolio ändert. 
+
+* Der Ausgangspunkt ist ein Portfolio mit 100% SBI, dem risikoärmstern Einzelwert. 
+* Mit zunehmend steigender Rendite, sinkt der Anteil von SBI zu Gunsten von SII und SPI. Dabei steigt zunächst der Anteil von SII deutlich stärker als der von SPI. SII besitzt eine vergleichbare Rendite wie SPIS, jedoch ein deutlich niedrigeres Risiko. 
+* Sobald die Rendite des Portfolios die Einzelendite von SII erreicht, steigt der Anteil von SPI und der Anteil von SII nimmt ab. Denn Renditen oberhalb der von SII sind nur dann erreichbar, wenn ds risikoreichere aber renditestärkere SPI ins Porftolio aufgenommen wird.
+* Endpunkt des Randes ist ein Portfolio mit 100% SPI, dem renditestärksten Einzelwert.
+
+
+```{r }
+weightedReturnsPlot(SWX_sub.pf)
+
+```
+
+Das Säulendiagramm zeigt, wie sich die Gesamtrendite und die Beiträge der Einzelwerte zur Gesamtrendite verändern.
+
+* Die Gesamtrendite steigt linear von der niedrigsten erreichbaren Rendite zur höchsten erreichbaren Rendite.
+* Die Beiträge verändern sich. SBI liefert dabei als renditeschwächster Einzelwert nur sehr kleine Beiträge. Über weite Teile wird der Hauptbeitrag durch SII geliefert, dem Einzelwert mit dem besten Verhältnis von Rendite zu Risiko. Erst bei hohen Gesamtrenditen oberhalb der Einzelrendite von SII steigt der Anteil von SPI und damit dessen Beitrag zur Gesamtrendite.
+
+
+## Zusammenfassende Übungsaufgaben
+
+Wiederholen Sie die obigen Analysen für alle Einzelwerte des SWX - nicht nur die ersten drei Komponenten:
+
+* Graphische Analyse
+* Portfolio mit festen Gewichten
+* Portfolio mit optimalem Sharpe-Quotienten
+
+
+Wählen sie dabei Ihnen als geeignet erscheinende Werte für die notwendigen Portfoliospezifikationen. 
+
+Ergänzen Sie die Analyse um eine Diskussion der Portfoliogewichte sowie der Beiträge der Einzelwerte zur Gesamtrendite (nicht in der Hilfslösung zum R-Code enthalten).
+
+Hier kommen noch ein paar Platzhalterzeigen, damit in der nachfolgenden Übung die Lösungshinweise vollständig angezeigt werden.
+
+1. a
+2. b
+3. c
+4. d
+5. e
+6. f
+7. g
+8. h
+9. i
+10. j
+
+
+```{r all, exercise=TRUE, exercise.lines = 40}
+
+```
+
+
+```{r all-hint-1}
+# Graphische Analyse
+SWX.pf <- portfolioFrontier(SWX.RET[,1:3]) # Hier die Auswahl entfernen
+tailoredFrontierPlot(SWX.pf)
+#alternativ auch 
+#  plot(SWX.pf, which = "all")
+ 
+
+
+```
+
+
+
+```{r all-hint-2}
+# Graphische Analyse
+SWX.pf <- portfolioFrontier(SWX.RET)
+tailoredFrontierPlot(SWX.pf)
+#alternativ auch 
+#  plot(SWX.pf, which = "all")
+
+# Feste Gewichte
+fix_spec <- portfolioSpec()
+setWeights(fix_spec) <- c(1/3,1/3,1/3) # Hier den Gewichtungsvektor anpassen
+fix_pf <- feasiblePortfolio(
+  data = SWX.RET[,1:3], # Hier die Auswahl entfernen
+  spec = fix_spec,
+  constraints = "LongOnly") 
+print(fix_pf)
+
+```
+
+
+```{r all-hint-3}
+# Graphische Analyse
+SWX.pf <- portfolioFrontier(SWX.RET)
+tailoredFrontierPlot(SWX.pf)
+#alternativ auch 
+#  plot(SWX.pf, which = "all")
+
+# Feste Gewichte
+fix_spec <- portfolioSpec()
+setWeights(fix_spec) <- c(1/6,1/6,1/6,1/6,1/6,1/6) 
+fix_pf <- feasiblePortfolio(
+  data = SWX.RET, 
+  spec = fix_spec,
+  constraints = "LongOnly") 
+print(fix_pf)
+
+# Sharpe-Quotient
+sh_spec <- portfolioSpec()
+setRiskFreeRate(sh_spec) <- 0.0000  # Verändern Sie hier den Zinssatz
+sh_pf <- tangencyPortfolio(
+  data = SWX.RET,
+  spec = sh_spec,
+  constraints = "LongOnly") 
+print(sh_pf)
+
+```
+
+
+```{r all-solution}
+# Graphische Analyse
+SWX.pf <- portfolioFrontier(SWX.RET)
+tailoredFrontierPlot(SWX.pf)
+#alternativ auch 
+#  plot(SWX.pf, which = "all")
+
+# Feste Gewichte
+fix_spec <- portfolioSpec()
+setWeights(fix_spec) <- c(1/6,1/6,1/6,1/6,1/6,1/6) # Hier den Gewichtungsvektor anpassen
+fix_pf <- feasiblePortfolio(
+  data = SWX.RET, 
+  spec = fix_spec,
+  constraints = "LongOnly") 
+print(fix_pf)
+
+# Sharpe-Quotient
+sh_spec <- portfolioSpec()
+setRiskFreeRate(sh_spec) <- 0.00005  # Verändern Sie hier den Zinssatz
+sh_pf <- tangencyPortfolio(
+  data = SWX.RET,
+  spec = sh_spec,
+  constraints = "LongOnly") 
+print(sh_pf)
+
+```
+
+
+## Exkurs: Portfoliodaten selber erstellen
+
+### Wiederholung: Einzelzeitreihen als `xts` importieren
+
+Wir werden eigene Datensätze mit den Paketen `Quandl` und `quantmod`  als `xts()` Zeitreihe in R importieren. Dazu müssen die entsprechenden Pakete geladen werden.
+
+```{r, echo = FALSE}
+library(xts)
+library(Quandl)
+library(quantmod)
+```
+
+Für die Nutzung von `quandl.com` über die API ist eine Registrierung notwendig. Mit der Registrierung erhält man einen Zugriffscode , den sogenannten API-key, den man anschließend in R mit der Funktion `Quandl.api-key()` festlegt. Für die Nutzung in Ihrer eigenen R-Installation benötigen Sie einen eigenen API key.
+
+Wir verwenden die Aktienkurse der Unternehmen Siemens, SAP und BMW mit Kursdaten (Tagesschlusskurs) der Frankfurter Börse bezogen über Quandl. 
+
+```{r }
+sap_ql <- Quandl("FSE/SAP_X",type="xts")
+sap_ql <- sap_ql$Close
+sie_ql <- Quandl("FSE/SIE_X",type="xts")
+sie_ql <- sie_ql$Close
+bmw_ql <- Quandl("FSE/BMW_X",type="xts")
+bmw_ql <- bmw_ql$Close
+
+```
+
+
+Im Ergebnis erhalten wir drei separate Zeitreihen mit je einem Kursverlauf
+
+
+```{r }
+head(sap_ql)
+head(sie_ql)
+head(bmw_ql)
+```
+
+
+### Zeitreihen im `xts`Format zusammenfassen
+
+Um die Einzelzeitreihen im `xts` Format zu einer multivariaten Zeitreihe zusammenzufassen, verwenden wir die Funktion `merge()`. Diese Funktion nimmt mehrere `xts` Zeitreihen und erstellt aus diesen eine gemeinsame multivariate `xts` Zeitreihe, wobei die Art des Zusammenfügens durch das Argument `join` festgelegt wird:
+
+* `join = "outer"` die neue Zeitreihe beinhaltet alle Zeitpunkte die in einer der Eingangszeitreihen enthalten sind. Fehlende Werte werden mit `NA`aufgefüllt.
+* `join = "inner"` die neue Zeitreihe beinhaltet nur Zeitpunkte die in allen der Eingangszeitreihen enthalten sind. Damit gibt es keine fehlenden Werte.
+
+Zusätzlich gibt es bei zwei Eingangszeitreihen noch zwei weitere Optionen:
+
+* `join = "left"` die neue Zeitreihe beinhaltet nur die Zeitpunkte die in der ersten (links stehenden) Eingangszeitreihe enthalten sind. Fehlende Werte in der zweiten (rechts stehenden) Zeitreihe werden mit `NA`aufgefüllt.
+* `join = "right"` die neue Zeitreihe beinhaltet nur die Zeitpunkte die in der zweiten (rechts stehenden) Eingangszeitreihe enthalten sind. Fehlende Werte in der ersten (links stehenden) Zeitreihe werden mit `NA`aufgefüllt.
+
+Für das Portfolio verwenden wir nur Zeitpunkte, bei denen für alle Einzelwerte Kursdaten vorliegen und damit `join = "inner"`. Anschließend benennen wir die Zeitreihen entsprechend und geben die Kursdaten graphisch aus.
+
+
+```{r }
+port_ql <- merge(sap_ql, sie_ql,bmw_ql, join = "inner")
+names(port_ql) <- c("SAP","Siemens","BMW")
+plot(port_ql)
+addLegend("topright",legend.names=names(port_ql),lty=1,col=1:3)
+
+```
+
+
+Wie man sieht, zeigt der Kursverlauf von SAP einige Sprünge. Insbesondere der Kurssprung 2006 ist auffällig. Vermutlich handelt es sich um einen Aktiensplit. Da wir darauf nicht näher eingehen wollen, beschränken wir die weitere Analyse auf die Zeit ab 2010.
+
+```{r }
+port_ql_2010 <- port_ql["2010/"]
+
+```
+
+
+### Zeitreihendatentyp von `xts`zu `timeSeries` konvertieren
+
+
+Das später für die Portfolioanalyse verwendete Paket `fPortfolio` arbeitet mit Zeitreihen vom Datentyp `timeSeries`. Wir müssen daher unser Portfolio in diesen Zeitreihentyp konvertieren. 
+Dafür verwenden wir die Funktion `as.timeSeries`.
+
+```{r }
+port_ts <- as.timeSeries(port_ql)
+port_ts_2010 <- as.timeSeries(port_ql_2010)
+
+```
+
+Alternativ zum obigen Vorgehen könnten wir in der Funktion `Quandl` das Zeitreihenformat schon beim Einlesen durch das Argument `type = "timeSeries"`  festlegen. Allerdings ist der Datentyp `timeSeries` in der Handhabung nicht so komfortabel, wie `xts`. Beispielsweise ist das Zusammenfassen mit der Funktion `merge()` für `timeSeries`Datentypen deutlich langsamer als für `xts` Datentypen. Daher rate ich dazu, die Daten als `xts`einzulesen, wie gewünscht zu transformieren und erst zum Schluss für die Portfolioanalysen mit `as.timeSeries()` zu konvertieren.
+
+
+### Von absoluten Kurswerten zu relativer Kursentwicklung
+
+Die Kurswerte verschiedener Assets in einem Portfolio lassen sich nur schwer direkt miteinander vergleichen. So gibt es beispielsweise je nach Historie bzw. Präferenz der Unternehmen für solche mit vergleichbarem Gesamtwert sowohl Unternehmen mit wenigen Aktien und hohen Kurswerten der einzelnen Aktie als auch Unternehmen mit vielen Akten und niedrigen Kurswerten der einzelnen Aktie. Die Kurswerte haben damit jeweils eigene Bezugspunkte. Anstelle der absoluten Kurswerte betrachten wir daher entweder
+
+1. die relative Kursentwicklung bezogen auf einen Anfangsstichtag oder
+2. die Renditen als relative Kursänderungen
+
+#### Relative Kursentwicklung
+
+Dazu wählen wir einen Anfangsstichtag und drücken alle nachfolgenden Kurswerte relativ zum Kurswert am Anfangsstichtag aus. Wir wenden dieses Vorgehen auf alle im Portfolio enthaltenen Einzelwerte an und enthalten die relativen Kursentwicklungen. Diese geben wir anschließend graphisch aus.
+
+```{r }
+port_ts_2010_rel <- port_ts_2010
+port_ts_2010_rel[,1] <- port_ts_2010_rel[,1]/c(port_ts_2010_rel[1,1])
+# das Setzen von c() ist notwendig, damit R die Zahl als Konstante und nicht als Matrix interpretiert
+port_ts_2010_rel[,2] <- port_ts_2010_rel[,2]/c(port_ts_2010_rel[1,2])
+port_ts_2010_rel[,3] <- port_ts_2010_rel[,3]/c(port_ts_2010_rel[1,3])
+
+plot(port_ts_2010_rel, plot.type="s")
+legend("topleft", legend = names(port_ts_2010_rel), col=1:3, lty=1)
+
+```
+#### Renditen
+
+Renditen sind die relativen Veränderungen der Kurswerte. Man unterscheidet zwischen
+
+* diskreten Renditen: $R_t = \frac{K_t-K_{t-1}}{K_{t-1}}$ und 
+* stetigen Renditen $r_t = ln(\frac{K_t}{K_{t-1}})$
+
+Wir verwenden im Folgenden stetige Renditen $r_t$.
+
+Mit der Funktion `returns()` aus dem Paket `timeSeries` lassen sich die Renditen direkt berechnen. Die Funktion `returns()` erwartet als notwendiges Argument `x=` eine uni- oder multivariate Zeitreihe vom Typ `timeSeries`. Darüberhinaus lässt sich mit dem Argument `method = ` die Art der Rendite festlegen:
+
+* `method = continuous` für stetige Renditen (Standardwert) und
+* `method = discrete` für diskrete Renditen.
+
+Wir berechnen die stetigen Renditen und geben diese graphisch als Liniendiagramm aus:
+
+```{r }
+port_ts_2010_ret <- returns(port_ts_2010)
+head(port_ts_2010_ret)
+plot(port_ts_2010_ret, plot.type="s")
+legend("bottomleft", legend = names(port_ts_2010_ret), col=1:3, lty=1)
+
+```
+
+Die direkte Ausgabe aller Returns als Liniendiagramm ist wenig übersichtlich. Sie erlaubt aber
+
+* einen ersten groben Vergleich der Größenordnungen der Renditen (hier: ähnlicher Wertebereich der Einzelrenditen)
+* und Perioden mit größerer Volatilität zu erkennen (hier insbesondere: Eurokrise 2010 bis 2012 und Corona-Krise ab Anfang 2020).
+
+
+
+
+***Kleine Übung***
+
+Berechnen Sie im Folgenden die stetigen Renditen basierend auf den relativen Kurswerten in `port_ts_2010_rel`. Vergleichen Sie die erhaltenen Werte mit den oben direkt auf den Kurswerten berechneten Renditen. Erklären Sie die Unterschiede bzw. Gemeinsamkeiten.
+
+
+
+```{r returns, exercise=TRUE, exercise.lines = 10}
+
+
+```
+
+```{r returns-hint-1}
+port_ts_2010_relret <- returns(...)
+head(port_ts_2010_relret)
+
+```
+
+
+
+```{r returns-hint-2}
+port_ts_2010_relret <- returns(port_ts_2010_rel)
+head(port_ts_2010_relret)
+```
+
+
+```{r returns-solution}
+port_ts_2010_relret <- returns(port_ts_2010_rel)
+head(port_ts_2010_relret)
+# Die berechneten Werte sind identisch. Das lässt sich anhand der Berechnungsformel für stetige Renditen erklären. Der Quotient K_t/K_t-1 wird durch die Division aller Kurswerte durch den Startwert nicht verändert.
+```
+
+
+## Portfolioanalyse 
+
+Hier sollen die im Exkurs erzeugten Kursdaten son SAP, Siemens und BMW mit den Funktionen aus `fPortfolio analysiert werden. Wir beschränken uns dabei auf die graphische Analyse:
+
+```{r }
+port.pf <- portfolioFrontier(port_ts_2010_ret)
+tailoredFrontierPlot(port.pf)
+
+```
+
+Es zeigt sich, dass unter den drei Einzelwerten SAP sowohl die höchste Rendite, als auch das geringste Risiko aufweist. Eine Beimischung der anderen Einzelwerte im Portfolio erscheint daher zunächst unlogisch, als bestes Portfolio erscheint zunächst ein Porfolio mit 100% SAP.
+
+
+
+Diese erste Schlussfolgerung ist allerdings trügerisch. Obwohl SAP als Einzelwert sowohl die höchsten Renditen als auch das geringste Risiko aufweist, gibt es Zeitpunkte, an denen SAP zwar verliert, eine (oder beide) der anderen Einzelwerte aber hinzugewinnt. Entsprechend ist zur Verringerung des Risikos lohnenswert, die anderen Einzelwerte ins Portfolio mit aufzunehmen, um derartige negative Kursbewegungen von SAP zu kompensieren - Risikodiversifikation. 
+
+Diese Argumentation deckt sich auch mit den Ergebnissen der quantitativen Analyse. Betrachten wir dazu die Portfoliogewichte bzw. Beiträge zur Rendite.
+
+
+```{r }
+weightsPlot(port.pf)
+weightedReturnsPlot(port.pf)
+
+```
+
+Demnach enthält nicht nur das Porfolio mit dem global minimalen Risiko (durchgezogene vertikale Linie) neben SAP auch die anderen Einzelwerte, sondern auch das Portfolio mit optimalem Sharpe-Quotienten (in etwa vorletze Säule) ist kein reines SAP Portfolio.
+
+## Diskussion
+
+Die Bestimmung optimaler Portfolios anhand historischer Daten erscheint mathematisch logisch und elegant. Allerdings besitzt dieses Vorgehen zwei Schwachpunkte:
+
+1. Aus Daten in der Vergangenheit wird auf die zukünftige Entwicklung geschlossen. Dies klingt zunächst schwerwiegend, ist allerdings eine Schwäche aller empirischen, induktiven Wissenschaften. So wird beispielsweise auch bei der Wirksamkeit von Medikamenten aus klinischen Tests (Vergangenheit) auf  Therapieerfolge (Zukunft) geschlossen, oder bei dem Stromverbrauch von technischen Geräten. Für sich alleine genommen, wäre diese Schwäche daher nicht problematisch.
+
+2. Die Vorhersagen von Finanzmarktdaten betreffen ein soziales, reflexives System. Dieses Problem zeigt sich  bereits in der Vorhersage von Einzelzeitreihen z.B. mittels ARIMA_GARCH Modellen. Der Kurswert einer Aktie bestimmt sich aus den Erwartungen der Marktteilnehmer hinsichtlich der zukünftigen Entwicklung. Insbesondere werden dadurch in perfekten Märkten alle mit Modellen berechenbaren und damit erwartbaren Entwicklungen vorweg genommen. Es bleibt für die Zukunft nur das unberechnbare - Marktparadox. (Das ist bei physikalischen oder biologischen Systemen anders - das Virus reagiert beispielsweise unabhängig davon, was wir über das Virus wissen bzw. von ihm erwarten.)
+
+Zusammen genommen führen die beiden Schwächen dazu, dass die optimalen Portfolios in der Regel nicht so gut abschneiden, wie dies theoretisch (mathematisch-statistisch) zu erwarten wäre. Entsprechend werden am Markt in der Regel robustere Portfolioansätze verfolgt wie z.B. eine Gleichgewichtung aller Einzelwerte bzw. eine anteilige Gewichtung  gemäß der Marktkapitalisierung. Paralell dazu wurden die Portfoliomodelle auch theoretisch weiterentwickelt, so werden z.B. im CAPM (Capital Asset Pricing Modell) Überrenditen nicht mehr relativ zum risikofreien Zinssatz gemessen, sondern relativ zu einem systematischen Marktrisiko. 
+
+

@@ -1,0 +1,817 @@
+---
+title: "Maschinelles Lernen in R mit mlr"
+output: learnr::tutorial
+runtime: shiny_prerendered
+
+author: Rainer Stollhoff, Felix Rothe
+description: "Eine interaktive Einführung in verschiede ML-Algorithmen in R mit dem Paket mlr"
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+```{r setup, include=FALSE}
+library(learnr)
+library(tidyverse)
+library(mlr)
+knitr::opts_chunk$set(echo = T, warning = FALSE)
+load(file="./www/shiny.RData")
+```
+
+## Einleitung
+
+In diesem Tutorial werden verschiedene Verfahren des Maschinellen Lernens zum Supervised Learning vorgestellt. Dabei wird vorausgesetzt, dass die theoretischen Grundlagen bereits vorhanden sind.  Der Fokus liegt hier auf der konkreten Anwendung der Verfahren, dem Einfluß der Parameter und Hyperparameter auf das trainierte Modell (Modellselektion und -validierung) und der Interpretation der Ergebnisse.
+
+Die Umsetzung findet dabei in R statt. Soweit möglich setzt das Tutorial aber keine Kenntnisse in R voraus. Insbesondere sind die Übungen durch einfaches Anpassen von Parametern bzw. Argumenten umsetzbar. Für vertiefte Analysen oder im Fall von Fehlern bei der Anwendung sind Kenntnisse in R aber unumgänglich.
+
+### Supervised Learning
+
+Die Aufgabe im Supervised Learning besteht darin, aus unabhängigen Variablen $x$ auf eine abhängige Variable $y$ zu schließen. Man unterscheidet zwischen: 
+
+* Regression: für reellwertige $y$ mit metrischer Skala
+* Klassifikation: für diskrete $y$ mit nominaler Skala
+  + binäre Klassifikation mit $y \in \{0,1\}$
+  + multinomiale Klassifikation mit $y \in \{0,1, \ldots, n\}$
+
+Im Rahmen des Maschinellen Lernens wird mit Hilfe eines Verfahrens bzw. Lern-Algorithmus anhand von Trainingsdaten ein Modell geschätzt, d.h. ein funktionaler Zusammenhang zwischen $x$ und $y$ mit $\hat{y}= f(x;\theta)$. Dabei bezeichnet $\hat{y}$ die Vorhersage für $y$ und $\theta$ die Parameter des Modells.
+
+Sowohl für Regressions- als auch für Klassifikationsaufgaben existiert eine Vielzahl an verschiedenen Verfahren bzw. Lern-Algorithmen. Alle dieser Verfahren haben ihre eigenen Stärken und Schwächen. Im Rahmen dieser Einführung wird für jede der beiden Aufgabentypen eine Auswahl an Verfahren vorgestellt. 
+
+Konkret werden betrachtet:
+
+* Lineare und Logistische Regression
+* Klassifikations- und Regressionsbäume
+* Gradient-Boosting und Random Forests
+* Support Vector Machines
+* Neuronale Netzwerke - genauer: Multylayer Feedforward Perceptrons
+
+#### Parametrische und Nicht-Parametrische Verfahren
+Je nach verwendetem Verfahren sind die Parameter nach Art und Anzahl im Vorfeld vollständig bekannt (sog. parametrische Verfahren), teilweise bekannt (sog. semi-parametrische Verfahren) oder ergeben sich erst im Laufe des Trainings (nicht-parametrische Verfahren). Die Übergänge zwischen diesen Typen sind fließend.
+
+#### Modellselektion und Parameteroptimierung
+Im Laufe des Trainings werden die Parameter so bestimmt, dass die Vorhersage eine möglichst gute Qualität aufweist. Die Qualität der Vorhersage wird in der Regel über eine Verlustfunktion gemessen, z.B.
+
+* quadratischer Abstand $(y - \hat{y})^2$ bei einer Regression oder
+* empirische Fehlklassfikationsrate $\frac{\#(i: y_i \neq \hat{y}_i)}{\#i}$ bei einer Klassifikationsaufgabe
+
+Sofern der funktionale Zusammenhang sich als Schätzung der Wahrscheinlichkeit für die Werte von $y$ interpretieren lässt $f(x;\theta) = \hat{p}(y|x,\theta)$, besteht ein allgemeiner Ansatz  in der Maximierung der Likelihood, d.h. der bedingten Wahrscheinlichkeit der im Trainingsdatensatz beobachteten Werte von $y$ gegeben die Werte $x$ und das Modell bzw. die Parameter des Modells $\theta$:
+\[L(\theta) = \prod_i \hat{p}(y_i|x_i,\theta)\]
+Man nennt dies eine Maximum-Likelihood-Schätzung.
+
+#### Modellvalidierung und Resampling-Verfahen
+Die empirische Bestimmung der Qualität der Vorhersage beruht auf Zufallsstichproben von Trainings- und Testdatensätzen und unterliegt damit Schwankungen. Um die statistische Genauigkeit der Qualitätsmessung zu erhöhen, verwendet man daher in der Regel Resampling-Verfahren, bei denen wiederholt Trainings. und Testdatensätze erzeugt, Modelle trainiert und die Vorhersagequalität bestimmt wird. Beispiele dafür sind Hold-Out Verfahren oder Kreuzvalidierung.
+
+#### Überblick 
+Die folgende Graphik gibt einen Überblick über die Zusammenhänge zwischen den in diesem Tutorial verwendeten Konzepten. Sie basiert auf einer Lehrveranstaltung zur Einführung in die Grundlagen des Maschinellen Lernens und stellt damit nur einen Ausschnitt dar.
+
+![Übersicht über Konzepte des Supervised Learning](./www/SupervisedLearning.png){width=100%}
+
+### Interface `mlr`
+
+Zur vereinfachten Durchführung der Analysen verwenden wir das Paket `mlr`. Dieses stellt eine Schnittstelle für verschiedene Verfahren des Maschinellen Lernens bereit. Dadurch müssen Vorverarbeitungsschritte nur einmal und nicht für jedes Verfahren separat durchgeführt werden und es kann schnell ein standardisierter Vergleich der Vorhersagegüte der Verfahren durchgeführt werden. Das Paket `mlr` implementiert die Lernalgorithmen also nicht selbst, sondert bindet diese nur einheitlich ein.
+
+Weitere Informationen zum Paket finden sich auf der Webseite des mlr Projekts: <https://mlr.mlr-org.com/>.
+
+*Hinweis: Um fortgeschrittene Verarbeitungen mit den trainierten Modellen durchzuführen, kann es notwendig werden, direkt mit den die Verfahren implementierenden Pakten zu arbeiten (beipielsweise mit dem Paket `rpart`, um trainierte Entscheidungsbäume grafisch auszugeben).*
+
+###  Datensatz
+
+#### Beschreibung des Datensatzes
+
+Als Anwendungsfall dient der Datensatz `mpg`. Dieser beinhaltet 234 Beobachtungen von PKW-Modellen mit 11 Merkmalen:
+
+```{r mpg, echo = T}
+str(mpg)
+```
+
+Der Datensatz wird für die unterschiedlichen Aufgaben spezifisch angepasst. 
+
+
+### Auftrennung in Trainings- und Testdaten
+
+Für die Modellvalidierung nehmen wir in diesem Tutorial zu Beginn des Abschnitts Regression und Klassifikation jeweils eine einmalige zufällige Aufteilung des Datensatzes in Trainings- und Testdaten vor. 
+
+Diese Aufteilung entspricht dem Vorgehen, das bei einem öffentlichen Wettbewerb üblich ist. Der Wettbewerbsleiter trennt vor Beginn des Wettbewerbs einen Teil der Originaldaten ab und veröffentlicht für die Wettbewerber lediglich einen Teil der Daten. Der zurückbehaltene Teil der Daten dient einer Modellvalidierung anhand echter Testdaten.
+
+Je nach Verfahren kann der bereitgestellte Trainingsdatensatz im Trainingsprozess für die Modellselektion erneut in Trainings- und Testdatensätze unterteilt werden. 
+
+Die getrennte Aufteilung bei Regressions- und Klassifikationsaufgaben ermöglicht für letztere eine Auftrennung, bei der darauf geachtet wird, dass sowohl in den Trainings. wie auch in den Testdaten jede Klasse der Zielvariablen mit vergleichbaren relativen Häufigkeiten besetzt ist. Man nennt dies Stratifizierung. 
+
+
+## Regression  {.tabset}
+
+#### Anpassung des Datensatzes 
+
+Für die Regressionsaufgaben wird die Variable `cty` als abhängige Variable $y$ dienen.
+
+```{r , echo = T}
+hist(mpg$cty,breaks=10)
+```
+
+Eine einfache Korrelationsanalyse der metrischen Variablen des Datensatzes ergibt:
+
+
+```{r, echo = T}
+cor(select_if(mpg,is.numeric))
+```
+
+Da die Variable `cty` eine sehr hohe Korrelation zur Variablen `hwy` aufweist, wird diese in der Regressionsanalyse entfernt, um eine Fokussierung der Verfahren auf diesen Zusammenhang zu vermeiden.
+
+```{r, echo = T}
+mpg_reg <- select(mpg,!hwy)
+```
+
+Desweiteren sind im Datensatz einige nicht-numerische Variablen enthalten. Diese werden in binäre Dummy-Variablen umkodiert.
+
+```{r, echo = T}
+mpg_reg <- createDummyFeatures(type.convert(mpg_reg),target="cty")
+```
+
+Der finale Datensatz hat damit die Dimension:
+
+```{r, echo = T}
+dim(mpg_reg)
+```
+
+
+
+#### Aufgabenstellung 
+
+Das Ziel einer Regression ist die Vorhersage der abhängigen Variable $y$ mit Hilfe der unabhängigen Variablen $x$.
+
+```{r , echo = T}
+rtask <- makeRegrTask(data=mpg_reg,target="cty")
+```
+
+Um zu messen, wie gut die Aufgabe erfüllt wurde (sog. Performance), gibt es verschiedene Gütemaße. Das für Regressionen am häufigsten - und auch im Folgenden - verwendete ist der mittlere quadratische Fehler (meas squared error, kurz: mse). In `mlr` ist eine Vielzahl weiterer Gütemaße(bzw. Performance-Metriken) verfügbar: <https://mlr.mlr-org.com/articles/tutorial/measures.html>
+
+#### Auftrennung in Trainings- und Testdaten
+Zu Beginn trennen wir die Daten in Trainings- und Testdaten, sog. Holdout. Um die Nachvollziehbarkeit der folgenden Berechnungen zu erhöhen wird der Zufallszahlengenerator dabei auf einen festen Wert gesetzt.
+
+```{r , echo = T}
+set.seed(1)
+ho = makeResampleInstance("Holdout",task=rtask,split=.8)
+rtask.train = subsetTask(rtask,ho$train.inds[[1]])
+rtask.test = subsetTask(rtask,ho$test.inds[[1]])
+
+```
+
+#### Untersuchte Verfahren
+
+Im Folgenden führen wir eine Regressionsvorhersage mit einigen ausgewählten Verfahren durch. Im Detail erklären wir dabei das Vorgehen für
+
+* lineare Regression
+* Regressionsbaum
+* Gradient Boosting
+
+Zum Schluss erfolgt ein Benchmarking dieser Verfahren.
+
+Neben den hier betrachteten Verfahren gibt es eine Vielzahl an weiteren Verfahren zur Regression. Eine Übersicht über alle in `mlr` verfügbaren Agorithmen findet sich hier: <https://mlr.mlr-org.com/articles/tutorial/integrated_learners.html>.
+
+Für eine konkrete Aufgabenstellung lassen sich die in `mlr` verfügbaren Verfahren  mit dem Befehl `listLearners()` anzeigen:
+```{r , echo = T, message=FALSE}
+listLearners(rtask)$class
+```
+
+
+
+
+### Lineare Regression
+
+Ein einfaches lineares Regressionsmodell gehört zu den einfachsten Verfahren. Die Schritte zur Anwendung eines Maschinellen Lernverfahrens mit `mlr` sind prinzipiell unabhängig vom Algorithmus immer die gleichen. 
+
+Zunächst können die Hyperparameter des Algorithmus definiert werden. Wir lassen uns die konfigurierbaren Hyperparamter des Verfahrens zunächst ausgeben.
+```{r , echo = T}
+getParamSet("regr.lm") 
+```
+
+Wie wir sehen können, sind das hier nur zwei. Die Bedeutung der Hyperparameter der Verfahren ist in `mlr` nicht dokumentiert. Für ein detailiertes Verständnis dieser kann es notwendig sein, die Dokumentation der hinter den Verfahren stehenden Pakete zu Rate zu ziehen. Wie die `mlr` Dokumentation verrät, ist die Basis für die lineare Regression die Funktion `lm()` aus dem `stats` Paket. Mittels der R-Hilfe-Funktion kann die Bedeutung der Hyperparameter von `lm()` geklärt werden: `?stats::lm` und `?stats::lm.fit`.
+
+In unserem Fall belassen wir die Hyperparameter gemäß der Default-Werte und wenden das Verfahren an.
+
+Wir legen das Modell fest, trainieren auf dem Trainingsdatensatz und berechnen den quadratischen Fehler auf den Testdaten.
+
+```{r , echo = T}
+rlearn_lm <- makeLearner("regr.lm")
+model_lm <- train(rlearn_lm,rtask.train)
+predict_lm <- predict(model_lm,rtask.test)
+performance(predict_lm,list(mse))
+```
+
+
+#### Einfache Fehleranalyse
+
+In einer einfachen Analyse eines linearen Regressionsmodells vergleichen wir die echten Werte von $y$ mit den vorhergesagten Werten $\hat{y}$ für die Beobachtungen des Testdatensatzes.
+
+```{r , echo = T}
+plotResiduals(predict_lm)
+```
+
+Es zeigen sich keine systematischen Verzerrungen oder sonstigen Auffälligkeiten.
+
+### Regressionsbaum
+
+Ein weiteres einfaches Regressionsverfahren ist ein Regressionsbaum. 
+
+```{r , echo = T}
+rlearn_tree <- makeLearner("regr.rpart")
+```
+
+Ein Regressionsbaum erlaubt eine Spezifikation verschiedener Hyperparameter. 
+
+```{r , echo = T}
+getParamSet(rlearn_tree)
+```
+
+Für einige ausgewählte Hyperparameter legen wir mögliche Wertebereiche fest 
+* `minsplit` für die minimale Anzahl an Beobachtungen, bei der eine weitere Trennung untersucht wird,
+* `maxdepth ` für die maximale Anzahl an aufeinanderfolgenden Splits und
+* `cp` für die minimale Reduktion des mittleren quadratischen Fehlers, die bei einem Split erreicht werden muss (generell ist der Komplexitätsparameter bei Bäumen generisch und kann auf verschiedene Gütemaße, nicht nur auf den `mse`angemwandt werden).
+
+Wir optimieren diese Hyperparameter anschließend 
+
+* auf den Trainingsdaten
+* mittels 5-facher Kreuzvalidierung
+* für den quadratischen Fehler 
+* innerhalb der vorgegebenen Wertebereiche
+* auf einem Raster möglicher Wertekombinationen (Rastersuche in 5-facher Disktretisierung des Wertebereichs)  
+
+```{r , message = FALSE, warning = FALSE, eval = FALSE}
+param_tree <- makeParamSet(
+  makeIntegerParam("minsplit",5,10),
+  makeIntegerParam("maxdepth",1,5),
+  makeNumericParam("cp",.01,.1))
+tune_tree <- tuneParams(rlearn_tree,
+                        rtask.train,
+                        cv5,
+                        mse,
+                        param_tree,
+                        makeTuneControlGrid(resolution=5))
+```
+
+
+```{r }
+tune_tree
+```
+
+*Hinweis: Das hier gezeigte Resultat ist das aggregierte Ergebnis über alle Durchläufe der 5-fachen Kreuzvalidierung mit der Rastersuche in 5-facher Einteilung für die drei Hyperparameter. Dementsprechend wird das Modell im Hintergrund insgesammt 625 trainiert, um zur Einschätzung der besten Hyperparameterwerte zu kommen ((5^3)x5 = 625). Wird der Code in der Console ausgeführt, werden die Ergebnisse der einzelnen 125 Durchläufe der Rastersuche angezeigt.*
+
+Wir trainieren das Modell mit den optimierten Hyperparametern auf dem gesamten Trainingsdatensatz und berechnen den quadratischen Fehler auf den Testdaten.
+
+```{r , echo = T}
+rlearn_tree <- setHyperPars(rlearn_tree,par.vals = tune_tree$x)
+model_tree <- train(rlearn_tree,rtask.train)
+predict_tree <- predict(model_tree,rtask.test)
+performance(predict_tree,list(mse))
+```
+
+#### Einfache Fehleranalyse
+
+In einer einfachen Analyse vergleichen wir die echten Werte von $y$ mit den vorhergesagten Werten $\hat{y}$ für die Beobachtungen des Testdatensatzes.
+
+```{r , echo = T}
+plotResiduals(predict_tree)
+```
+
+Die Konstruktionsweise des Baumes führt zu einer endlichen, diskreten Anzahl an möglichen Vorhersagewerten. Entsprechend zeigt sich im Plot eine stufenförmige Verzerrungen in den Vorhersagen. Diese erklärt auch die gegenüber der linearen Regression schlechtere Vorhersagefähigkeit.
+
+#### Graphische Analyse und Darstellung: Plot eines Baums
+
+Das dem Baum zugrunde liegende Paket `rpart` ermöglicht eine einfache Visualisierung des erzeugten Baummodells. Dafür muss das trainierte `rpart`-Modell aus dem `mlr`-Model extrahiert werden. Auf diese Weise kann die Entscheidungsfindung des Baums leicht nachvollzogen werden. Wir verwenden hier die erweiterten Darstellungsmöglichkeiten aus dem Paket `rpart.plot`. 
+
+```{r , echo = T}
+library(rpart.plot) # Plot trees
+rpart.plot(model_tree$learner.model, roundint = FALSE) # Same like: rpart.plot(getLearnerModel(model_tree), roundint = FALSE)
+```
+
+Weitere Informationen zum plot mit `rpart.plot` finden sich zum Beispiel in der Dokumentation: <http://www.milbo.org/rpart-plot/prp.pdf>
+
+### Gradient Boosting
+
+Gradient Boosting von Regressionbäumen ermöglicht die Kombination vieler einzelner Regressionsbäume zu einem Ensemble.
+
+```{r , echo = T}
+rlearn_gbm <- makeLearner("regr.gbm")
+```
+
+Es erlaubt eine Spezifikation von Hyperparametern sowohl hinsichtlich der einzelnen Bäume als auch hinsichtlich des Ensembles. 
+
+```{r , echo = T}
+getParamSet(rlearn_gbm)
+```
+
+Für einige ausgewählte Hyperparameter legen wir mögliche Wetebereiche fest 
+* `n.trees` für die Anzahl an Bäumen,
+* `interaction.depth ` für die maximale Anzahl an aufeinanderfolgenden Splits innerhalb eines einzelnen Baums und
+* `shrinkage` für den Regularisierungsparameter des Gradient Boosting (Lernrate, die den Einfluss des neu dazukommenden Baums pro Boosting-Iteration auf die Vorhersage bestimmt).
+
+Wir optimieren diese Hyperparameter anschließend 
+
+* auf den Trainingsdaten
+* mittels 5-facher Kreuzvalidierung
+* für den quadratischen Fehler 
+* innerhalb der vorgegebenen Wertebereiche
+* auf einem Raster möglicher Wertekombinationen (Rastersuche in 5-facher Disktretisierung des Wertebereichs)  
+
+```{r , message = FALSE, warning = FALSE, eval = FALSE}
+param_gbm <- makeParamSet(
+  makeIntegerParam("n.trees",50,200),
+  makeIntegerParam("interaction.depth",1,5),
+  makeNumericParam("shrinkage",.01,1))
+tune_gbm <- tuneParams(rlearn_gbm,
+                        rtask.train,
+                        cv5,
+                        mse,
+                        param_gbm,
+                        makeTuneControlGrid(resolution=5))
+```
+
+```{r}
+tune_gbm
+```
+
+
+Das Tuning der Hyperparameter zeigt für die Anzahl der Bäume den optimalen Wert in der Nähe/bei der vorgegebenen Obergrenze. Dies lässt vermuten, dass eine Erhöhung der Anzahl der Bäume über diese Obergrenze hinaus noch bessere Vorhersagen liefern könnte. In diesem Tutorial verzichten wir auf die Erhöhung der Obergrenze und ein erneutes Tuning und belassen es bei den ermittelten Werten. 
+
+Wir trainieren das Modell mit den optimierten Hyperparametern auf dem gesamten Trainingsdatensatz und berechnen den quadratischen Fehler auf den Testdaten.
+
+```{r , echo = T}
+rlearn_gbm <- setHyperPars(rlearn_gbm,par.vals = tune_gbm$x)
+model_gbm <- train(rlearn_gbm,rtask.train)
+predict_gbm <- predict(model_gbm,rtask.test)
+performance(predict_gbm,list(mse))
+```
+
+#### Einfache Fehleranalyse
+
+In einer einfachen Analyse vergleichen wir die echten Werte von $y$ mit den vorhergesagten Werten $\hat{y}$ für die Beobachtungen des Testdatensatzes.
+
+```{r mpg_reg_lm_ana, echo = T}
+plotResiduals(predict_gbm)
+```
+
+Durch die Kombination mehrerer Bäume konnte die konstruktionsbedingte Verzerrung in den Vorhersagen eines einzelnen Baumes behoben werden. Diese erklärt auch die gegenüber dem einzelnen Baum deutlich verbesserte Vorhersagefähigkeit. Eventuell könnte eine Erhöhung der Anzahl der Bäume im Ensemble hier noch zu weiteren Verbesserungen führen (s.o.).
+
+### Benchmarking und Übung mit Random Forest
+
+Durch ein Benchmarking lassen sich mehrere Verfahren miteinander vergleichen.
+In diesem Fall belassen wir es bei einem Vergleich auf dem Testdatensatz. Ergänzend zum quadratischen Fehler als absolutem Fehlermaß betrachten wir noch $R^2$ (Besimmtheitsmaß) als relatives Fehlermaß:
+
+```{r , echo = T}
+performance(predict_lm,list(mse,rsq))
+performance(predict_tree,list(mse,rsq))
+performance(predict_gbm,list(mse,rsq))
+```
+
+Der Vergleich zeigt, dass lineare Regression und Gradient Boosting vergleichbare, sehr gute Vorhersagegüten aufweisen. 
+
+Der hohe Wert in $R^2$ zeigt, dass die Modellvorhersage sehr nahe an den echten Werten liegt. Dies bedeutet in diesem Fall, dass schon ein einfaches Modell wie die lineare Regression in der Lage ist, die gestellte Aufgabe zufriedenstellend zu lösen. Komplexere Verfahren wie Gradient Boosting bringen keine bzw. kaum Vorteile. Im Umkehrschluss lässt dies vermuten, dass die Aufgabenstellung an sich bereits nicht komplex war.
+
+#### Übung: Trainieren von Random Forest
+
+Wiederholen Sie die durchgeführten Analysen mit dem Verfahren Random Forest. 
+
+* Verschaffen Sie sich einen Überblick über mögliche Hyperparameter
+* Wählen Sie geeignete Hyperparameter aus und spezifizieren Sie zulässige Wertebereiche
+* Selektieren Sie geeignete Hyperparameter mittels tuning auf den Trainingsdaten
+* Trainieren Sie das Modell mit optimierten Hyperparametern auf den Trainingsdaten 
+* Erstellen Sie Vorhersagen für die Testdaten
+* Berechnen Sie die Vorhersagegüte auf den Testdaten
+* Analysieren Sie die Vohersagen mittels Plot der Residuen
+* Vergleichen Sie die Vorhersagegüte mit den anderen vorgestellten Verfahren
+* Versuchen Sie durch erneutes Anpassen der Hyperparameter die Vorhersagegüte zu verbessern.
+
+Verwenden Sie dazu das untenstehende Übungsfenster. Der darin enthaltene Code ist in dieser Form ausführbar, es fehlt aber das Tuning der Hyperparameter bzw. die Befehle sind auskommentiert. Ergänzen Sie selbstständig. Eine Musterlösung gibt es nicht.
+
+```{r sup_reg_rf, echo = T, exercise = TRUE, exercise.lines = 30}
+rlearn_rf <- makeLearner("regr.randomForest")
+getParamSet(rlearn_rf)
+
+#param_rf <- makeParamSet(
+#  
+#  )
+#tune_gbm <- tuneParams(rlearn_rf,rtask.train,cv5,mse,param_rf,makeTuneControlGrid(resolution=5))
+#rlearn_rf <- setHyperPars(rlearn_rf,par.vals = tune_rf$x)
+
+model_rf <- train(rlearn_rf,rtask.train)
+predict_rf <- predict(model_rf,rtask.test)
+performance(predict_rf,list(mse))
+plotResiduals(predict_rf)
+
+```
+
+## Binomiale Klassifikation {.tabset}
+
+#### Anpassung des Datensatzes 
+
+Für eine binomiale Klassifikationsaufgabe nehmen wir eine Aggregation der Variable `class` in die Klassen `small` mit `2seater, compact, subcompact, midsize` einerseits und `large` mit `minivan, pickup, suv` andererseits vor.
+
+```{r , echo = T}
+mpg_bin <- mutate(mpg, class=if_else(class%in%c("2seater", "compact", "subcompact", "midsize"),"small","large"))
+
+```
+
+Eine explorative Datenanlyse vor Beginn des Trainings zeigt folgendes:
+
+(@) Die beiden Klassen lassen sich bereits anhand des Hubraums (`displ`) und der Reichweite auf Autobahnen (`hwy`) gut voneinander trennen. 
+
+```{r , echo = T}
+ggplot(mpg_bin, aes(color = class))+
+  geom_point(aes(x = hwy, y= displ))
+  
+```
+
+(@) Die beiden Klassen verteilen sich sehr unterschiedlich auf die Hersteller. Insbesondere bieten einige Hersteller nur PKW aus einer der beiden Klassen an.
+
+```{r , echo = T}
+table(mpg_bin$class,mpg_bin$manufacturer)
+```
+
+(@) Jedes Modell ist genau einer Klasse zugeordnet.
+```{r , echo = T}
+table(mpg_bin$class,mpg_bin$model)
+```
+
+Dies lässt vermuten, dass die Aufgabenstellung auf den ursprünglichen Daten zu einfach ist und insbesondere auch eine perfekte Vorhersage erreicht werden kann. Um die Aufgabe zu erschweren und perfekte Vorhersagen zu vermeiden, entfernen wir daher die Reichweitenvariablen `htw`und `cty` und die Modellbezeichnung.
+
+Anschließend erzeugen wir für die verbliebenen nicht-numerischen Variablen wie im vorherigen Beispiel Dummy-Variablen. 
+
+
+```{r , echo = T}
+mpg_bin <- select(mpg_bin,-hwy,-cty,-model)
+mpg_bin <- createDummyFeatures(type.convert(mpg_bin),target="class")
+
+```
+
+#### Aufgabenstellung 
+
+Das Ziel einer Klassifikation ist die Vorhersage der abhängigen Variable $y$ mit Hilfe der unabhängigen Variablen $x$ 
+
+```{r , echo = T}
+cbtask <- makeClassifTask(data=mpg_bin,target="class")
+```
+
+
+
+```{r message=FALSE, echo= FALSE}
+# listLearners(cbtask)$class
+```
+
+#### Auftrennung in Trainings- und Testdaten
+Zu Beginn trennen wir die Daten in Trainings- und Testdaten, sog. Holdout. Um die Nachvollziehbarkeit der folgenden Berechnungen zu erhöhen wird der Zufallszahlengenerator dabei auf einen festen Wert gesetzt.
+
+Damit Trainings- und Testdaten vergleichbare Klassenanteile der Zielvariablen `class` aufweisen, verwenden wir eine Stratifikation. Dabei findet die zufällige Aufteilung in Trainings- und Testdaten nach Klassen getrennt statt. 
+
+```{r , echo = T}
+set.seed(2)
+ho = makeResampleInstance("Holdout",task=cbtask,split=.8, stratify =T)
+cbtask.train = subsetTask(cbtask,ho$train.inds[[1]])
+cbtask.test = subsetTask(cbtask,ho$test.inds[[1]])
+
+```
+
+#### Untersuchte Verfahren
+
+Im Folgenden führen wir eine Klassifikation für die Klassen `small`und `large`  mit einigen ausgewählten Verfahren durch. Im Detail erklären wir dabei das Vorgehen für
+
+* logistische Regression
+* Klassifikationsbaum
+* Support Vector Machines
+
+Zum Schluss erfolgt eine Übung.
+
+### Logistische Regression
+
+Ein einfaches logistisches Regressionsmodell gehört zu den einfachsten Verfahren. Insbesondere lässt es sich ohne weitere Spezifikation von Hyperparametern anwenden.
+
+Wir legen das Modell fest, trainieren auf dem Trainingsdatensatz und berechnen die Korrektklassifikationsrate auf den Testdaten.
+
+```{r , echo = T}
+getParamSet("classif.logreg")
+cblearn_log <- makeLearner("classif.logreg")
+model_log <- train(cblearn_log,cbtask.train)
+predict_log <- predict(model_log,cbtask.test)
+performance(predict_log,list(acc))
+```
+
+Wir vergleichen die echten Werten von $y$ mit den vorhergesagten Werten $\hat{y}$ in einer Konfusionsmatrix
+
+```{r , echo = T}
+calculateConfusionMatrix(predict_log)
+```
+
+Die logistische Regression macht auf den Testdaten nur wenige Fehler, die sich nahezu symmetrisch auf die beiden Fehlerarten verteilen,  `small` statt `large` und  `large` statt `small`.
+
+#### Exkurs: Vorhersage von Wahrscheinlichkeiten
+Viele Algorithmen sind in der Lage, nicht nur die Zugehörigkeit eines Datensatzes zu einer Klasse, sondern auch die Wahrscheinlichkeit der Zugehörigkeit vorherzusagen. Dafür muss der Vorhersagetyp gesetzt werden:
+
+```{r , echo = T}
+cblearn_log <- makeLearner("classif.logreg", predict.type = "prob")
+model_log <- train(cblearn_log,cbtask.train)
+predict_log <- predict(model_log,cbtask.test)
+```
+
+Ein guter Ansatz, um die Güte eines Klassifkationsmodells einschätzen zu können, ist die `ROC`, bzw. die Fläche unter dieser Kurve, die `AUC.` Die `ROC` stellt die Sensitivität(`TPR`) gegen 1-Spezifizität eines Modells (`1 - TNR`) abhängig von verschiedenen Wahrscheinlichkeitsgrenzen dar und kann durch folgende Befahle ausgegeben werden (`1 - TNR = FPR`):
+```{r , echo = T}
+df = generateThreshVsPerfData(predict_log, measures = list(fpr, tpr, acc))
+plotROCCurves(df)
+```
+
+Wie man sieht, liegt eine sehr gute `ROC` vor, was durch eine `AUC` nahe 1 bestätigt wird.
+```{r , echo = T}
+performance(predict_log,list(auc))
+```
+
+Weitere Informationen zur fortgeschrittenen `ROC`-Analyse mit `mlr` finden sich unter: https://mlr.mlr-org.com/articles/tutorial/roc_analysis.html
+
+### Klassifikationsbaum
+
+Ein Klassifikationsbaum lässt sich mit wenigen Hyperparametern - analog zum Regressionsbaum - festlegen.
+
+```{r , echo = T}
+learn_cbtree <- makeLearner("classif.rpart")
+getParamSet(learn_cbtree)
+```
+
+Wir optimieren ausgewählte Hyperparameter im Tuning analog dem Vorgehen für die Regressionsbeispiele.
+
+```{r , echo = T,  message = FALSE, warning = FALSE, eval = FALSE}
+param_cbtree <- makeParamSet(
+  makeIntegerParam("minsplit",5,10),
+  makeIntegerParam("maxdepth",1,5),
+  makeNumericParam("cp",.01,.1))
+tune_cbtree <- tuneParams(learn_cbtree,
+                        cbtask.train,
+                        cv5,
+                        acc,
+                        param_cbtree,
+                        makeTuneControlGrid(resolution=5))
+```
+
+
+```{r , echo = T}
+tune_cbtree
+learn_cbtree <- setHyperPars(learn_cbtree,par.vals = tune_cbtree$x)
+model_cbtree <- train(learn_cbtree,cbtask.train)
+predict_cbtree <- predict(model_cbtree,cbtask.test)
+performance(predict_cbtree,list(acc))
+```
+
+Wir vergleichen die echten Werte von $y$ mit den vorhergesagten Werten $\hat{y}$ in einer Konfusionsmatrix
+
+```{r , echo = T}
+calculateConfusionMatrix(predict_cbtree)
+```
+
+Der einfache Klassifikationsbaum macht auf den Testdaten fünf Fehler. Diese verteilen sich nahezu gleichmäßig auf die beiden Klassen.
+
+### Support Vector Machine
+
+Support Vector Machines sind eine Verallgemeinerung generalisierter linearer Regressionsmodelle (GLM). Insbesondere ermöglichen sie nicht-lineare Trennungsgrenzen zwischen den Klassen. 
+
+Trotz der höheren Komplexität des Verfahrens sind nur wenige Hyperparameter von Bedeutung. Um diese zu verstehen rufen wir zudem die Hilfsfunktion auf.
+
+```{r , echo = T}
+learn_cbsvm <- makeLearner("classif.svm")
+getParamSet(learn_cbsvm)
+?e1071::svm
+```
+
+Wir konzentrieren uns auf die Hyperparameter: 
+
+* `kernel` zur Auswahl des verwendeten Kernel - hier nur `radial basis` und `polynomial`
+* `gamma` als Skalierungsfaktor
+
+```{r , echo = T,  message = FALSE, warning = FALSE, eval = FALSE}
+param_cbsvm <- makeParamSet(
+  makeDiscreteParam("kernel",c("radial basis","polynomial")),
+  makeNumericParam("gamma",.01,1))
+tune_cbsvm <- tuneParams(learn_cbsvm,
+                        cbtask.train,
+                        cv5,
+                        acc,
+                        param_cbsvm,
+                        makeTuneControlGrid(resolution=5))
+```
+
+
+```{r , echo = T}
+tune_cbsvm
+learn_cbsvm <- setHyperPars(learn_cbsvm,par.vals = tune_cbsvm$x)
+model_cbsvm <- train(learn_cbsvm,cbtask.train)
+predict_cbsvm <- predict(model_cbsvm,cbtask.test)
+performance(predict_cbsvm,list(acc))
+```
+
+Wir vergleichen die echten Werten von $y$ mit den vorhergesagten Werten $\hat{y}$ in einer Konfusionsmatrix
+
+```{r , echo = T}
+calculateConfusionMatrix(predict_cbsvm)
+```
+
+Auch die Support Vector Machine macht auf den Testdaten nur wenige Fehler. Diese verteilen sich nahezu gleichmäßig auf die beiden Klassen.
+
+### Übung: Trainieren von Neuronalen Netzwerken
+
+Wiederholen Sie die durchgeführten Analysen mit dem Verfahren Neuronales Netzwerk. 
+
+* Verschaffen Sie sich einen Überblick über mögliche Hyperparameter - verwenden Sie dazu auch die Hilfefunktion `?nnet`
+* Wählen Sie geeignete Hyperparameter aus und spezifizieren Sie zulässige Wertebereiche
+* Selektieren Sie geeignete Hyperparameter mittels tuning auf den Trainingsdaten
+* Trainieren Sie das Modell mit optimierten Hyperparametern auf den Trainingsdaten 
+* Erstellen Sie Vorhersagen für die Testdaten
+* Berechnen Sie die Vorhersagegüte auf den Testdaten
+* Analysieren Sie die Vohersagen mittels Plot der Residuen
+* Vergleichen Sie die Vorhersagegüte mit den anderen vorgestellten Verfahren
+* Versuchen Sie durch erneutes Anpassen der Hyperparameter die Vorhersagegüte zu verbessern.
+
+Verwenden Sie dazu das untenstehende Übungsfenster. Der darin enthaltene Code ist in dieser Form nicht ausführbar bzw. die relevanten Befehle sind auskommentiert. Ergänzen Sie selbstständig. Eine Musterlösung gibt es nicht.
+
+```{r sup_cb_nn, echo = T, exercise = TRUE, exercise.lines = 30}
+learn_cbnn <- makeLearner("classif.nnet")
+getParamSet(learn_cbnn)
+#?nnet
+
+#param_cbnn <- makeParamSet(
+#  
+#  )
+#tune_cbnn <- tuneParams(
+#)
+#learn_cbnn <- setHyperPars(learn_cbnn,par.vals = tune_cbnn$x)
+
+#model_cbnn 
+#predict_cbnn 
+#performance(predict_cbnn,list(acc,auc))
+#plotResiduals(predict_cbnn)
+
+```
+
+
+## Multinomiale Klassifikation {.tabset}
+
+
+#### Anpassung des Datensatzes 
+
+Für multinomiale Klassifikationsaufgaben wird die Variable `class` mit sieben verschiedenen Ausprägungen  verwendet. Da auch hier eine direkte Zuordnung von Modell zu Klasse möglich ist, entfernen wir die Variable `model` aus dem Datensatz. Nicht-numerische Variablen werden anschließend in Dummy-Variablen kodiert. 
+
+```{r , echo = T}
+table(mpg$class)
+mpg_mult <- mpg
+mpg_mult <- select(mpg_mult,-model)
+mpg_mult <- createDummyFeatures(type.convert(mpg_mult),target="class")
+```
+
+
+#### Aufgabenstellung 
+
+Das Ziel einer Klassifikation ist die Vorhersage der abhängigen Variable $y$ mit Hilfe der unabhängigen Variablen $x$ 
+
+```{r , echo = T}
+cmtask <- makeClassifTask(data=mpg_mult,target="class")
+```
+
+
+
+```{r , echo = FALSE, message =FALSE}
+# listLearners(cmtask)$class
+```
+
+#### Auftrennung in Trainings- und Testdaten
+Zu Beginn trennen wir die Daten in Trainings- und Testdaten, sog. Holdout. Um die Nachvollziehbarkeit der folgenden Berechnungen zu erhöhen wird der Zufallszahlengenerator dabei auf einen festen Wert gesetzt.
+
+Damit Trainings- und Testdaten vergleichbare Klassenanteile der Zielvariablen `class` aufweisen, verwenden wir eine Stratifikation. Dabei findet die zufällige Aufteilung in Trainings- und Testdaten nach Klassen getrennt statt. 
+
+```{r , echo = T}
+set.seed(3)
+ho = makeResampleInstance("Holdout",task=cmtask,split=.8, stratify =T)
+cmtask.train = subsetTask(cmtask,ho$train.inds[[1]])
+cmtask.test = subsetTask(cmtask,ho$test.inds[[1]])
+```
+
+#### Untersuchte Verfahren
+
+Im Folgenden führen wir eine multinomiale Klassifikation für die ursprünglichen Klassen der Variable `class` mit einigen ausgewählten Verfahren durch. Im Detail erklären wir dabei das Vorgehen für
+
+* Klassifikationsbaum
+* Neuronales Netzwerk
+
+Einige maschinelle Lernalgorithmen bzw. bestimmte Implementierungen dieser unterstützen nicht per se die Klassifikation mit mehreren Zielklassen, sondern sind nur auf binomiale Probleme ausgelegt. Eine Übersicht über die Einsatzmöglichkeiten zur binomialen bzw. multinomilaen Klassifikation für die verschiedenen Algorithmen bietet die ´Learner´-Überscht von `mlr`, die an früherer Stelle bereits verlinkt wurde.
+
+
+Um binomiale Algorithmen dennoch für multinomiale Probleme nutzen zu können, werden diese Probleme häufig in mehrere binomiale Probleme transformiert und die Ergebnisse anschließend auf verschieden Arten fusioniert. Solche Ansätze werden in diesem Kurs nicht im Detail behandelt, es sei jedoch darauf verwiesen, dass `mlr` Funkiionen zur Problemtransformation bereitstellt: https://mlr.mlr-org.com/reference/makeMulticlassWrapper.html. 
+
+
+Vor Nutzung dieser Funktion kann eine Auseinandersetzung mit dem `Wrapper`-Prinzip in `mlr` sinnvoll sein: https://mlr.mlr-org.com/articles/tutorial/wrapper.html
+
+
+Einen schnellen Einstieg in das Thema bietet in diesem Fall auch die englischsprachige Wikipedia: https://en.wikipedia.org/wiki/Multiclass_classification
+
+Zu beachten ist ebenso, dass nicht alle Gütemaße, die für die binomiale Klassifikation genutzt werden können, für multinomiale Aufgabenstellungen nicht ohne weiteres anwendbar sind. Das schließt beipielsweise die `ROC`, sowie Sensitivität und Spezifizität ein. Welche Metrinken in `mlr` für multinomiale Aufgaben anwendbar sind, kann dem ebenfalls bereits erwähnten Link auf die verfügbaren Gütemaße entnommen werden.
+
+### Klassifikationsbaum
+
+Wie bei der Regression und der binomialen Klassifikation optimieren wir ausgewählte Hyperparameter:
+
+```{r , echo = T}
+learn_cmtree <- makeLearner("classif.rpart")
+getParamSet(learn_cmtree)
+```
+
+
+```{r , echo = T,  message = FALSE, warning = FALSE, eval = FALSE}
+param_cmtree <- makeParamSet(
+  makeIntegerParam("minsplit",1,10),
+  makeIntegerParam("maxdepth",1,5),
+  makeNumericParam("cp",.01,.1))
+tune_cmtree <- tuneParams(learn_cmtree,
+                        cmtask.train,
+                        cv5,
+                        acc,
+                        param_cmtree,
+                        makeTuneControlGrid(resolution=5))
+```
+
+
+```{r , echo = T}
+tune_cmtree
+learn_cmtree <- setHyperPars(learn_cmtree,par.vals = tune_cmtree$x)
+model_cmtree <- train(learn_cmtree,cmtask.train)
+predict_cmtree <- predict(model_cmtree,cmtask.test)
+performance(predict_cmtree,list(acc))
+```
+
+Die Korrektklassfikationsrate liegt nun deutlich unter den Werten bei der binomialen Klassifikation. Dies war zu erwarten, da eine multinomiale Klassifikation in der Regel schwieriger ist als eine binomiale Klassifikation. Beispielsweise beträgt die Korrektklassifikationsrate bei einer zufälligen Zuweisung gleich großer Klassen bei einer binomialen Klassifikation $1/2$, bei einer multinomialen Klassifikation mit $n$ Klassen dagegen nur $1/n$.
+
+Wir vergleichen die echten Werte von $y$ mit den vorhergesagten Werten $\hat{y}$ in einer Konfusionsmatrix
+
+```{r , echo = T}
+calculateConfusionMatrix(predict_cmtree)
+```
+
+Es zeigt sich, dass sehr kleine Klassen (`2seater`) im Klassifikationsbaum gar nicht erst vorhergesagt werden und die beiden großen Klassen (`compact` und `suv`) in der Vorhersage überbesetzt sind, d.h. sie werden häufiger vorhergesagt als das tatsächlich der Fall ist.
+Diese Verzerrung liegt in der Natur von Bäumen. Der Endknoten wird immer der am häufigsten vertretenen Klasse zugewiesen. Wenn nun in den Trainingsdaten einzelne Klassen viel häufiger vorkommen, als andere Klassen, werden diese auch nach einer Partitionierung in den Endknoten oft immer noch die größte Klasse darstellen. Abhilfe schaffen hier nur größere Datensätze oder eine gezielte Angleichung der Klassenverhältnisse mittels Gewichtung, Oversampling oder Undersampling: https://mlr.mlr-org.com/articles/tutorial/over_and_undersampling.html
+
+Das Problem der zu seltenen Vorhersage von in den Lerndaten selten vorkommenden Klassen ist dabei nicht nur auf Bäume beschränkt, sondern ist bei vielen Lernverfahren gegeben und spielt auch bei binomialen Aufgabenstellungen je nach genutzten Verfahren häufig eine Rolle.
+
+### Neuronales Netzwerk
+
+Das Neuronale Netzwerk zur multinomialen Klassifikation ist ein Multilayer Feedforward Netzwerk. Die Implementierung in `nnet` ist beschränkt auf einen einzigen hidden layer. 
+
+Als Hyperparameter passen wir die Anzahl der hidden units an (`size`) - zur Abwechslung durch 5-fach wiederholte zufällige Auswahl. 
+Beachten Sie, dass der Algorithmus eine Fehlermeldung ausgibt, wenn die Anzahl der Parameter (entspricht hier den `weights`) über der Anzahl an Beobachtungen liegt - dadurch soll ein absehbares overfitting verhindert werden.
+
+```{r , echo = T}
+learn_cmnn <- makeLearner("classif.nnet")
+getParamSet(learn_cmnn)
+```
+
+
+```{r , echo = T,  message = FALSE, warning = FALSE, eval = FALSE}
+param_cmnn <- makeParamSet(
+  makeIntegerParam("size",1,10))
+tune_cmnn <- tuneParams(learn_cmnn,
+                        cmtask.train,
+                        cv5,
+                        acc,
+                        param_cmnn,
+                        makeTuneControlRandom(maxit=5))
+
+```
+
+```{r , echo = T}
+tune_cmnn
+learn_cmnn <- setHyperPars(learn_cmnn,par.vals = tune_cmnn$x)
+model_cmnn <- train(learn_cmnn,cmtask.train)
+predict_cmnn <- predict(model_cmnn,cmtask.test)
+performance(predict_cmnn,list(acc))
+```
+
+Die Korrektklassfikationsrate liegt deutlich unter den Werten des Klassifikationsbaums.
+
+Wir vergleichen die echten Werten von $y$ mit den vorhergesagten Werten $\hat{y}$ in einer Konfusionsmatrix
+
+```{r , echo = T}
+calculateConfusionMatrix(predict_cmnn)
+```
+
+Es zeigt sich, dass alle Beobachtungen derselben Klasse `suv` zugewiesen werden. Die Klasse `suv`ist die am häufigsten vorkommende Klasse. Die Vorhersage des Neuronalen Netzwerks ist damit nicht besser als eine naive Vorhersage, die immer die am stärksten besetzte Klasse vorhersagt.
+
+Das Paradox, dass ein Modell mit einer sehr großen Zahl an Parametern nur schlechte Vorhersagen liefert, findet sich häufig bei kleinen Datensätzen. Die in den wenigen Beobachtungen vorhandenen Informationen reichen dann nicht aus, um die Vielzahl an Parameterwerten und deren Abstimmung untereinander zufriedenstellend festzulegen.
+
+Allerdings gilt auch umgekehrt, dass bei sehr großen Datensätzen und komplexen Fragestellungen einfache Verfahren oft nur sehr schlechte Vorhersagen liefern und erst ab einer gewissen Modellkomplexität eine Schwelle hin zu sinnvollen Modellen übersschritten wird.
+
+## Diskussion und Fazit
+
+Im Zuge dieses Tutorials wurde zu Anschauungszwecken ein einfaches Benchmarking durch Aufruf der einzelnen Lernalgorithmen manuell durchgeführt. Dieses eignet sich im Allgemeinen nicht, um die Qualität einer Methode abschließend für ein Problem beurteilen zu können. Dies liegt in der zu Beginn dieses Tutorials bereits erwähnten empirischen Varianz der Modelle in Abhängigkeiten von den konkreten Trainings- bzw. Testdaten begründet. Zwar wurde für einige Verfahren ein Hyperparameter-Tuning mit Kreuzvalidierung durchgeführt, jedoch immer auf dem gleichen einmalig gezogenen Testdatensatz. Für eine bessere Evaluierung der Modelle wäre hier ein ausgefeilteres Resampling der Trainings- und Testdaten nötig gewesen (zum Beispiel per wiederholter Kreuzvalidierung).
+
+Das Paket `mlr` enthält Funktionalitäten für ein automatisiertes, komplexeres Benchmarking, so dass direkt mehrere Verfahren auf mehreren Aufgabenstellungen mittels umfangreichem Resampling (und auch unter Durchführung von Hyperparameter-Tunings) miteinander verglichen werden können. Um dies anwenden zu können, ist jedoch ein tieferes Verständnis der Funktionsweise des `mlr`-pakets notwendig, das über diesen Grundlagenkurs hinaus geht. Weiterführendes Material dazu findet sich z.B. unter:
+
+* Resampling: <https://mlr.mlr-org.com/articles/tutorial/resample.html>
+* Benchmarking: <https://mlr.mlr-org.com/articles/tutorial/benchmark_experiments.html>
+* Nested resampling (combine resampling & benchmarking): <https://mlr.mlr-org.com/articles/tutorial/nested_resampling.html>
+
+Außerdem ist zu erwähnen, dass zur Evaluierung der Modellgüte jeweils nur ein oder zwei Metriken genutzt wurden (`Acc` und `ROC` bzw.`AUC`). Prinzipiell sollten immer mehere verschiedene Gütemaße herangezogen werden, um die Qualität eines Modells abschließend zu beurteilen. Dies liegt darin begründet, dass es durchaus möglich sein kann, dass ein Modell je nach konkreter Zusammensetzung der Trainigs- und Testdaten für eine Metrik sehr gute Ergebnisse liefert, jedoch für andere sehr schlechte. Im Zweifelsfall sollte anhand des zugrunde liegenden Realweltproblems und des geplanten Einsatzzwecks entschieden werden, welche Metriken für die Evaluierung der Modellgüte im vorliegenden Fall am wichtigsten sind.
+
+Die hier vorgestellten Verfahren sind nur ein kleiner - wenn auch typischer - Ausschnitt aus den im Bereich des Maschinellen Lernens entwickelten Verfahren. Alle der entwickelten Verfahren haben ihre individuelle Entwicklungsgeschichte, ihre Eigenschaften, ihre Vorteile und Nachteile. Das eine beste Verfahren gibt es nicht. Vielmehr erfordert jede Aufgabenstellung eine Suche nach einem passenden Verfahren. Dies gilt insbesondere wenn neben der reinen Vorhersagegüte auch andere Aspekte wie z.B. die Interpretierbarkeit der Modelle eine Rolle spielen soll.
+
+Als Faustregel für die Modellwahl sollten Sie bei kleineren Datensätzen mit mehreren hundert Beobachtungen und 10-20 Variablen bei einfachen Modellen wie linearer oder logistischer Regression oder einfachen Bäumen bleiben. Komplexere Modelle wie Ensemble Verfahren, Support Vector Machines oder Neuronale Netzwerke zeigen meist erst bei Datensätzen mit mehreren tausend Beobachtungen und/oder mehreren hundert Variablen einen echten Vorteil. Für wirklich komplexe Fragestellungen auf hochdimensionalen Datensätzen - wie z.B. Objekterkennung in Bilddaten mit Zielvariablen mit mehreren hundert Klassen, mehreren tausend Variablen und komplexen Zusammenhängen - stoßen auch die hier vorgestellten komplexeren Verfahren an ihre Grenzen. Diese lassen sich erst mit Verfahren des Deep Learning sinnvoll modellieren.

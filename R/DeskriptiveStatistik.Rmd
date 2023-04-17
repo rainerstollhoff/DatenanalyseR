@@ -1,0 +1,259 @@
+---
+title: "Deskriptive Statistik in R"
+output: learnr::tutorial
+runtime: shiny_prerendered
+author: Rainer Stollhoff
+description: "Eine interaktive Einführung in die Berechnung deskriptiver Statistiken mit R"
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+## Allgemeines
+
+R bietet bereits in der Basisausttatung alle grundlegenden Funktionen der deskriptiven Statistik
+
+Man unterscheidet zwischen 
+
+* univariater Statistik, welche nur eine Variable betrachtet, 
+* bivariater Statistik, welche Beziehungen zwischen zwei Variablen betrachtet, und 
+* multivariater Statistik, welche Beziehungen zwischen mehreren Variablen betrachtet.
+
+## Univariate Statistiken
+
+Univariate Statistiken fassen Informationen zur Werteverteilung einer Stichprobe oder der Grundgesamtheit einer Zufallsvariablen zusammen.
+
+Man unterscheidet zwischen:
+
+* Lageparametern, die Auskunft über den typischen Wertebereich geben - Beispiele sind 
+  + Mittelwert (arithmetisch, geometrisch, harmonisch): $\bar{x} = \frac{1}{n} \sum_{i=1}^n x_i$,
+  + Median (entspricht dem 50%-Quantil) und
+  + Quantile (Inverse der Verteilungsfunktion)
+* Streuungsparametern, die Auskunft über die Bandbreite bzw. Variabilität der Werte geben - Beispiele sind
+  + (Stichproben-)Varianz $s^2 = \frac{1}{n-1} \sum_{i=1}^n (x_i-\bar{x})^2$
+  + (Stichproben-)Standardabweichung $s=\sqrt{s^2}$
+  + Spannbreite (Minimum, Maximum)
+  + Quantilsspannbreite (typischerweise Differenz zwischen 75%- und 25%- Quantil)
+* Konzentrationsmaße, die Informationen über die Verteilung der Gesamtsumme auf die einzelnen Beobachtungen zusammenfassen - am häufigsten verwendet wird
+  + Gini-Koeffizient
+
+### Lage- und Streuungsparameter
+
+Die folgende Tabelle gibt eine Übersicht über die Funktionen in R mit denen sich univariate Statistiken berechnen lassen. Alle Funktionen erwarten als Argument `x = ` einen Vektor mit Datenwerten - in der Regel numerische Zahlenwerte. Ebenso lässt sich bei allen Funktionen mit dem Argument `na.rm = ` festlegen, wie mit fehlenden Werten umgegangen wird - der Default ist hier `na.rm = FALSE` d.h. ein einziger fehlender Wert führt zu einem fehlenden Ausgabewert `NA`; um dies zu vermeiden, muss `na.rm = TRUE` gesetzt werden.
+
+|Statistik|R-Befehl|Weitere Argumente|
+|:-|:-|:-|
+|arithmetischer Mittelwert|`mean()`|`trim = ` um extreme Werte zu ignorieren|
+|gewichteter Mittelwert|`weighted.mean()`|`w = ` Vektor mit Gewichten für die Werte von `x`|
+|Median|`median()`||
+|Quantilsfunktion|`quantile()`|`probs=`  Vektor der gewünschten Wahrscheinlichkeiten, Standard sind das 25\%, 50\%, 75\% und 100\% Quantil|
+|Standardabweichung|`sd()`||
+|Varianz|`var()`||
+|Spannbreite|`range()`||
+|Quantilsspannbreite|`quantile()`| z.B. `quantile(x,probs=.75)-quantile(x,probs=.25)`|
+
+
+
+```{r, echo = T}
+x <-  seq(0,9.9, by=.1)
+mean(x)
+median(x)
+quantile(x, probs=seq(0,1,by=.1))
+sd(x)
+var(x)
+range(x)
+```
+
+
+***Kleine Übung ***
+
+Berechnen Sie für die vierteljährlichen Gewinne des Konzerns Johnson&Johnson
+* den arithmetischen Mittelwert
+* den arithmetischen Mittelwert für die Jahre 1970 bis 1980 (Tipp: Indexierung mittels `window()` oder `weighted.mean()`)
+* den Median
+* die 10%, 30%, 70% und 90%-Quantile
+
+```{r unideskr, exercise = TRUE, exercise.lines = 10}
+x <-  JohnsonJohnson #Vierteljährliche Gewinne des Konzerns Johnson&Johnson
+
+
+```
+
+```{r unideskr-solution, eval=FALSE}
+x <-  JohnsonJohnson #Vierteljährliche Gewinne des Konzerns Johnson&Johnson
+mean(x)
+mean(window(x,start=1970))
+median(x)
+quantile(x,probs=c(.1,.3,.7,.9))
+
+```
+
+### Konzentrationsmaße und Lorenzkurve
+
+Konzentrationsmaße fassen zusammen, wie sich die Gesamtsumme aller Werte einer Zufallsvariable auf die einzelnen Beobachtungen aufteilt. Niedrige Werte bedeuten in der Regel, dass die Gesamtsumme gleichmäßig auf alle Beobachtungen verteilt ist - im Extrem haben alle Beobachtungen den gleichen Wert, und hohe Werte zeigen eine Konzentration an - im Extrem haben alle Beobachtungen bis auf eine den Wert Null.
+
+Konzentrationsmaße werden häufig in wirtschaftswissenschaftlichen Analysen verwendet, z.B. zur Einkommensverteilung oder Vermögensverteilung. Das am weitesten verbreitete Konzentrationsmaß ist der Gini-Index.
+
+Grundlage für die Berechnung des Gini-Index ist die sogenannte Lorenz-Kurve. Für die Lorenz-Kurve werden die Beobachtungen zunächst aufsteigend sortiert. Die Lorenz-Kurve trägt nun gegen den Anteil an alle Beobachtungen auf der x-Achse den kumulierten Anteil dieser Beobachtungen an der Gesamtsumme auf der y-Achse auf. Für den Fall einer Vermögensverteilung gibt beispielsweise die Lorenzkurve für x=20\% an, wie hoch der Anteil des kumulierten, d.h. zusammengezählten Vermögens der ärmsten 20\% der Bevölkerung am gesamten Vermögen ist.
+
+Sofern die Werte der Variable gleichmäßig auf alle Beobachtungen verteilt sind, steigt der Anteil an der Gesamtsumme  $y$ genau gleich wie der Anteil an den Beobachtungen $x$. Die Lorenz-Kurve ist eine Diagonale mit $ y = x$.
+Sofern die Werte der Variablen extrem nur auf eine Beobachtung konzentriert sind, bleibt der Anteil an der Gesamtsumme $y$ für alle Werte von $x$ bis auf den letzten Wert bei $0$ und steigt dann sprunghaft mit dem letzten Wert auf $1$ an. 
+
+
+```{r, echo = T}
+x <-  seq(0,1,length.out = 100)
+y1 <- rep(1/100,100) #Gleichmäßige Verteilung von 100 auf alle Beobachtungen
+y2 <- c(rep(0,99),1) # Einer kriegt 100, alle anderen kriegen nichts
+plot(x,cumsum(y1),main="Lorenz-Kurven im Extrem", col="blue",lty=1,type="l")
+lines(x,cumsum(y2),col="red",lty=1)
+legend("topleft",legend=c("Gleichverteilung","Einer kriegt alles"),col=c("blue","red"),lty=1)
+```
+
+Der Gini-Index lässt sich anhand der Lorenz-Kurve berechnen als $1 - 2 A$, wobei $A$ die Fläche unterhalb der Lorenz-Kurve bezeichnet. Für die beiden Extremfälle ergibt sich 
+
+* bei der Gleichverteilung: $A = 0,5$ und damit ein Gini-Index von $0$
+* bei der extremen Konzentration: $A = 0$ und damit ein Gini-Index von $1$.
+
+> In R lassen sich Lorenzkurve und Konzentrationsmaße einfacher mit Hilfe von Erweiterungspaketen berechnen. Wir verwenden im Folgenden das Paket `REAT`. Der nächste Abschnitt gibt einen kurzen Exkurs zur Paketverwaltung in R und zeigt, wie sich das Paket in Ihrer lokalen Desktopumgebung installieren und einbinden lässt.
+
+Wir betrachten nun, wie sehr die vierteljährlichen Gewinne des Unternehmens Johnson & Johnson auf einzelne Quartale konzentriert sind. Dafür verwenden wir die Funktion `gini()` aus dem Paket `REAT`. Die Funktion `gini()` berechnet standardmäßig nur den Gini-Koeffizienten. Durch Angabe des Argument `lc = TRUE` wird zusätzlich auch eine Lorenz-Kurve grafisch ausgegeben.
+
+
+```{r, echo = T}
+library("DescTools")
+x <-  JohnsonJohnson
+plot(Lc(x))
+Gini(x)
+```
+
+
+Die Lorenz-Kurve zeigt grafisch an, dass 
+
+* die Gesamtsumme der Gewinne nicht gleichmäßig auf die Quartale verteilt ist, d.h. in jedem Quartal in etwa derselbe Gewinn erwirtschaftet wird, 
+* die Gesamtsumme der Gewinne nicht auf ein einzelnes bzw. wenige Quartale konzentriert ist, aber
+* die Gesamtsumme der Gewinne im Wesentlichen durch einige gute Quartale zu Stande kommt.
+
+So werden in den 40\% der ertragsschwächsten Quartale nur 10\% der gesamten Gewinnsumme erwirtschaftet. Und in den ertragsstärksten 20\% der Quartale ($x = 80\%$) werden rund 50\% der gesamten Gewinnsumme erwirtschaftet.
+
+Der Gini-Index von $0,49$ fasst diese deutliche, aber nicht extreme Ungleichverteilung in einem Zahlenwert zusammen. 
+
+## Exkurs: Pakete in R
+
+R verfügt bereits in der Basisfunktionalität über einen umfangreichen Funktionsumfang. Dieser lässt sich durch das Einbinden zusätzlicher Pakete flexibel erweitern. Die Pakete werden von der Gemeinschaft der R Entwickler entwickelt und gepflegt. Sie werden als Open-Source bereitgestellt und lassen sich in R einfach einbinden. Eine Übersicht findet sich z.B. unter <https://ftp.gwdg.de/pub/misc/cran/web/packages/index.html>
+
+
+Zum Installieren und Einbinden von Paketen in R werden die Funktionen `install.packages()` und `library()` verwendet.
+In der Regel werden die Pakete in einem Unterverzeichnis des Benutzerordners installiert - Administratorenrechte sind nur für eine systemweite Installation notwendig. Die Pakete werden getrennt nach Versionsnummer der verwendeten R Version gespeichert, damit  sicher gestellt ist, dass Pakete und R Basisversion stets zueinander kompatibel sind - umgekehrt bedeutet das aber auch, dass man nach jedem größeren Update von R auch alle Pakete neu installieren muss.
+
+Pakete können aufeinander aufbauen bzw. gegenseitige Abhängigkeiten aufweisen. R verfügt über eine eingebaute Verwaltung von Paketabhängigkeiten. Das bedeutet, dass bei der Installation eines neuen Paketes automatisch überprüft wird, ob weitere Pakete installiert werden müssen. Sofern das der Fall ist, installiert R die notwendigen Pakete automatisch mit.
+
+Im Folgenden zeigen wir beispielhaft, wie sich das Paket `REAT` installieren lässt, welches für die Berechnung des Gini-Koeffizienten benötigt wird. 
+
+```{r, echo = T, eval = F}
+install.packages("DescTools") #Dateien werden heruntergeladen und lokal gespeichert
+library("DescTools") # Das Paket wird in die aktuelle R Umgebung geladen und die enthaltenen Funktionen bereit gestellt
+```
+
+
+## Bivariate Statistiken
+
+Bivariate Statistiken fassen eine Beziehung zwischen zwei Variablen zusammen. Die gebräuchlichsten bivariaten Statistiken untersuchen einen statistischen Zusammenhang zwischen zwei Variablen. Unter Zusammenhang versteht man hier eine Beziehung zwischen zwei Variablen x und y im Sinne von "je größer x, desto größer y" bzw. "je größer x, desto kleiner y".
+
+Bei metrischen Variablen wird als Maß für einen statistischen Zusammenhang in der Regel die Kovarianz berechnet als Mittelwert der Produkte der variablenspezifischen Abweichungen vom Mittelwert: $Kov(x,y) = \frac{1}{n-1}\sum_{i=1}^n (x_i-\bar{x})(y_i-\bar{y})$. Die Kovarianz lässt sich in R mit dem Befehl `cov()` berechnen. Diese erwartet die Angabe mindestens eines Arguments `x = `. Falls `x` eine Matrix oder eine Datentabelle ist, wird die Kovarianz für alle Spaltenkombinationen parallel berechnet. Falls x ein Vektor ist, muss als zweites Argument `y = ` ein zweiter Vektor angegeben werden. 
+
+Ein allgemeineres Maß für den statistischen Zusammenhang ist die Korrelation - meistens abgekürzt durch den griechischen Buchstaben rho: $\rho$. Diese lässt sich sowohl zwischen metrischen als auch zwischen ordinalen Variablen berechnen:
+
+* Bei metrischen Variablen wird in der Regel der **Bravais-Pearson-Korrelationskoeffizient** berechnet. Dieser ergibt sich anhand der Kovarianz und der Standardabweichungen als $\rho_{Pearson}=\frac{Kov(x,y)}{s_x s_y}$
+* Bei ordinalen Variablen liegt nur eine Rangordnung vor. Damit können weder ein arithmetischer Mittelwert, noch Standardabweichungen oder Kovarianzen berechnet werden. Man verwendet daher **Rangkorrelationskoeffizienten** wie 
+  + **Spearmans $\rho$**: Sortiert Beobachtungen $(x_i,y_i)$, weist ihnen eine Rangfolge $(Rx_i,Ry_i)$zu und berechnet anschließend eine Kovarianz bzw. Korrelation auf den Rangdifferenzen entsprechend zu metrischen Variablen.
+  + **Kendalls Tau**: Überprüft für Datenpaare $(x_i,y_i), (x_j,y_j)$, ob und wie häufig die Reihung in den Variablen die gleiche Richtung hat d.h. wenn x größer, dann auch y größer: $x_i > x_j$ und $y_i > y_j$
+* Auch bei metrischen Variablen kann man den o.g. Rangkorrelationskoeffizienten berechnen. Diese sind robuster gegenüber einzelnen extrem großen oder kleinen Werten als der Bravais-Pearson-Korrelationskoeffizient und werden daher beim Verdacht auf solche sogenannten Ausreisser bevorzugt eingesetzt.
+
+
+Korrelationen lassen sich in R mit der Funktion `cor()` berechnen. Diese erwartet wie die Kovarianz die Angabe von `x = ` (und ggf. `y = `). Durch das weitere Argument `method = ` lässt sich angeben, welche Art von Korrelation berechnet werden soll:
+
+* `method = pearson`: Bravais-Pearson_korrelationskoeffizient
+* `method = spearman`: Spearman`scher Rangkorrelationskoeffizient
+* `method = kendall`: Kendalls Tau
+
+Bei allen genannten Funktionen lässt sich durch das Argument `use = ` steuern, wie im Falle fehlender Werte verfahren werden soll. Dabei sind zulässig 
+* `everything`: Fehlende Werte führen zum Ergebnis `NA` (Standard)
+* `all.obs`: Fehlende Werte führen zu einem Fehler
+* `complete.obs`: Nur in allen Variablen vollständige Beobachtungen werden verwendet
+* `pairwise.complete.obs`: Nur die in den zur Berechnung verwendeten zwei Variablen vollständige Beobachtungen werden verwendet
+
+Zusätzlich zur Berechnung von bivariaten Statistiken bietet es sich an, die untersuchten Variablen auch als Streudiagramm (x-y-plot) grafisch darzustellen. Im Folgenden untersuchen wir anhand des Datensatzes `cars` den statistischen Zusammenhang zwischen Geschwindigkeit (*speed*) und Bremsweg (*dist*).
+
+```{r, echo = T}
+plot(cars)
+cov(cars, method="pearson")
+cor(cars, method="pearson")
+```
+
+Im obigen Beispiel haben wir uns die eingebaute *Intelligenz* von R zu Nutze gemacht und als Argument nur den Datensatz als Ganzes übergeben.
+* Die Funktion `plot()` erstellt daraufhin ein Streudiagramm der beiden enthaltenen Variablen und benennt die Achsen anhand der Spaltennamen. In der Grafik lässt sich ein deutlicher positiver Zusammenhang zwischen Geschwindigkeit und Bremsweg erkennen.
+* Die Funktion `cov()` berechnet für jede Kombination der Spalten die Kovarianz und gibt die Ergebnisse in Matrixform aus. Die Matrix ist symmetrisch, da die Kovarianz symmetrisch ist (Kov(x,y) = Kov(y,x)) und auf der Diagonalen finden sich die Varianzen der einzelnen Variablen (Kov(x,x) = $s^2$(x)). Die Kovarianz zwischen Geschwindigkeit und Bremsweg ist positiv.
+* Die Funktion `cor()` berechnet ebenso wie `cov()` die paarweisen Korrelationen. Es zeigt sich eine deutliche positive Korrelation von $0,8$ zwischen Geschwindigkeit und Bremsweg.
+
+
+***Kleine Übung ***
+
+Untersuchen Sie den Datensatz `trees` auf statistische Zusammenhänge zwischen den drei enthaltenen Variablen:
+
+* Umfang (girth), 
+* Höhe (height) und 
+* Volumen (Volume) 
+
+Erstellen Sie für das Variablenpaar mit der höchsten Korrelation ein Streudiagramm.
+
+```{r bideskr, exercise = TRUE, exercise.lines = 10}
+x <-  trees  #Datensatz mit Umfang (girth), Höhe (height) und Volumen (Volume) von Bäumen
+
+
+```
+
+```{r bideskr-solution, eval=FALSE}
+x <-  trees  #Datensatz mit Umfang (girth), Höhe (height) und Volumen (Volume) von Bäumen
+cor(trees, method="pearson")
+plot(trees$Girth,trees$Volume)
+
+```
+
+
+
+
+## Quiz
+Ein paar Fragen, um das Verständnis der Lehrinhalte zu überprüfen.
+
+```{r quiz}
+quiz(
+  question("Welche der folgenden Statistiken sind Lageparameter?",
+    answer("Mittelwert", correct = TRUE),
+    answer("Varianz"),
+    answer("Median", correct = TRUE),
+    answer("Gini-Index")
+  ),
+   question("Was ist das Ergebnis von `mean(c(3,4,5,NA))`",
+    answer("4"),
+    answer("3"),
+    answer("NA", correct = TRUE),
+    answer("Abbruch und Fehlermeldung")
+  ),
+  question("Welche Korrelationsmaße kann man bei metrischen Variablen berechnen?",
+    answer("Bravais-Pearson-Korrelationskoeffizient", correct = TRUE),
+    answer("Spearmans Rangkorrelationskoefizient", correct = TRUE),
+    answer("Kendalls Tau", correct = TRUE),
+    answer("Gini-Index")
+    ),
+  
+  question("Wieso steht auf der Diagonalen der Korrelationsmatrix in der Berechnung mit der R-Funktion `cor()` immer nur eine 1?",
+    answer("Weil die Korrelation einer Variablen mit sich selbst immer 1 ist.", correct = TRUE),
+    answer("Weil die Diagonale bei der Berechnung keine Rolle spielt."),
+    answer("Weil die 1 in R für fehlende Werte steht."),
+    answer("Weil man die Korrelation immer durch Division mit dem höchsten Wert normiert.")
+  )
+)
+```
