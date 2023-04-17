@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="de">
 
-    <head>
-        <title>Kurs: Datenanalyse mit R</title>
-        <style>
+<head>
+    <title>Kurs: Datenanalyse mit R</title>
+    <style>
         .tab-links a {
             display: block;
             padding: 10px;
@@ -34,1482 +34,1420 @@
             display: block;
         }
     </style>
-    </head>
+</head>
 
-    <body>
-        <h1>Datenanalyse mit R</h1>
-        <ul>
-            <ul class="tab-links">
-                <li>
-                    <a href="#introduction">Einf&uuml;hrung & Allgemeines</a>
+<body>
+    <h1>Datenanalyse mit R</h1>
+    <ul>
+        <ul class="tab-links">
+            <li>
+                <a href="#introduction">Einf&uuml;hrung & Allgemeines</a>
+            </li>
+            <li>
+                <a href="#r-programming">Einf&uuml;hrung in R</a>
+            </li>
+            <li>
+                <a href="#data-analysis">Statistische Datenanalyse</a>
+            </li>
+            <li>
+                <a href="#supervised-learning">Maschinelles Lernen</a>
+            </li>
+            <li>
+                <a href="#time-series-analysis">Zeitreihenanalyse</a>
+            </li>
+            <li>
+                <a href="#portfolio-analysis">Portfolioanalyse und -optimierung</a>
+            </li>
+        </ul>
+        <div class="tab-content" id="introduction">
+            <h2>Einf&uuml;hrung & Allgemeines</h2>
+            <ul>
+                <h3>Ziele & Motivation des Kurses</h3>
+                <p>Dieser offene Moodle-Kurs soll eine Einf&uuml;hrung in die
+                    Datenanalyse mit der Programmiersprache R
+                    bieten. Dabei werden theoretische Kenntnisse &uuml;ber
+                    die Methoden, sowie auch praktische Kenntnisse
+                    &uuml;ber deren Anwendung vermittelt.&nbsp;</p>
+                <p>Der Kurs richtet sich an alle, die grundlegende
+                    Kenntnisse auf dem Gebiete der Datenanalyse, im
+                    Speziellen in den Bereichen Zeitreihenanalyse (mit
+                    Fokus auf den Finanzbereich) und Maschinelles
+                    Lernen erwerben wollen und ist nicht auf eine
+                    spezielle Fachrichtung bzw. auf einen bestimmten
+                    Studiengang ausgerichtet.</p>
+                <p>F&uuml;r die theoretischen Inhalte werden mathematische
+                    Basiskenntnisse vorausgesetzt, wie sie im natur-,
+                    ingenieurs- oder wirtschaftswissenschaftlichen
+                    Grundstudium vermittelt werden (lineare Algebra,
+                    Analysis, Stochastik, Statistik). Die wichtigsten
+                    Grundkenntnisse werden teilweise an den ben&ouml;tigten
+                    Stellen im Schnelldurchlauf rekapituliert oder extra
+                    in Form von kurzen Zusammenfassungen
+                    bereitgestellt.&nbsp;</p>
+                <p>Der Kurs stellt eine grundlegende Einf&uuml;hrung in den
+                    Umgang mit R bereit, so dass dem Teilnehmer
+                    ausreichende Kenntnisse vermitteln werden, um den
+                    praktischen Kursinhalten folgen zu k&ouml;nnen.
+                    Programmier(vor)kenntnisse sind somit nicht von
+                    N&ouml;ten, jedoch hilfreich, um die praktischen
+                    Kursinhalte in der Tiefe besser verstehen zu k&ouml;nnen.</p>
+                <p>Der Kurs stellt eine hochschul&ouml;ffentliche Variante
+                    der Lehrveranstaltungen "Quantitative Methoden"
+                    und "Maschinelles Lernen" von Prof. Dr. Rainer
+                    Stollhoff dar und soll langfristig als OER (Open
+                    Educational Resource) der allgemeinen &Ouml;ffentlichkeit
+                    verf&uuml;gbar gemacht werden. Hinweise, Anregungen
+                    und Fehlerberichte sind ausdr&uuml;cklich erw&uuml;nscht.
+                    Nutzen Sie daf&uuml;r bitte die entsprechenden Foren am
+                    Ende dieses Tabs oder wenden Sie sich direkt an die
+                    Administratoren:</p>
+                <ul>
+                    <li>Prof. Dr. Rainer Stollhoff:&nbsp;<a
+                            href="mailto:rainer.stollhoff@th-wildau.de">rainer.stollhoff@th-wildau.de</a>
+                    </li>
+                    <li>Felix Rothe:&nbsp;<a href="mailto:felix.rothe@th-wildau.de">felix.rothe@th-wildau.de</a>
+                    </li>
+                </ul>
                 </li>
                 <li>
-                    <a href="#r-programming">Einf&uuml;hrung in R</a>
-                </li>
-                <li>
-                    <a href="#data-analysis">Statistische Datenanalyse</a>
-                </li>
-                <li>
-                    <a href="#supervised-learning">Maschinelles Lernen</a>
-                </li>
-                <li>
-                    <a href="#time-series-analysis">Zeitreihenanalyse</a>
-                </li>
-                <li>
-                    <a href="#portfolio-analysis">Portfolioanalyse und -optimierung</a>
+                    <p>
+                    <h3>Organisation
+                        der Kursinhalte
+                        Textseite</h3>
+                    </p>
+                    <p>Die Inhalte dieses Moodle-Kurses setzen sich&nbsp;aus
+                        theoretischen Lerneinheiten in Form von
+                        Pr&auml;sentationen (Videos und Foliens&auml;tzen) und
+                        praktischen, interaktiven Tutorials zusammen.</p>
+                    <p>Behandelt werden dabei die Themen:</p>
+                    <ul>
+                        <li>Grundlagen der R Programmierung,</li>
+                        <li>Statistische Analyse mit R</li>
+                        <li>Datenmanagement mit R</li>
+                        <li>Datenvisualisierung mit R</li>
+                        <li>Explorative Datenanalyse mit R</li>
+                        <li>Maschinelles Lernen (mit R)</li>
+                        <li>Zeitreihenanalyse (inkl. Portfolioanalyse) (mit
+                            R)</li>
+                    </ul>
+                    <p>In den theoretische Lerneinheiten werden die Methoden
+                        und Verfahren Umsetzungsunabh&auml;ngig auf
+                        (mathematischer) Ebene diskutiert. Dies geschieht in
+                        Form von Videovorlesungen, zu welchen die
+                        Foliens&auml;tze bereitgestellt werden. Die kommentierten
+                        Foliens&auml;tze enthalten Anmerkungen und
+                        Zeichnungen aus den Vorlesungen.</p>
+                    <p><i>Hinweis: Bitte beachten Sie, dass in den Videos
+                            vereinzelt kleinere Fehler enthalten sein
+                            k&ouml;nnen.
+                            Diese sind soweit bekannt bei den
+                            Videoaufzeichnungen angegeben und in den
+                            Foliens&auml;tzen bereits
+                            korrigiert. Aktualisierte Versionen der Videos
+                            werden langfristig folgen.</i></p>
+                    <p>Die praktischen Tutorials vermitteln die Anwendung
+                        der behandelten Verfahren.&nbsp;Diese sind mit R
+                        verfasst und werden auf einem Server an der TH
+                        Wildau gehostet. <strong>Um diese Inhalte zu
+                            verwenden, m&uuml;ssen Sie direkt (LAN/WLAN) oder per
+                            VPN (Cisco) mit dem Hochschulnetz verbunden
+                            sein.</strong></p>
+                    <p>Die Tutorials enthalten Texte und beispielhafte R
+                        Kommandos zu den Themen "Grundlagen der R
+                        Programmierung", "Statistische Analyse mit R",
+                        "Explorative Datenanalyse mit R", "Maschinelles
+                        Lernen mit R" und "Zeitreihenanalyse mit R (inkl.
+                        Portfolioanalyse)" - immer wieder unterbrochen
+                        durch kleine Programmier&uuml;bungen in R, in denen Sie
+                        das Erlernte direkt anwenden k&ouml;nnen.</p>
+                    <p>Der Zugriff auf die eigene R-Installation ist f&uuml;r
+                        Applets und Tutorials nicht zwingend notwendig,
+                        sodass sich diese auch mobil abrufen oder bearbeiten
+                        lassen. Allerdings l&auml;sst Ihnen die
+                        gleichzeitige Verwendung einer eigenen
+                        R-Installation mehr Freiheitsgrade z.B. um die
+                        Hilfsfunktion
+                        zu verwenden oder einzelne Befehle / &Uuml;bungen
+                        dauerhaft abzuspeichern. F&uuml;r die Bearbeitung der
+                        &Uuml;bungen im Anwendungsbereich ist eine eigene
+                        R-Installation (bzw. der Zugriff auf den R-Server)
+                        ohnehin zwingend notwendig.</p>
+                    <p>Dar&uuml;ber hinaus stehen Ihnen eine Auswahl erg&auml;nzender
+                        Unterlagen zur Verf&uuml;gung. Bei den erg&auml;nzenden
+                        Unterlagen handelt es sich um</p>
+                    <ul>
+                        <li>Links zu Lehrb&uuml;chern (insb. theoretische
+                            Grundlagen)</li>
+                        <li>Links zu Tutorials, Webseiten etc. zum
+                            Themengebiet, die eine alternative Darstellung
+                            der
+                            Inhalte bieten.</li>
+                    </ul>
+                    <p>Hinweis: Die Zitierungen aller
+                        Literaturquellen und R-Pakete ist noch nicht
+                        vollst&auml;ndig
+                        abgeschlossen und befindet sich aktuell in
+                        Bearbeitung.</p>
                 </li>
             </ul>
-            <div class="tab-content" id="introduction">
-                <h2>Einf&uuml;hrung & Allgemeines</h2>
-                <ul>
-                    <li>
-                        <h3>Ziele & Motivation des Kurses</h3>
-                        <p>Dieser offene Moodle-Kurs soll eine Einf&uuml;hrung in die
-                            Datenanalyse mit der Programmiersprache R
-                            bieten. Dabei werden theoretische Kenntnisse &uuml;ber
-                            die Methoden, sowie auch praktische Kenntnisse
-                            &uuml;ber deren Anwendung vermittelt.&nbsp;</p>
-                        <p>Der Kurs richtet sich an alle, die grundlegende
-                            Kenntnisse auf dem Gebiete der Datenanalyse, im
-                            Speziellen in den Bereichen Zeitreihenanalyse (mit
-                            Fokus auf den Finanzbereich) und Maschinelles
-                            Lernen erwerben wollen und ist nicht auf eine
-                            spezielle Fachrichtung bzw. auf einen bestimmten
-                            Studiengang ausgerichtet.</p>
-                        <p>F&uuml;r die theoretischen Inhalte werden mathematische
-                            Basiskenntnisse vorausgesetzt, wie sie im natur-,
-                            ingenieurs- oder wirtschaftswissenschaftlichen
-                            Grundstudium vermittelt werden (lineare Algebra,
-                            Analysis, Stochastik, Statistik). Die wichtigsten
-                            Grundkenntnisse werden teilweise an den ben&ouml;tigten
-                            Stellen im Schnelldurchlauf rekapituliert oder extra
-                            in Form von kurzen Zusammenfassungen
-                            bereitgestellt.&nbsp;</p>
-                        <p>Der Kurs stellt eine grundlegende Einf&uuml;hrung in den
-                            Umgang mit R bereit, so dass dem Teilnehmer
-                            ausreichende Kenntnisse vermitteln werden, um den
-                            praktischen Kursinhalten folgen zu k&ouml;nnen.
-                            Programmier(vor)kenntnisse sind somit nicht von
-                            N&ouml;ten, jedoch hilfreich, um die praktischen
-                            Kursinhalte in der Tiefe besser verstehen zu k&ouml;nnen.</p>
-                        <p>Der Kurs stellt eine hochschul&ouml;ffentliche Variante
-                            der Lehrveranstaltungen "Quantitative Methoden"
-                            und "Maschinelles Lernen" von Prof. Dr. Rainer
-                            Stollhoff dar und soll langfristig als OER (Open
-                            Educational Resource) der allgemeinen &Ouml;ffentlichkeit
-                            verf&uuml;gbar gemacht werden. Hinweise, Anregungen
-                            und Fehlerberichte sind ausdr&uuml;cklich erw&uuml;nscht.
-                            Nutzen Sie daf&uuml;r bitte die entsprechenden Foren am
-                            Ende dieses Tabs oder wenden Sie sich direkt an die
-                            Administratoren:</p>
-                        <ul>
-                            <li>Prof. Dr. Rainer Stollhoff:&nbsp;<a
-                                    href="mailto:rainer.stollhoff@th-wildau.de">rainer.stollhoff@th-wildau.de</a>
-                            </li>
-                            <li>Felix Rothe:&nbsp;<a
-                                    href="mailto:felix.rothe@th-wildau.de">felix.rothe@th-wildau.de</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><h3>Organisation
-                                der Kursinhalte
-                                Textseite</h3></p>
-                        <p>Die Inhalte dieses Moodle-Kurses setzen sich&nbsp;aus
-                            theoretischen Lerneinheiten in Form von
-                            Pr&auml;sentationen (Videos und Foliens&auml;tzen) und
-                            praktischen, interaktiven Tutorials zusammen.</p>
-                        <p>Behandelt werden dabei die Themen:</p>
-                        <ul>
-                            <li>Grundlagen der R Programmierung,</li>
-                            <li>Statistische Analyse mit R</li>
-                            <li>Datenmanagement mit R</li>
-                            <li>Datenvisualisierung mit R</li>
-                            <li>Explorative Datenanalyse mit R</li>
-                            <li>Maschinelles Lernen (mit R)</li>
-                            <li>Zeitreihenanalyse (inkl. Portfolioanalyse) (mit
-                                R)</li>
-                        </ul>
-                        <p>In den theoretische Lerneinheiten werden die Methoden
-                            und Verfahren Umsetzungsunabh&auml;ngig auf
-                            (mathematischer) Ebene diskutiert. Dies geschieht in
-                            Form von Videovorlesungen, zu welchen die
-                            Foliens&auml;tze bereitgestellt werden. Die kommentierten
-                            Foliens&auml;tze enthalten Anmerkungen und
-                            Zeichnungen aus den Vorlesungen.</p>
-                        <p><i>Hinweis: Bitte beachten Sie, dass in den Videos
-                                vereinzelt kleinere Fehler enthalten sein
-                                k&ouml;nnen.
-                                Diese sind soweit bekannt bei den
-                                Videoaufzeichnungen angegeben und in den
-                                Foliens&auml;tzen bereits
-                                korrigiert. Aktualisierte Versionen der Videos
-                                werden langfristig folgen.</i></p>
-                        <p>Die praktischen Tutorials vermitteln die Anwendung
-                            der behandelten Verfahren.&nbsp;Diese sind mit R
-                            verfasst und werden auf einem Server an der TH
-                            Wildau gehostet. <strong>Um diese Inhalte zu
-                                verwenden, m&uuml;ssen Sie direkt (LAN/WLAN) oder per
-                                VPN (Cisco) mit dem Hochschulnetz verbunden
-                                sein.</strong></p>
-                        <p>Die Tutorials enthalten Texte und beispielhafte R
-                            Kommandos zu den Themen "Grundlagen der R
-                            Programmierung", "Statistische Analyse mit R",
-                            "Explorative Datenanalyse mit R", "Maschinelles
-                            Lernen mit R" und "Zeitreihenanalyse mit R (inkl.
-                            Portfolioanalyse)" - immer wieder unterbrochen
-                            durch kleine Programmier&uuml;bungen in R, in denen Sie
-                            das Erlernte direkt anwenden k&ouml;nnen.</p>
-                        <p>Der Zugriff auf die eigene R-Installation ist f&uuml;r
-                            Applets und Tutorials nicht zwingend notwendig,
-                            sodass sich diese auch mobil abrufen oder bearbeiten
-                            lassen. Allerdings l&auml;sst Ihnen die
-                            gleichzeitige Verwendung einer eigenen
-                            R-Installation mehr Freiheitsgrade z.B. um die
-                            Hilfsfunktion
-                            zu verwenden oder einzelne Befehle / &Uuml;bungen
-                            dauerhaft abzuspeichern. F&uuml;r die Bearbeitung der
-                            &Uuml;bungen im Anwendungsbereich ist eine eigene
-                            R-Installation (bzw. der Zugriff auf den R-Server)
-                            ohnehin zwingend notwendig.</p>
-                        <p>Dar&uuml;ber hinaus stehen Ihnen eine Auswahl erg&auml;nzender
-                            Unterlagen zur Verf&uuml;gung. Bei den erg&auml;nzenden
-                            Unterlagen handelt es sich um</p>
-                        <ul>
-                            <li>Links zu Lehrb&uuml;chern (insb. theoretische
-                                Grundlagen)</li>
-                            <li>Links zu Tutorials, Webseiten etc. zum
-                                Themengebiet, die eine alternative Darstellung
-                                der
-                                Inhalte bieten.</li>
-                        </ul>
-                        <p>Hinweis: Die Zitierungen aller
-                            Literaturquellen und R-Pakete ist noch nicht
-                            vollst&auml;ndig
-                            abgeschlossen und befindet sich aktuell in
-                            Bearbeitung.</p>
-                    </li>
-                </ul>
-            </div>
-            <div class="tab-content" id="r-programming">
-                <h2>Bedienung R</h2>
-                <p>In diesem Abschnitt werden grundlegende Kenntnisse in der
-                    R-Programmierung inklusive Datenmanagement und
-                    -Visualisierung vermittelt.</p>
-                <ul>
-                    <li>
-                        <h3>Basisfunktionen</h3>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266058">Grundlagen
-                                R Link/URL</a></p>
-                        <p>Das interaktive Tutorial vermittelt die Grundlagen
-                            von R:</p>
-                        <ul>
-                            <li>Allgemeines zu R</li>
-                            <li>Rechnen mit R</li>
-                            <li>Variablen in R</li>
-                            <li>Rechnen mit Variablen</li>
-                            <li>Vektorartige Variablen</li>
-                            <li>Mehrdimensionale Variablen</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266059">Einfache
-                                Graphiken mit R (base)
-                                Link/URL</a></p>
-                        <p>Eine interaktive Einf&uuml;hrung in die Erstellung
-                            einfacher Graphiken mit Basisfunktionen:</p>
-                        <ul>
-                            <li>Allgemeines</li>
-                            <li>High-Level-Plots</li>
-                            <li>Low-Level-Plots</li>
-                            <li>Layout und Ausgabe</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266060">Datenmanagement
-                                mit R (base)
-                                Link/URL</a></p>
-                        <p>Eine interaktive Einf&uuml;hrung in das Datenmanagement
-                            mit R</p>
-                        <ul>
-                            <li>Allgemeines</li>
-                            <li>Date(ie)n einlesen</li>
-                            <li>Kontrolle und Nachbearbeitung</li>
-                            <li>Daten speichern</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266061">PnL.csv
-                                Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266062">PnL.xlsx
-                                Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266065">Programmierung
-                                mit R Link/URL</a>
-                        </p>
-                        <p>Eine interaktive Einf&uuml;hrung in die Grundlagen der
-                            Programmierung mit R:</p>
-                        <ul>
-                            <li>Allgemeines</li>
-                            <li>Fallunterscheidungen (if...else)</li>
-                            <li>Schleifen (for, while)</li>
-                            <li>Funktionen erstellen</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <h3>Erweiterungen</h3>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266143">Externe
-                                Datenquellen nutzen mit R
-                                Link/URL</a></p>
-                        <p>Eine interaktive Einf&uuml;hrung in das Einbinden externer
-                            Datenquellen in R</p>
-                        <ul>
-                            <li>&Uuml;bersicht</li>
-                            <li>Datentyp xts</li>
-                            <li>Allgemeines zu Finanzdaten</li>
-                            <li>Das R Paket quantmod - Aktienkurse von
-                                finance.yahoo.com anrufen</li>
-                            <li>Das Portal quandl.com und das R Paket Quandl -
-                                vielf&auml;ltige Finanzdaten abrufen</li>
-                            <li>Weitere Pakete</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266074">Erweitertes
-                                Datenmanagent im
-                                tidyverse von R Link/URL</a></p>
-                        <p>Eine interaktive Einf&uuml;hrung in das Datenmanagement
-                            mit den tidyverse Paketen</p>
-                        <ul>
-                            <li>Allgemeines</li>
-                            <li>Dat(ei)en einlesen mit readr</li>
-                            <li>Tidy data</li>
-                            <li>Daten verwalten mit dplyr</li>
-                            <li>Daten transformieren mit dplyr</li>
-                            <li>Verketten von Datenoperationen</li>
-                            <li>Daten speichern</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266075">Foliensatz
-                                zu Erweitertes
-                                Datenmanagement (tidy) als Zusammenfassung Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266076">Erweiterte
-                                Graphiken mit ggplot2
-                                Link/URL</a></p>
-                        <p>Eine interaktive Einf&uuml;hrung in die Erstellung von
-                            Graphiken mit dem Paket ggplot2</p>
-                        <ul>
-                            <li>Allgemeines</li>
-                            <li>Einfache Diagramme</li>
-                            <li>Statistische Darstellungen</li>
-                            <li>Kombination von Graphiken</li>
-                            <li>Beschriftungen</li>
-                            <li>Skalierung und Ma&szlig;st&auml;be</li>
-                            <li>Graphiken Speichern</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266077">Foliensatz
-                                zu GGplot2 als
-                                Zusammenfassung Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266078">Dokumentation
-                                und
-                                Kommunikation von Ergebnissen mit R Markdown
-                                Datei</a></p>
-                        <p>Eine Einf&uuml;hrung in die Verwendung von R Markdown.
-                            Durch R Markdown lassen sich Analysen mit R und
-                            Textbausteine miteinander verkn&uuml;pfen und in
-                            verschiedene Ausgabeformate konvertieren z.B.
-                            HTML-Seiten, Word-Dokument oder interaktive R
-                            Tutorials.</p>
-                        <ul>
-                            <li>Allgemeines</li>
-                            <li>R Markdown Syntax</li>
-                            <li>Erstellen von Ausgabedokumenten</li>
-                        </ul>
-                        <p>Die Lerninhalte werden als HTML-Seite bereit gestellt
-                            - erzeugt aus einem R Markdown Dokument.
-                            Zus&auml;tzlich finden Sie untenstehend neben dem
-                            Original R Markdown Dokument auch Ausgaben in
-                            verschiedene Datei-/Dokumentformate. Die
-                            verschiedenen Ausgabeformate wurden dabei
-                            automatisch
-                            erstellt.</p>
-                    </li>
-                    <li>
-                        <ul>
-                            <li>
-                                <p>Ausgabeformate f&uuml;r R Markdown Dokumente</p>
-                                <ul>
-                                    <li>
-                                        <a
-                                            href="https://elearning.th-wildau.de/pluginfile.php/369508/mod_folder/content/0/markdown_beamer.pdf?forcedownload=1">markdown_beamer.pdf</a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href="https://elearning.th-wildau.de/pluginfile.php/369508/mod_folder/content/0/markdown.docx?forcedownload=1">markdown.docx</a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href="https://elearning.th-wildau.de/pluginfile.php/369508/mod_folder/content/0/markdown.html?forcedownload=1">markdown.html</a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href="https://elearning.th-wildau.de/pluginfile.php/369508/mod_folder/content/0/markdown.pdf?forcedownload=1">markdown.pdf</a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href="https://elearning.th-wildau.de/pluginfile.php/369508/mod_folder/content/0/markdown.pptx?forcedownload=1">markdown.pptx</a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href="https://elearning.th-wildau.de/pluginfile.php/369508/mod_folder/content/0/markdown.Rmd?forcedownload=1">markdown.Rmd</a>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                        <p>Verzeichnis herunterladen</p>
-                    </li>
-                    <li>
-                        <h3>Erg&auml;nzende Materialien/Links/...</h3>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266067">R
-                                Project Link/URL</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266068">R
-                                Studio Link/URL</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266173">Tutorial
-                                zur Installation von R
-                                und R Studio Link/URL</a></p>
-                        <p>Ein interaktives, englischsprachiges Tutorial zur
-                            Installation von R und R Studio.</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266174">Deutschsprachige
-                                Einf&uuml;hrung in R
-                                f&uuml;r EinsteigerInnen Link/URL</a></p>
-                        <p>Die Einf&uuml;hrung ist geschrieben f&uuml;r Studierende in
-                            Psychologie und Public Health an der Uni Bremen.
-                            Sie richtet sich an Einsteigerinnen und Einsteiger,
-                            ist gut verst&auml;ndlich geschrieben und leicht
-                            zug&auml;nglich. Der Fokus liegt allerdings auf
-                            klassischer statistischer Analyse und weniger auf
-                            Zeitreihenanalyse. Die ersten paar Abschnitte laufen
-                            daher noch parallel zu diesem Modul, sp&auml;tere
-                            Abschnitte behandeln allerdings andere Themen bzw.
-                            Schwerpunkte.</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266175">Sammlung
-                                von Befehls&uuml;bersichten
-                                (cheatsheets) Link/URL</a></p>
-                        <p>Umfassende Sammlung von Befehls&uuml;bersichten zu
-                            einzelnen Themengebieten bzw. Paketen.</p>
-                        <p>Unter anderem:&nbsp;<a
-                                href="http://github.com/rstudio/cheatsheets/raw/master/base-r.pdf"></a></p>
-                        <ul>
-                            <li>
-                                <a
-                                    href="http://github.com/rstudio/cheatsheets/raw/master/base-r.pdf">Base
-                                    R</a>
-                            </li>
-                            <li>
-                                <a
-                                    href="https://github.com/rstudio/cheatsheets/raw/master/reticulate.pdf">Data
-                                    Import
-                                    (tidyverse)</a>
-                            </li>
-                            <li>
-                                <a
-                                    href="https://github.com/rstudio/cheatsheets/raw/master/data-transformation.pdf">Data
-                                    Transformation (dplyr)</a>
-                            </li>
-                            <li>
-                                <a
-                                    href="https://github.com/rstudio/cheatsheets/raw/master/data-visualization-2.1.pdf">Data
-                                    Visualization (ggplot2)</a>
-                            </li>
-                            <li>
-                                <a
-                                    href="https://github.com/rstudio/cheatsheets/raw/master/rmarkdown-2.0.pdf">RMarkdown</a>
-                            </li>
-                            <li>
-                                <a
-                                    href="https://github.com/rstudio/cheatsheets/raw/master/rstudio-ide.pdf">RStudio
-                                    IDE</a>
-                            </li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-            <div class="tab-content" id="data-analysis">
-                <h2>Statistische Datenanalyse</h2>
-                <p>In diesem Abschnitt werden die Grundlagen der
-                    statistischen Datenanalyse und -Exploration mit R
-                    behandelt.
-                </p>
-                <ul>
-                    <li>
-                        <h3>Grundlagen und Basisfunktionen</h3>
-                        <p>Voraussetzung sind Kenntnisse in den
-                            Basisfunktionen von R.</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266056">Grundlegende
-                                Theorie (alle
-                                Bereiche): Wahrscheinlichkeitsrechnung und
-                                Statistik Datei</a></p>
-                        <p>Eine kurze Zusammenstellung von
-                            Grundlagenkenntnissen in
-                            Wahrscheinlichkeitsrechnung und Statistik,
-                            wie sie im Rahmen einer Schulausbildung bzw.
-                            eines Bachelorstudiums f&uuml;r gew&ouml;hnlich vermittelt
-                            werden:</p>
-                        <ul>
-                            <li>Rechnen mit Wahrscheinlichkeiten</li>
-                            <li>Zufallsvariable,
-                                Wahrscheinlichkeitsverteilung</li>
-                            <li>Lage- und Streuungsparameter: Mittelwert,
-                                Varianz, Standardabweichung</li>
-                            <li>Zusammenhang: Kovarianz und Korrelation</li>
-                            <li>Lineare Regression: Trendlinie,
-                                kleinste-Quadrate-Methode, erkl&auml;rte Varianz</li>
-                        </ul>
-                        <p>Die Lineare Regression wird im Bereich Grundlagen
-                            Maschinelles Lernen noch detaillierter
-                            erl&auml;utert.
-                            F&uuml;r die weiteren Inhalte wird vorausgesetzt,
-                            dass Sie die oben genannten Begrifflichkeiten
-                            und
-                            Konzepte kennen und verstanden haben.</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266063">Zufallsvariablen
-                                in R
-                                Link/URL</a></p>
-                        <p>Eine interaktive Einf&uuml;hrung in das Rechnen mit
-                            Zufallsvariablen und die Simulation von
-                            (Pseude-)Zufallszahlen</p>
-                        <ul>
-                            <li>Zufallsbegriff</li>
-                            <li>Einfache Zufallsprozesse</li>
-                            <li>Diskrete Zufallsvariablen</li>
-                            <li>Stetige Zufallsvariablen</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266064">Deskriptive
-                                Statistik mit R
-                                Link/URL</a></p>
-                        <p>Eine interaktive Einf&uuml;hrung in die Berechnung von
-                            deskriptiver Statistik mit R</p>
-                        <ul>
-                            <li>Allgemeines</li>
-                            <li>Univariate Statistiken</li>
-                            <li>Bivariate Statistiken</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <h3>Explorative Datenanalyse</h3>
-                        <p>Voraussetzung sind Kenntnisse in den
-                            Basisfunktionen von R und den Erweiterungen
-                            Datenmanagement
-                            (tidy) und Graphiken (ggplot)</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/page/view.php?id=266125">&Uuml;bersicht
-                                Textseite</a></p>
-                        <p>Die Lerneinheit explorative Datenanalyse mit R
-                            umfasst die Teilpakete</p>
-                        <ul>
-                            <li>Explorative Datenanalyse - Theorie und
-                                Demonstration</li>
-                            <li>Erweitertes Datenmanagement</li>
-                            <li>Erweiterte Graphiken (Visualisierung)</li>
-                            <li>Kommunikation von Datenanalysen</li>
-                        </ul>
-                        <p>Diese erg&auml;nzen sich im Kontext der Datenanalyse
-                            wie folgt:</p>
-                        <p>Der noch fehlende Teilaspekt Modellbildung wird
-                            in den folgenden Lerneinheiten behandelt.</p>
-                        <p>Die Inhalte verwenden die Pakete aus dem
-                            tidyverse und ggplot.</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266070">Explorative
-                                Datenanalyse -
-                                Theorie und Demonstration Datei</a></p>
-                        <p>Eine Einf&uuml;hrung in Ziele und Verfahren mit
-                            Demonstration in R am Beispieldatensatz mpg</p>
-                        <ul>
-                            <li>
-                                <p>Beschreibung des Datensatzes</p>
-                            </li>
-                            <li>
-                                <p>Werteverteilung einzelner Variablen
-                                    (univariate Analyse)</p>
-                            </li>
-                            <li>Zusammenh&auml;nge zwischen zwei und mehr
-                                Variablen (bivariate bzw. multivariate
-                                Analyse)</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266071">Explorative
-                                Datenanalyse -
-                                Theorie und Demonstration als Video Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266072">Explorative
-                                Datenanalyse -
-                                kommentierte Folien Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266073">Demoskript
-                                explorative
-                                Datenanalyse mit R Datei</a></p>
-                        <p>Das zur Durchf&uuml;hrung einer explorativen
-                            Datenanalyse mit tidyverse Paketen und ggplot2
-                            anhand des
-                            Datensatzes mpg verwendete R-Skript.</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266080">Demonstration:
-                                Explorative
-                                Datenanalyse zur Bundestagswahl 2017 Datei</a></p>
-                        <p>Demonstration einer explorativen Datenanalyse am
-                            Beispiel der Bundestagswahl 2017</p>
-                        <ul>
-                            <li>Datenmanagement</li>
-                            <li>explorative Datenanalyse</li>
-                        </ul>
-                        <p>Die Ergebnisse werden als .html Notebook
-                            dargestellt. Zus&auml;tzlich finden Sie auch das zu
-                            Grunde
-                            liegende R Markdown Dokument.</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266081">explorativeDatenanalyseR.Rmd
-                                Datei</a></p>
-                    </li>
-                    <li>
-                        <h3>Erg&auml;nzende Materialien/Links/...</h3>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266083">Grolemund
-                                & Wickham, R for Data
-                                Science Link/URL</a></p>
-                    </li>
-                </ul>
-            </div>
-            <div class="tab-content" id="supervised-learning">
-                <h2>Maschinelles Lernen</h2>
-                <p>Dieser Abschnitt gibt eine Einf&uuml;hrung in das Maschinelle
-                    Lernen (mit R). Der Fokus liegt auf dem Supervised
-                    Learning.</p>
-                <p>Die theoretischen Inhalte lassen sich ohne
-                    Programmierkenntnisse in R bearbeiten.</p>
-                <p>F&uuml;r die Demonstration mit R sind Kenntnisse in den
-                    Basisfunktionen von R sowie den Erweiterungen
-                    Datenmanagement (tidy) und Graphiken (ggplot) hilfreich.</p>
-                <ul>
-                    <li>
-                        <h3>Einf&uuml;hrung in Supervised Learning</h3>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/page/view.php?id=266126">&Uuml;bersicht
-                                Supervised Learning
-                                Textseite</a></p>
-                        <p>Die Lerneinheit Einf&uuml;hrung in Supervised Learning
-                            umfasst die Teilpakete</p>
-                        <ul>
-                            <li>Einf&uuml;hrung Regression (inkl.
-                                Gradientenabstieg)</li>
-                            <li>Einf&uuml;hrung Multivariate Regression</li>
-                            <li>Einf&uuml;hrung Klassifikation</li>
-                            <li>Datenvorverarbeitung</li>
-                            <li>Modellvalidierung und -selektion</li>
-                            <li>Komplexere Modellfamilien</li>
-                        </ul>
-                        <p>Diese erg&auml;nzen sich wie folgt:</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266089">&Uuml;bersichtsdiagram
-                                Supervised_Learning Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266090">(Wiederholung/Exkurs)
-                                Wahrscheinlichkeitsrechnung und Statistik
-                                Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266091">(Wiederholung/Exkurs)
-                                Multivariate Analysis und Lineare Algebra
-                                Datei</a></p>
-                        <p>Eine Wiederholung bzw. ein Schnelldurchlauf durch</p>
-                        <ul>
-                            <li>Funktionen mehrerer Ver&auml;nderlicher</li>
-                            <li>Partielle Ableitungen 1. und 2. Ordnung</li>
-                            <li>Lineare Algebra (Vektoren, Matrizen,
-                                einfache Operationen, Inverse, Determinante)</li>
-                        </ul>
-                        <p>Entscheidend ist das Verst&auml;ndnis der Konzepte.
-                            Eigenst&auml;ndiges Berechnen z.B. der Ableitungen
-                            ist
-                            nicht notwendig.</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266092">(Wiederholung/Exkurs)
-                                Multivariate Analysis und Lineare Algebra
-                                Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266093">Einf&uuml;hrung
-                                Regression
-                                inkl.Gradientenabstieg Datei</a></p>
-                        <ul>
-                            <li>Regressionsaufgabe</li>
-                            <li>Einfache Lineare Regression y = a * x</li>
-                            <li>Analytische L&ouml;sung und Gradientenabstieg</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266094">Einf&uuml;hrung
-                                Regression
-                                inkl.Gradientenabstieg Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266095">Einf&uuml;hrung
-                                Regression
-                                inkl.Gradientenabstieg - kommentiert Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266096">Einf&uuml;hrung
-                                Multivariate
-                                Regression Datei</a></p>
-                        <p>Eine schrittweise Erweiterung der univariaten,
-                            einfachen linearen Regression und des
-                            Gradientenabstiegs auf</p>
-                        <ul>
-                            <li>bivariate lineare Regression</li>
-                            <li>multivariate lineare Regression</li>
-                            <li>multivariate Regression</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266097">Einf&uuml;hrung
-                                Multivariate
-                                Regression Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266098">Einf&uuml;hrung
-                                Multivariate
-                                Regression - kommentiert Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266099">Einf&uuml;hrung
-                                Klassifikation
-                                Datei</a></p>
-                        <p>Eine Einf&uuml;hrung in Klassfikationsaufgaben</p>
-                        <ul>
-                            <li>Aufgabenstellung und unterschiedliche Ma&szlig;e
-                                f&uuml;r die Klassifikationsg&uuml;te (Beispiel
-                                Covid-19 Test)
-                            </li>
-                            <li>Klassifikationsb&auml;ume und Klassifikation
-                                anhand von Klassenwahrscheinlichkeiten</li>
-                            <li>Ensemble-Verfahren und Unterschiede in der
-                                Sch&auml;tzung von Klassenwahrscheinlichkeiten</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266100">Einf&uuml;hrung
-                                Klassifikation
-                                Teil1 Aufgabenstellung und
-                                Klassifikationsguete Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266101">Einf&uuml;hrung
-                                Klassifikation
-                                Teil2 Klassifikationsb&auml;ume und
-                                Klassenwahrscheinlichkeiten Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266102">Einf&uuml;hrung
-                                Klassifikation
-                                Teil3 Ensemble-Verfahren und
-                                Klassenwahrscheinlichkeiten Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266103">Einf&uuml;hrung
-                                Klassifikation -
-                                kommentiert Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266104">Komplexere
-                                Modellfamilien
-                                Datei</a></p>
-                        <p>EIne Einf&uuml;hrung in die theoretischen Grundlagen
-                            komplexerer Modellfamilien</p>
-                        <ul>
-                            <li>Teil 1:
-                                <ul>
-                                    <li>Wiederholung
-                                        <ul>
-                                            <li>Lineare Regression</li>
-                                            <li>Klassifikationsb&auml;ume /
-                                                Ensemlemethoden</li>
-                                        </ul>
-                                    </li>
-                                    <li>Abgrenzung / &Auml;nlichkeiten zwischen
-                                        Regression und Klassifikation</li>
-                                    <li>Exkurs: Parametrische und
-                                        Nicht-Parametrische Verfahren</li>
-                                    <li>Logistische Regression
-                                        (Generalisierte Lineare Modelle)</li>
-                                </ul>
-                            </li>
-                            <li>Teil 2: Support Vector Machines (SVM)</li>
-                            <li>Teil 3: Neuronale Netzwerke</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266105">Komplexere
-                                Modellfamilien
-                                Teil 1: Aufgaben, Modellfamilien,
-                                Generalisierte Lineare Modelle - GLM Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266106">Komplexere
-                                Modellfamilien
-                                Teil2: Support Vector Machines - SVM Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266107">Komplexere
-                                Modellfamilien
-                                Teil3: Neuronale Netzwerke Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266108">Komplexere
-                                Modellfamilien-kommentiert Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266109">Datenvorverarbeitung
-                                Datei</a></p>
-                        <p>Ein kurzer &Uuml;berblick &uuml;ber Schritte in der
-                            Datenvorverarbeitung:</p>
-                        <ul>
-                            <li>Konvertierung des Datentyps</li>
-                            <li>Erg&auml;nzen fehlender Werte</li>
-                            <li>Univariate Transformationen
-                                (Standardisierung/Normalisierung,
-                                funktionale Transformation)</li>
-                            <li>Bi-/Multivariate Transformationen
-                                (Dimensionsreduktion, Interaktionsterme)</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266110">Datenvorverarbeitung
-                                Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266111">Datenvorverarbeitung-kommentiert
-                                Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266112">Modellselektion
-                                und
-                                -validierung Datei</a></p>
-                        <p>Eine kurze &Uuml;bersicht &uuml;ber Modellselektion und
-                            -validierung</p>
-                        <ul>
-                            <li>Motivation: Polynominterpolation</li>
-                            <li>Bias-Varianz-Zerlegung</li>
-                            <li>Regularisierung in der Modellselektion</li>
-                            <li>Resampling in der Modellvalidierung</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266113">Modellselektion
-                                und
-                                -validierung Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266114">Modellselektion
-                                und
-                                -validierung - kommentiert Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266115">Grundlagen
-                                des Maschinellen
-                                Lernens mit R Link/URL</a></p>
-                        <p>Eine umfangreichere, interaktive Einf&uuml;hrung in
-                            die Grundlagen des Maschinellen Lernens mit R.
-                            Dabei
-                            wird vorausgesetzt, dass die theoretischen
-                            Grundlagen bereits vorhanden sind (siehe
-                            Unterlagen
-                            weiter oben). Der Fokus liegt hier auf der
-                            konkreten Anwendung der Verfahren, dem Einfluss
-                            der
-                            Parameter und Hyperparameter auf das trainierte
-                            Modell (Modellselektion und -validierung) und
-                            der
-                            Interpretation der Ergebnisse.</p>
-                        <p>Die Umsetzung findet dabei in R statt. Soweit
-                            m&ouml;glich setzt das Tutorial aber keine Kenntnisse
-                            in R
-                            voraus. Insbesondere sind die &Uuml;bungen durch
-                            einfaches Anpassen von Parametern bzw.
-                            Argumenten
-                            umsetzbar. F&uuml;r vertiefte Analysen oder im Fall
-                            von Fehlern bei der Anwendung sind Kenntnisse in
-                            R
-                            aber unumg&auml;nglich.</p>
-                        <ul>
-                            <li>Einleitung</li>
-                            <li>Regression
-                                <ul>
-                                    <li>Lineare Regression</li>
-                                    <li>Regressionsbaum</li>
-                                    <li>Gadient Boosting</li>
-                                    <li>&Uuml;bung mit Random Forest</li>
-                                </ul>
-                            </li>
-                            <li>Binomiale Klassifikation
-                                <ul>
-                                    <li>Logistische Regression</li>
-                                    <li>Klassifikationsbaum</li>
-                                    <li>Support Vector Machines</li>
-                                    <li>&Uuml;bung mit Neuronalem Netzwerk</li>
-                                </ul>
-                            </li>
-                            <li>Multinomiale Klassifikation
-                                <ul>
-                                    <li>Klassifikationsbaum</li>
-                                    <li>Neuronales Netzwerk</li>
-                                </ul>
-                            </li>
-                            <li>Fazit</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266116">Demonstration:
-                                Maschinelles
-                                Lernen mit mlr am Beispiel Bundestagswahl
-                                2017 Datei</a></p>
-                        <p>In der Demonstration werden am Beispiel der
-                            Direktmandate der Bundestagswahl 2017
-                            verschiedene
-                            Verfahren des Maschinellen Lernens angewendet.</p>
-                        <p>Die Umsetzung erfolgt mit der R Bibliothek mlr
-                            nach folgendem Workflow:</p>
-                        <ul>
-                            <li>Datenvorverarbeitung</li>
-                            <li>Aufgabenstellung und Auswahl der Verfahren</li>
-                            <li>Benchmarking der Verfahren</li>
-                            <li>Tuning der Hyperparameter</li>
-                            <li>Benchmarking der Verfahren</li>
-                        </ul>
-                        <p>Zus&auml;tzlich wird am Ende ein Ausblick gegeben auf
-                            die Weiterentwicklung mlr3 sowie scikit-learn
-                            als
-                            Pendant in python.</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266117">Demonstration:
-                                Maschinelles
-                                Lernen mit mlr am Beispiel Bundestagswahl
-                                2017 - verwendetes R Skript Datei</a></p>
-                        <p>Das Skript enth&auml;lt die f&uuml;r ein einfaches
-                            Benchmarking mit mlr zur Vorhersage der
-                            Direktmandate in der
-                            Bundestagswahl anhand von Strukturmerkmalen der
-                            Wahlkreise. Das Skript kann als Vorlage bzw.
-                            Ausgangspunkt dienen f&uuml;r eine
-                            Benchmarkuntersuchung im Rahmen Ihrer
-                            Projektarbeit.</p>
-                    </li>
-                    <li>
-                        <h3>Erg&auml;nzende Materialien/Links/...</h3>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266120">James
-                                etal 2013 An
-                                Introduction to Statistical Learning Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=267654">Cheat
-                                Sheet: mlr Link/URL</a></p>
-                    </li>
-                </ul>
-            </div>
-            <div class="tab-content" id="time-series-analysis">
-                <h2>Zeitreihenanalyse</h2>
-                <p>Dieser Abschnitt vermittelt Kenntnisse zur
-                    Zeitreihenanalyse (mit R), sowie Grundlagenwissen.</p>
-                <ul>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266142">Grundlagenkenntnisse
-                                Wahrscheinlichkeitsrechnung und Statistik
-                                Datei</a></p>
-                        <p>Eine kurze Zusammenstellung von
-                            Grundlagenkenntnissen in
-                            Wahrscheinlichkeitsrechnung und Statistik,
-                            wie sie im Rahmen einer Schulausbildung bzw.
-                            eines Bachelorstudiums f&uuml;r gew&ouml;hnlich vermittelt
-                            werden
-                            und auf denen die nachfolgenden Inhalte
-                            aufbauen:</p>
-                        <ul>
-                            <li>Rechnen mit Wahrscheinlichkeiten</li>
-                            <li>Zufallsvariable,
-                                Wahrscheinlichkeitsverteilung,-funktion und
-                                -dichte</li>
-                            <li>Lage- und Streuungsparameter: Mittelwert,
-                                Varianz, Standardabweichung</li>
-                            <li>Zusammenhang: Kovarianz und Korrelation</li>
-                        </ul>
-                        <p>Sofern Sie mit den o.g. Konzepten vertraut sind,
-                            brauchen Sie die Zusammenstellung nicht
-                            durchzuarbeiten. Die Zusammenstellung soll es
-                            Ihnen lediglich erleichtern, etwaige
-                            Wissensl&uuml;cken
-                            schnell zu schlie&szlig;en, die Ihnen beim Bearbeiten
-                            der nachfolgenden Kursinhalte auffallen.</p>
-                    </li>
-                    <li>
-                        <h3>Klassische Zeitreihenanalyse</h3>
-                        <p>Voraussetzung sind Kenntnisse in den
-                            Basisfunktionen von R (siehe nachfolgendes
-                            Schaubild).</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/page/view.php?id=266129">Klassische
-                                Zeitreihenmodelle -
-                                &Uuml;bersicht Textseite</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266128">Klass
-                                Zeitreihenanalyse -
-                                &Uuml;bersicht Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266131">Theoretische
-                                Grundlagen
-                                Klassische Komponentenzerlegung Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266132">Zeitreihenanalyse
-                                Teil1
-                                Trend Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266133">Zeitreihenanalyse
-                                Teil2
-                                Saison Datei</a></p>
-                    </li>
-                    <li>
-                        <p>Hinweis: Im Video ist an einer Stelle eine Formel
-                            falsch angegeben (Index der Saisonkomponente,
-                            ca.
-                            Minute 24:30). Der Fehler ist in den
-                            Vorlesungsfolien korrigiert.&nbsp;</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266134">Zeitreihenanalyse
-                                Komponentenmodell kommentiert Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266135">Interaktives
-                                Shiny-Applet zur
-                                klassischen Zeitreihenanalyse Link/URL</a></p>
-                        <p>Mit dem Applet kann man ganz einfach ohne eigene
-                            R-Programmierung untersuchen, wie Daten, Modelle
-                            und
-                            Parameter sich zueinander verhalten.</p>
-                        <p>Als Datensatz wird eine CO2-Messreihe verwendet.</p>
-                        <p>Das Applet l&auml;sst sich nur aus dem Hochschulnetz
-                            (WLAN oder VPN) aufrufen.</p>
-                        <p>Das Applet ist mit der R Bibliothek Shiny
-                            geschrieben. Wenn Sie lernen wollen, wie das
-                            geht,
-                            kontaktieren Sie mich einfach. Die Zeit in der
-                            Lehrveranstaltung reicht daf&uuml;r leider nicht aus,
-                            aber
-                            ich kann Ihnen ein paar Links zu Tutorials
-                            geben.</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/folder/view.php?id=266136">F&uuml;r
-                                die Erstellung der Folien
-                                verwendete Datens&auml;tze und Skripte
-                                Verzeichnis</a></p>
-                        <p>F&uuml;r die Erstellung der Folien verwendete Skripte
-                            und Datens&auml;tze. Die Bearbeitung ist f&uuml;r eine
-                            erfolgreiche Pr&uuml;fungsteilnahme nicht zwingend
-                            erforderlich. Sie dienen einer Vertiefung des
-                            Lehrstoffes im Selbststudium. Die Skripte
-                            enthalten mitunter auch Befehle, die in der
-                            "Einf&uuml;hung in
-                            R" in diesem Abschnitt nicht besprochen werden.</p>
-                        <p>Wenn Sie die nachfolgenden Abschnitte "Einf&uuml;hrung
-                            in R" und "Zeitreihenanalyse mit R" erfolgreich
-                            absolviert haben, finden Sie hier noch (etwas)
-                            neuen Stoff.</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266138">Zeitreihenanalyse
-                                mit R -
-                                Komponentenmodelle Link/URL</a></p>
-                        <p>Eine interaktive Einf&uuml;hrung in die
-                            Zeitreihenanalyse mittels klassischer
-                            Komponentenzerlegung in R
-                        </p>
-                        <ul>
-                            <li>Daten</li>
-                            <li>Vergr&ouml;bern der Zeitreihe</li>
-                            <li>Gleitender Durchschnitt</li>
-                            <li>Exponentielles Gl&auml;tten</li>
-                            <li>Linearer Trend</li>
-                            <li>Komponentenzerlegung mit linearer Regression</li>
-                            <li>Zerlegung in Saisonale Komponenten mit
-                                compose()</li>
-                            <li>Zerlegung in Saisonale Komponenten mit
-                                HoltWinters()</li>
-                            <li>Graphischer Vergleich der Methoden</li>
-                            <li>Prognose</li>
-                        </ul>
-                        <p>[Update 20.10.: Anzeige HoltWinters Sch&auml;tzer
-                            korrigiert, ben&ouml;tigte Datenobjekte f&uuml;r &Uuml;bungen
-                            bereitgestellt]</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266139">Zeitreihenanalyse
-                                Komponentenmodell - Beispiel CO2 -
-                                kommentiertes R-Skript Datei</a></p>
-                        <p>Das Skript enth&auml;lt die klassische
-                            Zeitreihenanalyse mittels Komponentenzerlegung
-                            in komprimierter,
-                            kommentierter Form.</p>
-                        <p>Sie k&ouml;nnen das Skript als Ausgangspunkt f&uuml;r die
-                            Abschluss&uuml;bung dieses Abschnitts verwenden.</p>
-                    </li>
-                    <li>
-                        <h4>Erg&auml;nzendes Material:</h4>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=267660">Cheat
-                                Sheet: Time Series
-                                Link/URL</a></p>
-                    </li>
-                    <li>
-                        <h3>ARIMA/GARCH Modelle</h3>
-                        <p>Voraussetzung sind Kenntnisse in den
-                            Basisfunktionen von R und der statistischen
-                            Datenanlyse (siehe
-                            nachfolgendes Schaubild).</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/page/view.php?id=266140">ARIMA/GARCH
-                                &Uuml;bersicht
-                                Textseite</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266141">ARIMA
-                                GARCH &Uuml;bersicht
-                                Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266181">Externe
-                                Datenquellen nutzen mit R
-                                Link/URL</a></p>
-                        <p>Eine interaktive Einf&uuml;hrung in das Einbinden
-                            externer Datenquellen in R</p>
-                        <ul>
-                            <li>&Uuml;bersicht</li>
-                            <li>Datentyp xts</li>
-                            <li>Allgemeines zu Finanzdaten</li>
-                            <li>Das R Paket quantmod - Aktienkurse von
-                                finance.yahoo.com abrufen</li>
-                            <li>Das Portal quandl.com und das R Paket Quandl
-                                - vielf&auml;ltige Finanzdaten abrufen</li>
-                            <li>Weitere Pakete</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266145">ARIMA
-                                Theoretische
-                                Grundlagen Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266146">ARIMA
-                                - Teil 1: Einfuehrung
-                                stochProzesse Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266147">ARIMA
-                                - Teil 2:
-                                Autokovarianz Korrelation Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266148">ARIMA
-                                - Teil 3: MA-Prozesse
-                                Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266149">ARIMA
-                                - Teil 4: AR-Prozesse
-                                Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266150">ARIMA
-                                - Teil 5:
-                                ARIMA-Prozesse Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266151">ARIMA
-                                Theoretische
-                                Grundlagen - kommentiert Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266152">Interaktives
-                                Shiny-Applet zu
-                                ARIMA Prozessen Link/URL</a></p>
-                        <p>Mit dem Applet kann man ganz einfach ohne eigene
-                            R-Programmierung untersuchen, wie Modelle,
-                            Parameter
-                            und Zufallsprozesse sich zueinander verhalten.</p>
-                        <p>Das Applet l&auml;sst sich nur aus dem Hochschulnetz
-                            (WLAN oder VPN) aufrufen.</p>
-                        <p>Das Applet ist mit der R Bibliothek Shiny
-                            geschrieben. Wenn Sie lernen wollen, wie das
-                            geht,
-                            kontaktieren Sie mich einfach. Die Zeit in der
-                            Lehrveranstaltung reicht daf&uuml;r leider nicht aus,
-                            aber
-                            ich kann Ihnen ein paar Links zu Tutorials
-                            geben.</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266153">GARCH
-                                Theoretische
-                                Grundlagen Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266154">GARCH-Prozesse
-                                Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266155">GARCH
-                                Theoretische
-                                Grundlagen - kommentiert Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266156">Interaktives
-                                Shiny-Applet zu
-                                GARCH Prozessen Link/URL</a></p>
-                        <p>Mit dem Applet kann man ganz einfach ohne eigene
-                            R-Programmierung untersuchen, wie Modelle,
-                            Parameter
-                            und Zufallsprozesse sich zueinander verhalten.</p>
-                        <p>Das Applet l&auml;sst sich nur aus dem Hochschulnetz
-                            (WLAN oder VPN) aufrufen.</p>
-                        <p>Das Applet ist mit der R Bibliothek Shiny
-                            geschrieben. Wenn Sie lernen wollen, wie das
-                            geht,
-                            kontaktieren Sie mich einfach. Die Zeit in der
-                            Lehrveranstaltung reicht daf&uuml;r leider nicht aus,
-                            aber
-                            ich kann Ihnen ein paar Links zu Tutorials
-                            geben.</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266158">ARIMA
-                                Modelle mit R Link/URL</a>
-                        </p>
-                        <p>Eine interaktive Einf&uuml;hrung in ARIMA Modelle in R</p>
-                        <ul>
-                            <li>Datenquellen und -import (Wiederholung)</li>
-                            <li>ARIMA Modelle manuell bestimmen
-                                (Box-Jenkins)</li>
-                            <li>ARIMA Modelle automatisch bestimmen</li>
-                            <li>ARIMA Modelle zur Simulation und Vorhersage
-                                nutzen</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266159">GARCH
-                                Modelle und ARMA-GARCH
-                                Modelle mit R Link/URL</a></p>
-                        <p>Eine interaktive Einf&uuml;hrung in GARCH Modelle in R</p>
-                        <ul>
-                            <li>Wiederholung(Datenimport, Theorie GARCH)</li>
-                            <li>GARCH Modelle automatisch bestimmen</li>
-                            <li>ARMA-GARCH Modelle automatisch bestimmen</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266160">kurzes
-                                unvollst&auml;ndiges
-                                Beispielskript zu ARIMA-GARCH Modellen Datei</a></p>
-                    </li>
-                    <li>
-                        <h3>Erg&auml;nzende Materialien/Links/...</h3>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266170">Forecasting:
-                                Principles and
-                                Practice Link/URL</a></p>
-                        <p>Ein frei zug&auml;ngliches Onlinebuch zur Erstellung
-                            von Vorhersgaen mit R von Rob J Hyndman and
-                            George
-                            Athanasopoulos von der Monash University,
-                            Australia.</p>
-                        <p>Das Buch geht detailliert auf verschiedene
-                            Vorhersageverfahren mit R ein: gleitende
-                            Durchschnitte,
-                            exponentielle Gl&auml;ttung, ARIMA und bietet eine
-                            Vertiefung der Kursinhalte. Die R Umsetzung
-                            erfolgt in
-                            weiten Teilen mit Paketen aus dem tidyverse.
-                            <strong>Das Buch ist eine klare Empfehlung
-                                meinerseits
-                                f&uuml;r alle, die sich intensiver mit dem Thema
-                                besch&auml;ftigen wollen!</strong></p>
-                        <p>Die verwendeten Verfahren finden sich - sofern
-                            nicht bereits in anderen Paketen enthalten - im
-                            Paket
-                            `forecast`, das u.a. von den Autoren des Buches
-                            gepflegt wird.</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266171">GARCH
-                                101: The Use of ARCH/GARCH
-                                Models in Applied Econometrics Link/URL</a></p>
-                        <p>Ein kurzer Artikel des Nobelpreistr&auml;gers Robert
-                            F. Engle zum Einsatz von ARCH/GARCH Modellen.</p>
-                        <p>Robert F. Engle erhielt 2003 den Nobelpreis f&uuml;r
-                            Wirtschaftswissenschaften f&uuml;r seine Arbeiten zu
-                            ARCH-Prozessen.</p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266172">Webseite
-                                Rmetrics Link/URL</a>
-                        </p>
-                        <p>Rmetrics ist eine Projekt zur Softwareentwicklung
-                            in R. Das Ziel des Projekts ist es, kostenfreie
-                            und
-                            quelloffene Software und B&uuml;cher f&uuml;r das
-                            Themengebiet Quantitative Finance in R
-                            bereitszustellen.</p>
-                        <p>Das Projekt pflegt eine umfangreiche Sammlung an
-                            R Bibliotheken z.B. fGarch und fPortfolio.
-                            Dar&uuml;ber
-                            hinaus werden auf der Webseite mehrere
-                            Lehrb&uuml;cher zum Themenbereich Quantitative
-                            Finance kostenlos
-                            zum Downlaod angeboten.</p>
-                    </li>
-                </ul>
-            </div>
-            <div class="tab-content" id="portfolio-analysis">
-                <h2>Portfolioanalyse und -optimierung</h2>
-                <p>In diesem Abschnitt erfolgt eine Einf&uuml;hrung in die
-                    Portfolioanalyse und -Optimierung (mit R).</p>
-                <p>Voraussetzung sind Kenntnisse in den Basisfunktionen von
-                    R.</p>
-                <ul>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/page/view.php?id=266161">&Uuml;bersicht
-                                Portfolioanalyse
-                                Textseite</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266162">Portfolio
-                                Modulplanung
-                                Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266164">Theoretische
-                                Grundlagen:
-                                Portfolioanalyse und -optimierung Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266165">Portfolioanalyse
-                                und
-                                -optimierung Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/resource/view.php?id=266166">Portfolioanalyse
-                                und
-                                -optimierung kommentiert Datei</a></p>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266168">Portfolioanalysen
-                                und
-                                -optimierung mit R Link/URL</a></p>
-                        <p>Eine interaktive Einf&uuml;hrung in die
-                            Portofolioanalyse und -optimierung in R</p>
-                        <ul>
-                            <li>Grundlagen zur Portfolioanalyse mit
-                                fPortfolio</li>
-                            <li>Portfolios erstellen und analysieren
-                                <ul>
-                                    <li>mit festen Gewichten</li>
-                                    <li>mit minimaler Varianz bei fester
-                                        Rendite</li>
-                                    <li>mit global minimaler Varianz</li>
-                                    <li>mit optimalem Sharpe-Quotienten</li>
-                                </ul>
-                            </li>
-                            <li>Analyse von Portfolios auf dem (effektiven)
-                                Rand</li>
-                            <li>&Uuml;bungsaufgabe zur Portfolioanalyse</li>
-                            <li>Exkurs: Portfoliodaten selber erstellen</li>
-                            <li>Beispielanalyse von Quandl-Kursdaten</li>
-                            <li>Diskussion / Disclaimer</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <h3>Erg&auml;nzende Materialien/Links/...</h3>
-                    </li>
-                    <li>
-                        <p><a
-                                href="https://elearning.th-wildau.de/mod/url/view.php?id=266185">Webseite
-                                Rmetrics Link/URL</a>
-                        </p>
-                        <p>Rmetrics ist eine Projekt zur Softwareentwicklung
-                            in R. Das Ziel des Projekts ist es, kostenfreie
-                            und
-                            quelloffene Software und B&uuml;cher f&uuml;r das
-                            Themengebiet Quantitative Finance in R
-                            bereitszustellen.</p>
-                        <p>Das Projekt pflegt eine umfangreiche Sammlung an
-                            R Bibliotheken z.B. fGarch und fPortfolio.
-                            Dar&uuml;ber
-                            hinaus werden auf der Webseite mehrere
-                            Lehrb&uuml;cher zum Themenbereich Quantitative
-                            Finance kostenlos
-                            zum Downlaod angeboten.</p>
-                    </li>
-                </ul>
-            </ul>
-        </body>
+        </div>
+        <div class="tab-content" id="r-programming">
+            <h2>Einf&uuml;hrung in R</h2>
+            <p>In diesem Abschnitt werden grundlegende Kenntnisse in der
+                R-Programmierung inklusive Datenmanagement und
+                -Visualisierung vermittelt.</p>
+            <ul>
+                <h3>Basisfunktionen</h3>
+                <li>
+                    <p><a href="https://mybinder.org/v2/gh/rainerstollhoff/DatenanalyseR/main?urlpath=shiny/R/Grundlagen_R.Rmd"
+                            target="_blank"><img src="http://mybinder.org/badge_logo.svg" alt="Binder">Grundlagen R</a>
+                    </p>
+                    <p>Das interaktive Tutorial vermittelt die Grundlagen von R:</p>
+                    <ul>
+                        <li>Allgemeines zu R</li>
+                        <li>Rechnen mit R</li>
+                        <li>Variablen in R</li>
+                        <li>Rechnen mit Variablen</li>
+                        <li>Vektorartige Variablen</li>
+                        <li>Mehrdimensionale Variablen</li>
+                    </ul>
+                </li>
+                <li>
+                    <p><a href="https://mybinder.org/v2/gh/rainerstollhoff/DatenanalyseR/main?urlpath=shiny/R/Graphik_base.Rmd"
+                            target="_blank"><img src="http://mybinder.org/badge_logo.svg" alt="Binder">
+                            Einfache Graphiken mit R (base)</a></p>
+                    <p>Eine interaktive Einf&uuml;hrung in die Erstellung
+                        einfacher Graphiken mit Basisfunktionen:</p>
+                    <ul>
+                        <li>Allgemeines</li>
+                        <li>High-Level-Plots</li>
+                        <li>Low-Level-Plots</li>
+                        <li>Layout und Ausgabe</li>
+                    </ul>
+                </li>
+                <li>
+                    <p><a href="https://mybinder.org/v2/gh/rainerstollhoff/DatenanalyseR/main?urlpath=shiny/R/Datenmanagement_base.Rmd"
+                            target="_blank"><img src="http://mybinder.org/badge_logo.svg" alt="Binder">
+                            Datenmanagement mit R (base)</a></p>
+                    <p>Eine interaktive Einf&uuml;hrung in das Datenmanagement
+                        mit R</p>
+                    <ul>
+                        <li>Allgemeines</li>
+                        <li>Date(ie)n einlesen</li>
+                        <li>Kontrolle und Nachbearbeitung</li>
+                        <li>Daten speichern</li>
+                    </ul>
+                </li>
+                <li>
+                    <p><a href="https://github.com/rainerstollhoff/DatenanalyseR/raw/main/data/PnL.csv">PnL.csv</a></p>
+                </li>
+                <li>
+                    <p><a href="https://github.com/rainerstollhoff/DatenanalyseR/raw/main/data/PnL.xlsx">PnL.xlsx</a></p>
+                </li>
+                <li>
+                    <p><a href="https://mybinder.org/v2/gh/rainerstollhoff/DatenanalyseR/main?urlpath=shiny/R/ProgrammierungR.Rmd"
+                            target="_blank"><img src="http://mybinder.org/badge_logo.svg" alt="Binder">Programmierung
+                            mit R</a></p>
 
-    </html>
+                    <p>Eine interaktive Einf&uuml;hrung in die Grundlagen der
+                        Programmierung mit R:</p>
+                    <ul>
+                        <li>Allgemeines</li>
+                        <li>Fallunterscheidungen (if...else)</li>
+                        <li>Schleifen (for, while)</li>
+                        <li>Funktionen erstellen</li>
+                    </ul>
+                </li>
+                <h3>Erweiterungen</h3>
+                <li>
+                    <p><a href="https://mybinder.org/v2/gh/rainerstollhoff/DatenanalyseR/main?urlpath=shiny/R/Datenmanagement_internet.Rmd"
+                            target="_blank"><img src="http://mybinder.org/badge_logo.svg" alt="Binder">Externe
+                            Datenquellen nutzen mit R</a></p>
+
+                    <p>Eine interaktive Einf&uuml;hrung in das Einbinden externer
+                        Datenquellen in R</p>
+                    <ul>
+                        <li>&Uuml;bersicht</li>
+                        <li>Datentyp xts</li>
+                        <li>Allgemeines zu Finanzdaten</li>
+                        <li>Das R Paket quantmod - Aktienkurse von
+                            finance.yahoo.com anrufen</li>
+                        <li>Das Portal quandl.com und das R Paket Quandl -
+                            vielf&auml;ltige Finanzdaten abrufen</li>
+                        <li>Weitere Pakete</li>
+                    </ul>
+                </li>
+                <li>
+
+                    <p><a href="https://mybinder.org/v2/gh/rainerstollhoff/DatenanalyseR/main?urlpath=shiny/R/Datenmanagement_tidyR.Rmd"
+                            target="_blank"><img src="http://mybinder.org/badge_logo.svg" alt="Binder">Erweitertes
+                            Datenmanagent im
+                            tidyverse von R Link/URL</a></p>
+                    <p>Eine interaktive Einf&uuml;hrung in das Datenmanagement
+                        mit den tidyverse Paketen</p>
+                    <ul>
+                        <li>Allgemeines</li>
+                        <li>Dat(ei)en einlesen mit readr</li>
+                        <li>Tidy data</li>
+                        <li>Daten verwalten mit dplyr</li>
+                        <li>Daten transformieren mit dplyr</li>
+                        <li>Verketten von Datenoperationen</li>
+                        <li>Daten speichern</li>
+                    </ul>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266075">Foliensatz
+                            zu Erweitertes
+                            Datenmanagement (tidy) als Zusammenfassung Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://mybinder.org/v2/gh/rainerstollhoff/DatenanalyseR/main?urlpath=shiny/R/ggplotR.Rmd"
+                            target="_blank"><img src="http://mybinder.org/badge_logo.svg" alt="Binder">Erweiterte
+                            Graphiken mit ggplot2
+                            Link/URL</a></p>
+                    <p>Eine interaktive Einf&uuml;hrung in die Erstellung von
+                        Graphiken mit dem Paket ggplot2</p>
+                    <ul>
+                        <li>Allgemeines</li>
+                        <li>Einfache Diagramme</li>
+                        <li>Statistische Darstellungen</li>
+                        <li>Kombination von Graphiken</li>
+                        <li>Beschriftungen</li>
+                        <li>Skalierung und Ma&szlig;st&auml;be</li>
+                        <li>Graphiken Speichern</li>
+                    </ul>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266077">Foliensatz
+                            zu GGplot2 als
+                            Zusammenfassung Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266078">Dokumentation
+                            und
+                            Kommunikation von Ergebnissen mit R Markdown
+                            Datei</a></p>
+                    <p>Eine Einf&uuml;hrung in die Verwendung von R Markdown.
+                        Durch R Markdown lassen sich Analysen mit R und
+                        Textbausteine miteinander verkn&uuml;pfen und in
+                        verschiedene Ausgabeformate konvertieren z.B.
+                        HTML-Seiten, Word-Dokument oder interaktive R
+                        Tutorials.</p>
+                    <ul>
+                        <li>Allgemeines</li>
+                        <li>R Markdown Syntax</li>
+                        <li>Erstellen von Ausgabedokumenten</li>
+                    </ul>
+                    <p>Die Lerninhalte werden als HTML-Seite bereit gestellt
+                        - erzeugt aus einem R Markdown Dokument.
+                        Zus&auml;tzlich finden Sie untenstehend neben dem
+                        Original R Markdown Dokument auch Ausgaben in
+                        verschiedene Datei-/Dokumentformate. Die
+                        verschiedenen Ausgabeformate wurden dabei
+                        automatisch
+                        erstellt.</p>
+                </li>
+                <li>
+                    <ul>
+                        <li>
+                            <p>Ausgabeformate f&uuml;r R Markdown Dokumente</p>
+                            <ul>
+                                <li>
+                                    <a
+                                        href="https://elearning.th-wildau.de/pluginfile.php/369508/mod_folder/content/0/markdown_beamer.pdf?forcedownload=1">markdown_beamer.pdf</a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="https://elearning.th-wildau.de/pluginfile.php/369508/mod_folder/content/0/markdown.docx?forcedownload=1">markdown.docx</a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="https://elearning.th-wildau.de/pluginfile.php/369508/mod_folder/content/0/markdown.html?forcedownload=1">markdown.html</a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="https://elearning.th-wildau.de/pluginfile.php/369508/mod_folder/content/0/markdown.pdf?forcedownload=1">markdown.pdf</a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="https://elearning.th-wildau.de/pluginfile.php/369508/mod_folder/content/0/markdown.pptx?forcedownload=1">markdown.pptx</a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="https://elearning.th-wildau.de/pluginfile.php/369508/mod_folder/content/0/markdown.Rmd?forcedownload=1">markdown.Rmd</a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <p>Verzeichnis herunterladen</p>
+                </li>
+                <h3>Erg&auml;nzende Materialien/Links/...</h3>
+                <li>
+                    <p><a href="https://www.r-project.org/">R
+                            Project Link/URL</a></p>
+                </li>
+                <li>
+                    <p><a href="https://www.rstudio.com/">R
+                            Studio Link/URL</a></p>
+                </li>
+                <li>
+                    <p><a href="https://learnr-examples.shinyapps.io/ex-setup-r/">Tutorial
+                            zur Installation von R
+                            und R Studio Link/URL</a></p>
+                    <p>Ein interaktives, englischsprachiges Tutorial zur
+                        Installation von R und R Studio.</p>
+                </li>
+                <li>
+                    <p><a href="https://r-intro.tadaa-data.de/book/">Deutschsprachige
+                            Einf&uuml;hrung in R
+                            f&uuml;r EinsteigerInnen Link/URL</a></p>
+                    <p>Die Einf&uuml;hrung ist geschrieben f&uuml;r Studierende in
+                        Psychologie und Public Health an der Uni Bremen.
+                        Sie richtet sich an Einsteigerinnen und Einsteiger,
+                        ist gut verst&auml;ndlich geschrieben und leicht
+                        zug&auml;nglich. Der Fokus liegt allerdings auf
+                        klassischer statistischer Analyse und weniger auf
+                        Zeitreihenanalyse. Die ersten paar Abschnitte laufen
+                        daher noch parallel zu diesem Modul, sp&auml;tere
+                        Abschnitte behandeln allerdings andere Themen bzw.
+                        Schwerpunkte.</p>
+                </li>
+                <li>
+                    <p><a href="https://rstudio.com/resources/cheatsheets/">Sammlung
+                            von Befehls&uuml;bersichten
+                            (cheatsheets) Link/URL</a></p>
+                    <p>Umfassende Sammlung von Befehls&uuml;bersichten zu
+                        einzelnen Themengebieten bzw. Paketen.</p>
+                    <p>Unter anderem:&nbsp;<a href="http://github.com/rstudio/cheatsheets/raw/master/base-r.pdf"></a>
+                    </p>
+                    <ul>
+                        <li>
+                            <a href="http://github.com/rstudio/cheatsheets/raw/master/base-r.pdf">Base
+                                R</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/rstudio/cheatsheets/raw/master/reticulate.pdf">Data
+                                Import
+                                (tidyverse)</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/rstudio/cheatsheets/raw/master/data-transformation.pdf">Data
+                                Transformation (dplyr)</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/rstudio/cheatsheets/raw/master/data-visualization-2.1.pdf">Data
+                                Visualization (ggplot2)</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/rstudio/cheatsheets/raw/master/rmarkdown-2.0.pdf">RMarkdown</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/rstudio/cheatsheets/raw/master/rstudio-ide.pdf">RStudio
+                                IDE</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="tab-content" id="data-analysis">
+            <h2>Statistische Datenanalyse</h2>
+            <p>In diesem Abschnitt werden die Grundlagen der
+                statistischen Datenanalyse und -Exploration mit R
+                behandelt.
+            </p>
+            <ul>
+                <h3>Grundlagen und Basisfunktionen</h3>
+                <p>Voraussetzung sind Kenntnisse in den
+                    Basisfunktionen von R.</p>
+                </li>
+                <li>
+                    <p><a href="https://nextcloud.th-wildau.de/nextcloud/index.php/s/oJwxPjEgsmQdYbx/download/Supplementary%20-%20Figure%205%20-%20ML_Performance_RF.tiff"
+                            target="_blank">Grundlegende
+                            Theorie (alle
+                            Bereiche): Wahrscheinlichkeitsrechnung und
+                            Statistik</a></p>
+                    <p>Eine kurze Zusammenstellung von
+                        Grundlagenkenntnissen in
+                        Wahrscheinlichkeitsrechnung und Statistik,
+                        wie sie im Rahmen einer Schulausbildung bzw.
+                        eines Bachelorstudiums f&uuml;r gew&ouml;hnlich vermittelt
+                        werden:</p>
+                    <ul>
+                        <li>Rechnen mit Wahrscheinlichkeiten</li>
+                        <li>Zufallsvariable,
+                            Wahrscheinlichkeitsverteilung</li>
+                        <li>Lage- und Streuungsparameter: Mittelwert,
+                            Varianz, Standardabweichung</li>
+                        <li>Zusammenhang: Kovarianz und Korrelation</li>
+                        <li>Lineare Regression: Trendlinie,
+                            kleinste-Quadrate-Methode, erkl&auml;rte Varianz</li>
+                    </ul>
+                    <p>Die Lineare Regression wird im Bereich Grundlagen
+                        Maschinelles Lernen noch detaillierter
+                        erl&auml;utert.
+                        F&uuml;r die weiteren Inhalte wird vorausgesetzt,
+                        dass Sie die oben genannten Begrifflichkeiten
+                        und
+                        Konzepte kennen und verstanden haben.</p>
+                </li>
+                <li>
+                    <p><a
+                            href="https://mybinder.org/v2/gh/rainerstollhoff/DatenanalyseR/main?urlpath=shiny/R/Zufallsvariablen.Rmd">Zufallsvariablen
+                            in R</a>
+                    </p>
+                    <p>Eine interaktive Einf&uuml;hrung in das Rechnen mit
+                        Zufallsvariablen und die Simulation von
+                        (Pseude-)Zufallszahlen</p>
+                    <ul>
+                        <li>Zufallsbegriff</li>
+                        <li>Einfache Zufallsprozesse</li>
+                        <li>Diskrete Zufallsvariablen</li>
+                        <li>Stetige Zufallsvariablen</li>
+                    </ul>
+                </li>
+                <li>
+                    <p><a
+                            href="https://mybinder.org/v2/gh/rainerstollhoff/DatenanalyseR/main?urlpath=shiny/R/DeskriptiveStatistik.Rmd">Deskriptive
+                            Statistik mit R</a></p>
+                    <p>Eine interaktive Einf&uuml;hrung in die Berechnung von
+                        deskriptiver Statistik mit R</p>
+                    <ul>
+                        <li>Allgemeines</li>
+                        <li>Univariate Statistiken</li>
+                        <li>Bivariate Statistiken</li>
+                    </ul>
+                </li>
+                <h3>Explorative Datenanalyse</h3>
+                <p>Voraussetzung sind Kenntnisse in den
+                    Basisfunktionen von R und den Erweiterungen
+                    Datenmanagement
+                    (tidy) und Graphiken (ggplot)</p>
+                </li>
+                <li>
+                    <p>&Uuml;bersicht</p>
+                    <p>Die Lerneinheit explorative Datenanalyse mit R
+                        umfasst die Teilpakete</p>
+                    <ul>
+                        <li>Explorative Datenanalyse - Theorie und
+                            Demonstration</li>
+                        <li>Erweitertes Datenmanagement</li>
+                        <li>Erweiterte Graphiken (Visualisierung)</li>
+                        <li>Kommunikation von Datenanalysen</li>
+                    </ul>
+                    <p>Diese erg&auml;nzen sich im Kontext der Datenanalyse
+                        wie folgt:</p>
+                    <p>
+                        <img
+                            src="https://github.com/rainerstollhoff/DatenanalyseR/raw/main/slides/ExplorativeDatenanalyse_Uebersicht.png">
+                    </p>
+                    <p>Der noch fehlende Teilaspekt Modellbildung wird
+                        in den folgenden Lerneinheiten behandelt.</p>
+                    <p>Die Inhalte verwenden die Pakete aus dem
+                        tidyverse und ggplot.</p>
+                </li>
+                <li>
+                    <p><a href="ExplorativeDatenanalyse_mpg.pdf">Explorative
+                            Datenanalyse -
+                            Theorie und Demonstration Datei</a></p>
+                    <p>Eine Einf&uuml;hrung in Ziele und Verfahren mit
+                        Demonstration in R am Beispieldatensatz mpg</p>
+                    <ul>
+                        <li>
+                            <p>Beschreibung des Datensatzes</p>
+                        </li>
+                        <li>
+                            <p>Werteverteilung einzelner Variablen
+                                (univariate Analyse)</p>
+                        </li>
+                        <li>Zusammenh&auml;nge zwischen zwei und mehr
+                            Variablen (bivariate bzw. multivariate
+                            Analyse)</li>
+                    </ul>
+                </li>
+                <li>
+                    <p>Explorative
+                        Datenanalyse -
+                        Theorie und Demonstration als Video</p>
+                    <video id="video_data_analysis" width="640" height="360" controls>
+                        <source
+                            src="https://nextcloud.th-wildau.de/nextcloud/index.php/s/YSrXFSgRmj3m6j4/download/ExplorativeDatenanalyse_mpg.mp4"
+                            type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </li>
+                <li>
+                    <p><a
+                            href="https://github.com/rainerstollhoff/DatenanalyseR/raw/main/slides/ExplorativeDatenanalyse_mpg_kommentiert.pdf">Explorative
+                            Datenanalyse -
+                            kommentierte Folien Datei</a></p>
+                </li>
+                <li>
+                    <p><a
+                            href="https://mybinder.org/v2/gh/rainerstollhoff/DatenanalyseR/main?urlpath=shiny/R/explorativeDatenanalyseR.Rmd">Demoskript
+                            explorative
+                            Datenanalyse mit R Datei</a></p>
+                    <p>Das zur Durchf&uuml;hrung einer explorativen
+                        Datenanalyse mit tidyverse Paketen und ggplot2
+                        anhand des
+                        Datensatzes mpg verwendete R-Skript.</p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266080">Demonstration:
+                            Explorative
+                            Datenanalyse zur Bundestagswahl 2017 Datei</a></p>
+                    <p>Demonstration einer explorativen Datenanalyse am
+                        Beispiel der Bundestagswahl 2017</p>
+                    <ul>
+                        <li>Datenmanagement</li>
+                        <li>explorative Datenanalyse</li>
+                    </ul>
+                    <p>Die Ergebnisse werden als .html Notebook
+                        dargestellt. Zus&auml;tzlich finden Sie auch das zu
+                        Grunde
+                        liegende R Markdown Dokument.</p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266081">explorativeDatenanalyseR.Rmd
+                            Datei</a></p>
+                </li>
+                <h3>Erg&auml;nzende Materialien/Links/...</h3>
+                <li>
+                    <p><a href="https://r4ds.had.co.nz/exploratory-data-analysis.html">Grolemund
+                            & Wickham, R for Data
+                            Science Link/URL</a></p>
+                </li>
+            </ul>
+        </div>
+        <div class="tab-content" id="supervised-learning">
+            <h2>Maschinelles Lernen</h2>
+            <p>Dieser Abschnitt gibt eine Einf&uuml;hrung in das Maschinelle
+                Lernen (mit R). Der Fokus liegt auf dem Supervised
+                Learning.</p>
+            <p>Die theoretischen Inhalte lassen sich ohne
+                Programmierkenntnisse in R bearbeiten.</p>
+            <p>F&uuml;r die Demonstration mit R sind Kenntnisse in den
+                Basisfunktionen von R sowie den Erweiterungen
+                Datenmanagement (tidy) und Graphiken (ggplot) hilfreich.</p>
+            <ul>
+                <h3>Einf&uuml;hrung in Supervised Learning</h3>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/page/view.php?id=266126">&Uuml;bersicht
+                            Supervised Learning</a></p>
+                    <p>Die Lerneinheit Einf&uuml;hrung in Supervised Learning
+                        umfasst die Teilpakete</p>
+                    <ul>
+                        <li>Einf&uuml;hrung Regression (inkl.
+                            Gradientenabstieg)</li>
+                        <li>Einf&uuml;hrung Multivariate Regression</li>
+                        <li>Einf&uuml;hrung Klassifikation</li>
+                        <li>Datenvorverarbeitung</li>
+                        <li>Modellvalidierung und -selektion</li>
+                        <li>Komplexere Modellfamilien</li>
+                    </ul>
+                    <p>Diese erg&auml;nzen sich wie folgt:</p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266089">&Uuml;bersichtsdiagram
+                            Supervised_Learning Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266090">(Wiederholung/Exkurs)
+                            Wahrscheinlichkeitsrechnung und Statistik
+                            Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266091">(Wiederholung/Exkurs)
+                            Multivariate Analysis und Lineare Algebra
+                            Datei</a></p>
+                    <p>Eine Wiederholung bzw. ein Schnelldurchlauf durch</p>
+                    <ul>
+                        <li>Funktionen mehrerer Ver&auml;nderlicher</li>
+                        <li>Partielle Ableitungen 1. und 2. Ordnung</li>
+                        <li>Lineare Algebra (Vektoren, Matrizen,
+                            einfache Operationen, Inverse, Determinante)</li>
+                    </ul>
+                    <p>Entscheidend ist das Verst&auml;ndnis der Konzepte.
+                        Eigenst&auml;ndiges Berechnen z.B. der Ableitungen
+                        ist
+                        nicht notwendig.</p>
+                </li>
+                <li>
+                    <p>
+                        <video id="video_data_analysis" width="640" height="360" controls>
+                            <source
+                                src="https://nextcloud.th-wildau.de/nextcloud/index.php/s/KMG64CDqqjeNbfC/download/ML_MultAnaLinAlg.mp4"
+                                type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266093">Einf&uuml;hrung
+                            Regression
+                            inkl.Gradientenabstieg Datei</a></p>
+                    <ul>
+                        <li>Regressionsaufgabe</li>
+                        <li>Einfache Lineare Regression y = a * x</li>
+                        <li>Analytische L&ouml;sung und Gradientenabstieg</li>
+                    </ul>
+                </li>
+                <li>
+                    <p>
+                        <video id="video_data_analysis" width="640" height="360" controls>
+                            <source
+                                src="https://nextcloud.th-wildau.de/nextcloud/index.php/s/R49fW8szyRiXJGP/download/ML_linRegGrad.mp4"
+                                type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266095">Einf&uuml;hrung
+                            Regression
+                            inkl.Gradientenabstieg - kommentiert Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266096">Einf&uuml;hrung
+                            Multivariate
+                            Regression Datei</a></p>
+                    <p>Eine schrittweise Erweiterung der univariaten,
+                        einfachen linearen Regression und des
+                        Gradientenabstiegs auf</p>
+                    <ul>
+                        <li>bivariate lineare Regression</li>
+                        <li>multivariate lineare Regression</li>
+                        <li>multivariate Regression</li>
+                    </ul>
+                </li>
+                <li>
+                    <p>
+                        <video id="video_data_analysis" width="640" height="360" controls>
+                            <source
+                                src="https://nextcloud.th-wildau.de/nextcloud/index.php/s/xRD4n6fSeSyeCy4/download/ML_linRegMult.mp4"
+                                type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266098">Einf&uuml;hrung
+                            Multivariate
+                            Regression - kommentiert Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266099">Einf&uuml;hrung
+                            Klassifikation
+                            Datei</a></p>
+                    <p>Eine Einf&uuml;hrung in Klassfikationsaufgaben</p>
+                    <ul>
+                        <li>Aufgabenstellung und unterschiedliche Ma&szlig;e
+                            f&uuml;r die Klassifikationsg&uuml;te (Beispiel
+                            Covid-19 Test)
+                        </li>
+                        <li>Klassifikationsb&auml;ume und Klassifikation
+                            anhand von Klassenwahrscheinlichkeiten</li>
+                        <li>Ensemble-Verfahren und Unterschiede in der
+                            Sch&auml;tzung von Klassenwahrscheinlichkeiten</li>
+                    </ul>
+                </li>
+                <li>
+                    <p>
+                        <video id="video_data_analysis" width="640" height="360" controls>
+                            <source
+                                src="https://nextcloud.th-wildau.de/nextcloud/index.php/s/y9EwMfA9PBmM4m7/download/ML_Klassifikation_Teil1_Guete.mp4"
+                                type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </p>
+                </li>
+                <li>
+                    <p>
+                        <video id="video_data_analysis" width="640" height="360" controls>
+                            <source
+                                src="https://nextcloud.th-wildau.de/nextcloud/index.php/s/ckECkb2y3ygjZ5H/download/ML_Klassifikation_Teil2_BaeumeWkeit.mp4"
+                                type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </p>
+                </li>
+                <li>
+                    <p>
+                        < <video id="video_data_analysis" width="640" height="360" controls>
+                            <source
+                                src="https://nextcloud.th-wildau.de/nextcloud/index.php/s/MfnqmoJZ6piGAwf/download/ML_Klassifikation_Teil3_EnsembleWkeit.mp4"
+                                type="video/mp4">
+                            Your browser does not support the video tag.
+                            </video>
+                    </p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266103">Einf&uuml;hrung
+                            Klassifikation -
+                            kommentiert Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266104">Komplexere
+                            Modellfamilien
+                            Datei</a></p>
+                    <p>EIne Einf&uuml;hrung in die theoretischen Grundlagen
+                        komplexerer Modellfamilien</p>
+                    <ul>
+                        <li>Teil 1:
+                            <ul>
+                                <li>Wiederholung
+                                    <ul>
+                                        <li>Lineare Regression</li>
+                                        <li>Klassifikationsb&auml;ume /
+                                            Ensemlemethoden</li>
+                                    </ul>
+                                </li>
+                                <li>Abgrenzung / &Auml;nlichkeiten zwischen
+                                    Regression und Klassifikation</li>
+                                <li>Exkurs: Parametrische und
+                                    Nicht-Parametrische Verfahren</li>
+                                <li>Logistische Regression
+                                    (Generalisierte Lineare Modelle)</li>
+                            </ul>
+                        </li>
+                        <li>Teil 2: Support Vector Machines (SVM)</li>
+                        <li>Teil 3: Neuronale Netzwerke</li>
+                    </ul>
+                </li>
+                <li>
+                    <p>
+                        <video id="video_data_analysis" width="640" height="360" controls>
+                            <source
+                                src="https://nextcloud.th-wildau.de/nextcloud/index.php/s/KMG64CDqqjeNbfC/download/ML_MultAnaLinAlg.mp4"
+                                type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </p>
+                </li>
+                <li>
+                    <p><video id="video_data_analysis" width="640" height="360" controls>
+                            <source
+                                src="https://nextcloud.th-wildau.de/nextcloud/index.php/s/PsLoypQbFBaSE7D/download/ML_SVM.mp4"
+                                type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video></p>
+                </li>
+                <li>
+                    <p><video id="video_data_analysis" width="640" height="360" controls>
+                            <source
+                                src="https://nextcloud.th-wildau.de/nextcloud/index.php/s/d2GpWjtwHsq53e3/download/ML_NN.mp4"
+                                type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266108">Komplexere
+                            Modellfamilien-kommentiert Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266109">Datenvorverarbeitung
+                            Datei</a></p>
+                    <p>Ein kurzer &Uuml;berblick &uuml;ber Schritte in der
+                        Datenvorverarbeitung:</p>
+                    <ul>
+                        <li>Konvertierung des Datentyps</li>
+                        <li>Erg&auml;nzen fehlender Werte</li>
+                        <li>Univariate Transformationen
+                            (Standardisierung/Normalisierung,
+                            funktionale Transformation)</li>
+                        <li>Bi-/Multivariate Transformationen
+                            (Dimensionsreduktion, Interaktionsterme)</li>
+                    </ul>
+                </li>
+                <li>
+                    <p><video id="video_data_analysis" width="640" height="360" controls>
+                            <source
+                                src="https://nextcloud.th-wildau.de/nextcloud/index.php/s/jjymaDiz7jd6AHD/download/ML_Datenvorverarbeitung.mp4"
+                                type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266111">Datenvorverarbeitung-kommentiert
+                            Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266112">Modellselektion
+                            und
+                            -validierung Datei</a></p>
+                    <p>Eine kurze &Uuml;bersicht &uuml;ber Modellselektion und
+                        -validierung</p>
+                    <ul>
+                        <li>Motivation: Polynominterpolation</li>
+                        <li>Bias-Varianz-Zerlegung</li>
+                        <li>Regularisierung in der Modellselektion</li>
+                        <li>Resampling in der Modellvalidierung</li>
+                    </ul>
+                </li>
+                <li>
+                    <p><video id="video_data_analysis" width="640" height="360" controls>
+                            <source
+                                src="https://nextcloud.th-wildau.de/nextcloud/index.php/s/aHLgNeCA9KaH8Sg/download/ML_ModellselektionValidierung.mp4"
+                                type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266114">Modellselektion
+                            und
+                            -validierung - kommentiert Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="http://mybinder.org/v2/gh/binder-examples/r/master?urlpath=shiny/bus-dashboard/"
+                            target="_blank"><img src="http://mybinder.org/badge_logo.svg" alt="Binder">Grundlagen des
+                            Maschinellen Lernens mit R</a></p>
+
+                    <p>Eine umfangreichere, interaktive Einf&uuml;hrung in
+                        die Grundlagen des Maschinellen Lernens mit R.
+                        Dabei
+                        wird vorausgesetzt, dass die theoretischen
+                        Grundlagen bereits vorhanden sind (siehe
+                        Unterlagen
+                        weiter oben). Der Fokus liegt hier auf der
+                        konkreten Anwendung der Verfahren, dem Einfluss
+                        der
+                        Parameter und Hyperparameter auf das trainierte
+                        Modell (Modellselektion und -validierung) und
+                        der
+                        Interpretation der Ergebnisse.</p>
+                    <p>Die Umsetzung findet dabei in R statt. Soweit
+                        m&ouml;glich setzt das Tutorial aber keine Kenntnisse
+                        in R
+                        voraus. Insbesondere sind die &Uuml;bungen durch
+                        einfaches Anpassen von Parametern bzw.
+                        Argumenten
+                        umsetzbar. F&uuml;r vertiefte Analysen oder im Fall
+                        von Fehlern bei der Anwendung sind Kenntnisse in
+                        R
+                        aber unumg&auml;nglich.</p>
+                    <ul>
+                        <li>Einleitung</li>
+                        <li>Regression
+                            <ul>
+                                <li>Lineare Regression</li>
+                                <li>Regressionsbaum</li>
+                                <li>Gadient Boosting</li>
+                                <li>&Uuml;bung mit Random Forest</li>
+                            </ul>
+                        </li>
+                        <li>Binomiale Klassifikation
+                            <ul>
+                                <li>Logistische Regression</li>
+                                <li>Klassifikationsbaum</li>
+                                <li>Support Vector Machines</li>
+                                <li>&Uuml;bung mit Neuronalem Netzwerk</li>
+                            </ul>
+                        </li>
+                        <li>Multinomiale Klassifikation
+                            <ul>
+                                <li>Klassifikationsbaum</li>
+                                <li>Neuronales Netzwerk</li>
+                            </ul>
+                        </li>
+                        <li>Fazit</li>
+                    </ul>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266116">Demonstration:
+                            Maschinelles
+                            Lernen mit mlr am Beispiel Bundestagswahl
+                            2017 Datei</a></p>
+                    <p>In der Demonstration werden am Beispiel der
+                        Direktmandate der Bundestagswahl 2017
+                        verschiedene
+                        Verfahren des Maschinellen Lernens angewendet.</p>
+                    <p>Die Umsetzung erfolgt mit der R Bibliothek mlr
+                        nach folgendem Workflow:</p>
+                    <ul>
+                        <li>Datenvorverarbeitung</li>
+                        <li>Aufgabenstellung und Auswahl der Verfahren</li>
+                        <li>Benchmarking der Verfahren</li>
+                        <li>Tuning der Hyperparameter</li>
+                        <li>Benchmarking der Verfahren</li>
+                    </ul>
+                    <p>Zus&auml;tzlich wird am Ende ein Ausblick gegeben auf
+                        die Weiterentwicklung mlr3 sowie scikit-learn
+                        als
+                        Pendant in python.</p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266117">Demonstration:
+                            Maschinelles
+                            Lernen mit mlr am Beispiel Bundestagswahl
+                            2017 - verwendetes R Skript Datei</a></p>
+                    <p>Das Skript enth&auml;lt die f&uuml;r ein einfaches
+                        Benchmarking mit mlr zur Vorhersage der
+                        Direktmandate in der
+                        Bundestagswahl anhand von Strukturmerkmalen der
+                        Wahlkreise. Das Skript kann als Vorlage bzw.
+                        Ausgangspunkt dienen f&uuml;r eine
+                        Benchmarkuntersuchung im Rahmen Ihrer
+                        Projektarbeit.</p>
+                </li>
+                <h3>Erg&auml;nzende Materialien/Links/...</h3>
+                <li>
+                    <p><a href="https://www.statlearning.com">James
+                            etal 2013 An
+                            Introduction to Statistical Learning</a></p>
+                </li>
+                <li>
+                    <p><a href="https://github.com/rstudio/cheatsheets/raw/master/mlr.pdf">Cheat
+                            Sheet: mlr Link/URL</a></p>
+                </li>
+            </ul>
+        </div>
+        <div class="tab-content" id="time-series-analysis">
+            <h2>Zeitreihenanalyse</h2>
+            <p>Dieser Abschnitt vermittelt Kenntnisse zur
+                Zeitreihenanalyse (mit R), sowie Grundlagenwissen.</p>
+            <ul>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266142">Grundlagenkenntnisse
+                            Wahrscheinlichkeitsrechnung und Statistik
+                            Datei</a></p>
+                    <p>Eine kurze Zusammenstellung von
+                        Grundlagenkenntnissen in
+                        Wahrscheinlichkeitsrechnung und Statistik,
+                        wie sie im Rahmen einer Schulausbildung bzw.
+                        eines Bachelorstudiums f&uuml;r gew&ouml;hnlich vermittelt
+                        werden
+                        und auf denen die nachfolgenden Inhalte
+                        aufbauen:</p>
+                    <ul>
+                        <li>Rechnen mit Wahrscheinlichkeiten</li>
+                        <li>Zufallsvariable,
+                            Wahrscheinlichkeitsverteilung,-funktion und
+                            -dichte</li>
+                        <li>Lage- und Streuungsparameter: Mittelwert,
+                            Varianz, Standardabweichung</li>
+                        <li>Zusammenhang: Kovarianz und Korrelation</li>
+                    </ul>
+                    <p>Sofern Sie mit den o.g. Konzepten vertraut sind,
+                        brauchen Sie die Zusammenstellung nicht
+                        durchzuarbeiten. Die Zusammenstellung soll es
+                        Ihnen lediglich erleichtern, etwaige
+                        Wissensl&uuml;cken
+                        schnell zu schlie&szlig;en, die Ihnen beim Bearbeiten
+                        der nachfolgenden Kursinhalte auffallen.</p>
+                </li>
+                <h3>Klassische Zeitreihenanalyse</h3>
+                <p>Voraussetzung sind Kenntnisse in den
+                    Basisfunktionen von R (siehe nachfolgendes
+                    Schaubild).</p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/page/view.php?id=266129">Klassische
+                            Zeitreihenmodelle -
+                            &Uuml;bersicht Textseite</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266128">Klass
+                            Zeitreihenanalyse -
+                            &Uuml;bersicht Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266131">Theoretische
+                            Grundlagen
+                            Klassische Komponentenzerlegung Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266132">Zeitreihenanalyse
+                            Teil1
+                            Trend Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266133">Zeitreihenanalyse
+                            Teil2
+                            Saison Datei</a></p>
+                </li>
+                <li>
+                    <p>Hinweis: Im Video ist an einer Stelle eine Formel
+                        falsch angegeben (Index der Saisonkomponente,
+                        ca.
+                        Minute 24:30). Der Fehler ist in den
+                        Vorlesungsfolien korrigiert.&nbsp;</p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266134">Zeitreihenanalyse
+                            Komponentenmodell kommentiert Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/url/view.php?id=266135">Interaktives
+                            Shiny-Applet zur
+                            klassischen Zeitreihenanalyse Link/URL</a></p>
+                    <p>Mit dem Applet kann man ganz einfach ohne eigene
+                        R-Programmierung untersuchen, wie Daten, Modelle
+                        und
+                        Parameter sich zueinander verhalten.</p>
+                    <p>Als Datensatz wird eine CO2-Messreihe verwendet.</p>
+                    <p>Das Applet l&auml;sst sich nur aus dem Hochschulnetz
+                        (WLAN oder VPN) aufrufen.</p>
+                    <p>Das Applet ist mit der R Bibliothek Shiny
+                        geschrieben. Wenn Sie lernen wollen, wie das
+                        geht,
+                        kontaktieren Sie mich einfach. Die Zeit in der
+                        Lehrveranstaltung reicht daf&uuml;r leider nicht aus,
+                        aber
+                        ich kann Ihnen ein paar Links zu Tutorials
+                        geben.</p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/folder/view.php?id=266136">F&uuml;r
+                            die Erstellung der Folien
+                            verwendete Datens&auml;tze und Skripte
+                            Verzeichnis</a></p>
+                    <p>F&uuml;r die Erstellung der Folien verwendete Skripte
+                        und Datens&auml;tze. Die Bearbeitung ist f&uuml;r eine
+                        erfolgreiche Pr&uuml;fungsteilnahme nicht zwingend
+                        erforderlich. Sie dienen einer Vertiefung des
+                        Lehrstoffes im Selbststudium. Die Skripte
+                        enthalten mitunter auch Befehle, die in der
+                        "Einf&uuml;hung in
+                        R" in diesem Abschnitt nicht besprochen werden.</p>
+                    <p>Wenn Sie die nachfolgenden Abschnitte "Einf&uuml;hrung
+                        in R" und "Zeitreihenanalyse mit R" erfolgreich
+                        absolviert haben, finden Sie hier noch (etwas)
+                        neuen Stoff.</p>
+                </li>
+                <li>
+                    <p><a
+                            href="https://mybinder.org/v2/gh/rainerstollhoff/DatenanalyseR/main?urlpath=shiny/R/Zeitreihenanalye_Komponentenmodell.Rmd">Zeitreihenanalyse
+                            mit R -
+                            Komponentenmodelle Link/URL</a></p>
+                    <p>Eine interaktive Einf&uuml;hrung in die
+                        Zeitreihenanalyse mittels klassischer
+                        Komponentenzerlegung in R
+                    </p>
+                    <ul>
+                        <li>Daten</li>
+                        <li>Vergr&ouml;bern der Zeitreihe</li>
+                        <li>Gleitender Durchschnitt</li>
+                        <li>Exponentielles Gl&auml;tten</li>
+                        <li>Linearer Trend</li>
+                        <li>Komponentenzerlegung mit linearer Regression</li>
+                        <li>Zerlegung in Saisonale Komponenten mit
+                            compose()</li>
+                        <li>Zerlegung in Saisonale Komponenten mit
+                            HoltWinters()</li>
+                        <li>Graphischer Vergleich der Methoden</li>
+                        <li>Prognose</li>
+                    </ul>
+                    <p>[Update 20.10.: Anzeige HoltWinters Sch&auml;tzer
+                        korrigiert, ben&ouml;tigte Datenobjekte f&uuml;r &Uuml;bungen
+                        bereitgestellt]</p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266139">Zeitreihenanalyse
+                            Komponentenmodell - Beispiel CO2 -
+                            kommentiertes R-Skript Datei</a></p>
+                    <p>Das Skript enth&auml;lt die klassische
+                        Zeitreihenanalyse mittels Komponentenzerlegung
+                        in komprimierter,
+                        kommentierter Form.</p>
+                    <p>Sie k&ouml;nnen das Skript als Ausgangspunkt f&uuml;r die
+                        Abschluss&uuml;bung dieses Abschnitts verwenden.</p>
+                </li>
+                <li>
+                    <h4>Erg&auml;nzendes Material:</h4>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/url/view.php?id=267660">Cheat
+                            Sheet: Time Series
+                            Link/URL</a></p>
+                </li>
+                <h3>ARIMA/GARCH Modelle</h3>
+                <p>Voraussetzung sind Kenntnisse in den
+                    Basisfunktionen von R und der statistischen
+                    Datenanlyse (siehe
+                    nachfolgendes Schaubild).</p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/page/view.php?id=266140">ARIMA/GARCH
+                            &Uuml;bersicht
+                            Textseite</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266141">ARIMA
+                            GARCH &Uuml;bersicht
+                            Datei</a></p>
+                </li>
+                <li>
+                    <p><a
+                            href="https://mybinder.org/v2/gh/rainerstollhoff/DatenanalyseR/main?urlpath=shiny/R/Datenmanagement_internet.Rmd">Externe
+                            Datenquellen nutzen mit R
+                            Link/URL</a></p>
+                    <p>Eine interaktive Einf&uuml;hrung in das Einbinden
+                        externer Datenquellen in R</p>
+                    <ul>
+                        <li>&Uuml;bersicht</li>
+                        <li>Datentyp xts</li>
+                        <li>Allgemeines zu Finanzdaten</li>
+                        <li>Das R Paket quantmod - Aktienkurse von
+                            finance.yahoo.com abrufen</li>
+                        <li>Das Portal quandl.com und das R Paket Quandl
+                            - vielf&auml;ltige Finanzdaten abrufen</li>
+                        <li>Weitere Pakete</li>
+                    </ul>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266145">ARIMA
+                            Theoretische
+                            Grundlagen Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266146">ARIMA
+                            - Teil 1: Einfuehrung
+                            stochProzesse Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266147">ARIMA
+                            - Teil 2:
+                            Autokovarianz Korrelation Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266148">ARIMA
+                            - Teil 3: MA-Prozesse
+                            Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266149">ARIMA
+                            - Teil 4: AR-Prozesse
+                            Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266150">ARIMA
+                            - Teil 5:
+                            ARIMA-Prozesse Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266151">ARIMA
+                            Theoretische
+                            Grundlagen - kommentiert Datei</a></p>
+                </li>
+                <li>
+                    <p><a
+                            href="https://mybinder.org/v2/gh/rainerstollhoff/DatenanalyseR/main?urlpath=shiny/R/ARIMAR.Rmd">Interaktives
+                            Shiny-Applet zu
+                            ARIMA Prozessen Link/URL</a></p>
+                    <p>Mit dem Applet kann man ganz einfach ohne eigene
+                        R-Programmierung untersuchen, wie Modelle,
+                        Parameter
+                        und Zufallsprozesse sich zueinander verhalten.</p>
+                    <p>Das Applet l&auml;sst sich nur aus dem Hochschulnetz
+                        (WLAN oder VPN) aufrufen.</p>
+                    <p>Das Applet ist mit der R Bibliothek Shiny
+                        geschrieben. Wenn Sie lernen wollen, wie das
+                        geht,
+                        kontaktieren Sie mich einfach. Die Zeit in der
+                        Lehrveranstaltung reicht daf&uuml;r leider nicht aus,
+                        aber
+                        ich kann Ihnen ein paar Links zu Tutorials
+                        geben.</p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266153">GARCH
+                            Theoretische
+                            Grundlagen Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266154">GARCH-Prozesse
+                            Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266155">GARCH
+                            Theoretische
+                            Grundlagen - kommentiert Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/url/view.php?id=266156">Interaktives
+                            Shiny-Applet zu
+                            GARCH Prozessen Link/URL</a></p>
+                    <p>Mit dem Applet kann man ganz einfach ohne eigene
+                        R-Programmierung untersuchen, wie Modelle,
+                        Parameter
+                        und Zufallsprozesse sich zueinander verhalten.</p>
+                    <p>Das Applet l&auml;sst sich nur aus dem Hochschulnetz
+                        (WLAN oder VPN) aufrufen.</p>
+                    <p>Das Applet ist mit der R Bibliothek Shiny
+                        geschrieben. Wenn Sie lernen wollen, wie das
+                        geht,
+                        kontaktieren Sie mich einfach. Die Zeit in der
+                        Lehrveranstaltung reicht daf&uuml;r leider nicht aus,
+                        aber
+                        ich kann Ihnen ein paar Links zu Tutorials
+                        geben.</p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/url/view.php?id=266158">ARIMA
+                            Modelle mit R Link/URL</a>
+                    </p>
+                    <p>Eine interaktive Einf&uuml;hrung in ARIMA Modelle in R</p>
+                    <ul>
+                        <li>Datenquellen und -import (Wiederholung)</li>
+                        <li>ARIMA Modelle manuell bestimmen
+                            (Box-Jenkins)</li>
+                        <li>ARIMA Modelle automatisch bestimmen</li>
+                        <li>ARIMA Modelle zur Simulation und Vorhersage
+                            nutzen</li>
+                    </ul>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/url/view.php?id=266159">GARCH
+                            Modelle und ARMA-GARCH
+                            Modelle mit R Link/URL</a></p>
+                    <p>Eine interaktive Einf&uuml;hrung in GARCH Modelle in R</p>
+                    <ul>
+                        <li>Wiederholung(Datenimport, Theorie GARCH)</li>
+                        <li>GARCH Modelle automatisch bestimmen</li>
+                        <li>ARMA-GARCH Modelle automatisch bestimmen</li>
+                    </ul>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266160">kurzes
+                            unvollst&auml;ndiges
+                            Beispielskript zu ARIMA-GARCH Modellen Datei</a></p>
+                </li>
+                <h3>Erg&auml;nzende Materialien/Links/...</h3>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/url/view.php?id=266170">Forecasting:
+                            Principles and
+                            Practice Link/URL</a></p>
+                    <p>Ein frei zug&auml;ngliches Onlinebuch zur Erstellung
+                        von Vorhersgaen mit R von Rob J Hyndman and
+                        George
+                        Athanasopoulos von der Monash University,
+                        Australia.</p>
+                    <p>Das Buch geht detailliert auf verschiedene
+                        Vorhersageverfahren mit R ein: gleitende
+                        Durchschnitte,
+                        exponentielle Gl&auml;ttung, ARIMA und bietet eine
+                        Vertiefung der Kursinhalte. Die R Umsetzung
+                        erfolgt in
+                        weiten Teilen mit Paketen aus dem tidyverse.
+                        <strong>Das Buch ist eine klare Empfehlung
+                            meinerseits
+                            f&uuml;r alle, die sich intensiver mit dem Thema
+                            besch&auml;ftigen wollen!</strong>
+                    </p>
+                    <p>Die verwendeten Verfahren finden sich - sofern
+                        nicht bereits in anderen Paketen enthalten - im
+                        Paket
+                        `forecast`, das u.a. von den Autoren des Buches
+                        gepflegt wird.</p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/url/view.php?id=266171">GARCH
+                            101: The Use of ARCH/GARCH
+                            Models in Applied Econometrics Link/URL</a></p>
+                    <p>Ein kurzer Artikel des Nobelpreistr&auml;gers Robert
+                        F. Engle zum Einsatz von ARCH/GARCH Modellen.</p>
+                    <p>Robert F. Engle erhielt 2003 den Nobelpreis f&uuml;r
+                        Wirtschaftswissenschaften f&uuml;r seine Arbeiten zu
+                        ARCH-Prozessen.</p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/url/view.php?id=266172">Webseite
+                            Rmetrics Link/URL</a>
+                    </p>
+                    <p>Rmetrics ist eine Projekt zur Softwareentwicklung
+                        in R. Das Ziel des Projekts ist es, kostenfreie
+                        und
+                        quelloffene Software und B&uuml;cher f&uuml;r das
+                        Themengebiet Quantitative Finance in R
+                        bereitszustellen.</p>
+                    <p>Das Projekt pflegt eine umfangreiche Sammlung an
+                        R Bibliotheken z.B. fGarch und fPortfolio.
+                        Dar&uuml;ber
+                        hinaus werden auf der Webseite mehrere
+                        Lehrb&uuml;cher zum Themenbereich Quantitative
+                        Finance kostenlos
+                        zum Downlaod angeboten.</p>
+                </li>
+            </ul>
+        </div>
+        <div class="tab-content" id="portfolio-analysis">
+            <h2>Portfolioanalyse und -optimierung</h2>
+            <p>In diesem Abschnitt erfolgt eine Einf&uuml;hrung in die
+                Portfolioanalyse und -Optimierung (mit R).</p>
+            <p>Voraussetzung sind Kenntnisse in den Basisfunktionen von
+                R.</p>
+            <ul>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/page/view.php?id=266161">&Uuml;bersicht
+                            Portfolioanalyse
+                            Textseite</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266162">Portfolio
+                            Modulplanung
+                            Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266164">Theoretische
+                            Grundlagen:
+                            Portfolioanalyse und -optimierung Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266165">Portfolioanalyse
+                            und
+                            -optimierung Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/resource/view.php?id=266166">Portfolioanalyse
+                            und
+                            -optimierung kommentiert Datei</a></p>
+                </li>
+                <li>
+                    <p><a href="https://mybinder.org/v2/gh/rainerstollhoff/DatenanalyseR/main?urlpath=shiny/R/">Portfolioanalysen
+                            und
+                            -optimierung mit R Link/URL</a></p>
+                    <p>Eine interaktive Einf&uuml;hrung in die
+                        Portofolioanalyse und -optimierung in R</p>
+                    <ul>
+                        <li>Grundlagen zur Portfolioanalyse mit
+                            fPortfolio</li>
+                        <li>Portfolios erstellen und analysieren
+                            <ul>
+                                <li>mit festen Gewichten</li>
+                                <li>mit minimaler Varianz bei fester
+                                    Rendite</li>
+                                <li>mit global minimaler Varianz</li>
+                                <li>mit optimalem Sharpe-Quotienten</li>
+                            </ul>
+                        </li>
+                        <li>Analyse von Portfolios auf dem (effektiven)
+                            Rand</li>
+                        <li>&Uuml;bungsaufgabe zur Portfolioanalyse</li>
+                        <li>Exkurs: Portfoliodaten selber erstellen</li>
+                        <li>Beispielanalyse von Quandl-Kursdaten</li>
+                        <li>Diskussion / Disclaimer</li>
+                    </ul>
+                </li>
+                <h3>Erg&auml;nzende Materialien/Links/...</h3>
+                <li>
+                    <p><a href="https://elearning.th-wildau.de/mod/url/view.php?id=266185">Webseite
+                            Rmetrics Link/URL</a>
+                    </p>
+                    <p>Rmetrics ist eine Projekt zur Softwareentwicklung
+                        in R. Das Ziel des Projekts ist es, kostenfreie
+                        und
+                        quelloffene Software und B&uuml;cher f&uuml;r das
+                        Themengebiet Quantitative Finance in R
+                        bereitszustellen.</p>
+                    <p>Das Projekt pflegt eine umfangreiche Sammlung an
+                        R Bibliotheken z.B. fGarch und fPortfolio.
+                        Dar&uuml;ber
+                        hinaus werden auf der Webseite mehrere
+                        Lehrb&uuml;cher zum Themenbereich Quantitative
+                        Finance kostenlos
+                        zum Downlaod angeboten.</p>
+                </li>
+            </ul>
+    </ul>
+</body>
+
+</html>
