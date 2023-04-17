@@ -97,8 +97,9 @@ Für häufig verwendete Formatierungskombinationen bietet R Kurzfassungen an:
 Neben der direkten Eingabe des Funktionsaufrufs von `read.table()` lassen sich Daten in der RStudio Benutzeroberfläche manuell auch komfortabel über einen Benutzerdialog einlesen.
 
 Dazu wählt man im Reiter `Environment` den Menüpunkt `Import Dataset` aus.
-Der Eintrag `Read from text (base)` verwendet `read.table()`. Die anderen Einträge verwenden Einlesefunktionen aus dem sogenannten `tidyverse`, welche hier (noch) nicht besprochen werden.
-![Menüeintrag zum Starten des Importdialogs in RStudio](./images/RStudio_GUI_menu.png){height=100px}
+Der Eintrag `Read from text (base)` verwendet `read.table()`. Die anderen Einträge verwenden Einlesefunktionen aus dem sogenannten `tidyverse`, welche hier (noch) nicht besprochen werden. 
+
+![Menüeintrag zum Starten des Importdialogs in RStudio](./images/RStudio_GUI_menu.png){height=200px}
 
 
 `Read from text (base)` bietet zunächst die Auswahl der Datei über ein Explorerfenster. Anschließend werden in einem interaktiven Dialogfenster die Struktur der Daten und damit die Argumente von `read.table()` festgelegt.
