@@ -2,17 +2,17 @@
 title: "R Markdown"
 author: "Rainer Stollhoff"
 output:
-  pdf_document: 
-      toc: true
+  html_document:
+    toc: true
+    df_print: paged
   powerpoint_presentation:
       slide_level: 3
   beamer_presentation:
       slide_level: 3
       toc: true
   word_document: default
-  html_document:
-    toc: true
-    df_print: paged
+  pdf_document: 
+      toc: true
 description: Einführung in die Erstellung von Dokumenten mit R Markdown
 ---
 
@@ -34,6 +34,9 @@ R Markdown Dokumente sind für sich genommen erstmal einfache, unformatierte Tex
 ## Beispiel: R Tutorials
 
 R Markdown ist Ihnen bereits bekannt. Die in diesem Kurs verwendeten interaktiven R Tutorials wurden als R Markddown Dokumente erstellt. Allerdings haben Sie bislang nur die Ergebnisse gesehen - in Form von html Seiten. In diesem Abschnitt wird gezeigt, wie sich R Markdown nutzen lässt, um selber  Dokumente in verschiedenen Formaten zu erstellen.
+
+Auch dieses Tutorial wurde als R Markdown Dokument erstellt und anschließend als .html exportiert. Die Originaldatei kann hier heruntergeladen werden:
+[R Notebook](./markdown.Rmd)
 
 ## Installation
 
@@ -425,7 +428,6 @@ description: Einführung in die Erstellung von Dokumenten mit R Markdown
       
 
 * [HTML-Dokument](./markdown.html)
-* [R Notebook](./markdown.Rmd)
 * [PDF-Dokument](./markdown.pdf)
 * [Word Dokument](./markdown.docx)
 * [Beamer Präsentation](./markdown_beamer.pdf)
