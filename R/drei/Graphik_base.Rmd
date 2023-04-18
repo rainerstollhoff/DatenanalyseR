@@ -1,0 +1,205 @@
+---
+title: "Graphische Darstellung (base) in R"
+output: learnr::tutorial
+runtime: shiny_prerendered
+author: Rainer Stollhoff
+description: "Eine interaktive Einführung in die graphische Darstellung (base) mit R"
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+## Allgemeines
+
+* R bietet bereits in der Basisausttatung - daher der Zusatz `(base)` vielfältige Möglichkeiten, um Daten graphisch darzustellen.
+* Mit sogenannten High-Level-Plots werden vollständige Abbildungen nach vorgefertigten Mustern erstellt. Diese sind für viele Datentypen oder Modelle verfügbar.
+* Mit sogenannten Low-Level-Plots kann zudem Stück für Stück eine Abbildung nach Wunsch aus Einzelteilen (z.B. Achsen, Beschriftungen, ...) erstellt werden. 
+* Die Ausgabe erfolgt entweder direkt auf dem Bildschirm oder in eine Datei.
+* R unterstützt vielfältige Dateiformate (.jpg, .png, .pdf,...)
+
+## High-Level-Plots 
+
+In diesem Lernabschnitt beschäftigen wir uns nur mit den grundlegenden Funktionen der graphischen Ausgabe in R. Diese sind gut geeignet, um sich während der Analyse einen ersten Überblick zu verschaffen. Für schöne, professionell gestaltete graphische Ausgaben gibt es mit `ggplot()` ein eigenständiges Paket als Erweiterung der Basisfunktionalität.
+
+### Die Funktion plot()
+
+* Die Funktion `plot()` ist der einfachste Weg, um High-Level-Plots zu erzeugen.
+* Je nach Typ des Arguments, das an `plot()` übergeben wird, wählt R eine geeignete Darstellungsform automatisch aus.
+
+### Streudiagramme (= x-y-plots)
+ 
+Standardmäßig erwartet `plot()` als Argument einen (`x`) oder zwei (`x,y`) Argumente, welche die $x$ und $y$ Koordinaten der Datenpunkte für den Plot enthalten. Übergibt man nur einen Vektor $x$ als Argument, so werden die darin enthaltenen Werte gegen den Index, d.h. die Zahlen von 1 bis zur Länge des Vektors, aufgetragen.
+
+
+```{r, echo = T}
+x <-  c(5,7.2,13,2)
+y <- c(15,22,34,11)
+plot(x,y)
+plot(x)
+```
+
+Neben den Daten nimmt `plot()`noch weitere Argumente entgegen, die die graphische Darstellung der Daten festlegen. Die häufigsten Angaben sind:
+
+* `type =` gibt die Darstellungform an und erlaubt u.a.
+  + `"p"`für Punkte
+  + `"l"`für eine Linie
+  + `"b"`für beides
+  + `"n"` unterdrückt die Ausgabe
+* `col =` gibt die Farbe an. Diese lässt sich u.a. festlegen als
+  + Zahl z.B. `1` für Schwarz
+  + Farbname z.B. `"red"` für rot
+* `main = ` gibt den Titel (als `character`, d.h. in Anführungszeichen) an
+* `xlab = `und `ylab = ` für die Achsenbeschriftungen
+
+**Kleine Übung **
+
+Verändern Sie den untenstehenden Aufruf von `plot()`und geben Sie eigene Farben oder Titel vor:
+
+```{r plot_simple, exercise = T}
+x <-  c(5,7.2,13,2)
+y <- c(15,22,34,11)
+plot(x,y, 
+     type="p", 
+     col = "green",
+     main = "Der Titel",
+     xlab = "x-Achse", ylab = "y-Achse"
+     )
+```
+
+Darüber hinaus bietet R noch jede Menge an Möglichkeiten einen Plot bis in alle Details festzulegen. Mehr Informationen dazu finden Sie in der Hilfsfunktion zu `plot`oder zu `par`.
+
+### Kurvendiagramme 
+
+Für mathematische Funktionen lässt sich mit dem Befehl `curve()`der Graph der Funktion darstellen. `curve()` benötigt dabei die Angabe des Funktionsaufrufs und akzeptiert weitere Argumente zur graphischen Darstellung:
+
+* `type`, `col`, `main`, `xlab`, `ylab` und andere wie oben bei `plot()`
+* `from = ` für die untere ("linke") Grenze des Eingabebereichs
+* `to = ` für die obere ("rechte") Grenze des Eingabebereichs
+* `n =` für die Anzahl der Punkte zwischen den beiden Grenzen des Eingabebereichs an denen die Funktion ausgewertet wird.
+
+```{r, echo = T}
+curve(sqrt(x),
+      from=0, to=25, n=100,
+      type ="l",
+      main="Die Wurzelfunktion",
+      ylab="Wurzel(x)"
+      )
+```
+
+### Weitere Diagrammtypen
+
+Neben Streudiagrammen und Funktionsgraphen kann R bereits in der Basisfunktionalität auch andere gängige Diagramme darstellen, z.B.:
+
+* `barplot()` für Säulen-/Balkendiagramme
+* `hist()`für Histogramme
+* `pie()` für Kuchen-/Tortendiagramme
+* `boxplot()`für Boxplots
+* `contour()` für Höhenlinien
+
+Eine kurze Demo mit  verschiedenen Darstellungen können Sie in R oder R Studio mit dem Befehl `demo(graphics)` aufrufen.
+
+### Interaktion mit Plots
+
+R bietet vielfältige Möglichkeiten, um Plots interaktiv zu erkunden. Die einfachste Möglichkeit ist der Befehl `identify()` mit dem Punkte eines Plots identifiziert und eine Kennung in den Plot eingetragen werden kann. 
+
+Die Identifkation erfolgt dabei, indem möglichst nahe an einen bestimmten Punkt geklickt wird. R ermittelt dann den Index des nächstgelegenen Punktes und gibt das Label an der entsprechenden Position aus.
+
+Leider funktioniert die Interaktion nicht im interaktiven Tutorial. Kopieren Sie einfach den untenstehenden R-Code in Ihre R/RStudio Umgebung und probieren es dort aus.
+
+```{r identify, echo = T}
+x <-  c(5,7.2,13,2)
+y <- c(15,22,34,11)
+plot(x,y, 
+     type="p", 
+     col = "green",
+     main = "Der Titel",
+     xlab = "x-Achse", ylab = "y-Achse"
+     )
+identify(x,y,labels=c("1.Punkt","2.","3.","4."))
+```
+
+
+## Low-Level-Plots 
+
+### Baukastenprinzip
+
+Während die High-Level-Funktion `plot()` immer eine vollständige graphische Ausgabe bereitstellt, lassen sich mit Low-Level-Plots einzelne Bestandteile separat und nachträglich ergänzen:
+
+* `axis()` für Achsen und Achsembeschriftungen
+* `legend()`für eine Legende
+* `text()` für Text im Plot
+* `points()` für zusätzliche $(x,y)$ Punkte
+* `lines()` für als Linie verbundene $(x,y)$ Punkte - vgl. `type="l"`
+* `abline()` für eine Gerade
+
+Welche Argumente für die einzelnen Bestandteile nötig sind und wie diese übergeben werden, entnehmen Sie am Besten der Hilfe zu den einzelnen Befehlen. Oder Sie probieren es interaktiv in der nachfolgenden Übung ein wenig aus:
+
+```{r plot_complex, exercise = T}
+x <-  c(5,7.2,13,2)
+y <- c(15,22,34,11)
+plot(x,y)
+abline(h=15, col =2)
+abline(v=5, col =3)
+legend(x = "topleft", 
+       legend = c("Eine horizontale Linie","Eine vertikale Linie"),
+       col = c(2,3),
+       lty = 1)
+text(x=13,y=11,labels = "Rechts unten", adj = c(1,0))
+```
+
+**Kleine Übung **
+
+Ergänzen Sie den untenstehenden Aufruf von `plot()` so, dass sowohl die Punktepaare (x,y) als auch die Punktepaare (x,z) ausgegeben werden. Verwenden Sie dafür ruhig unterschiedliche Farben und fügen Sie eine Legende hinzu:
+
+```{r plotlines, exercise = TRUE, exercise.lines = 20}
+x <-  c(5,7.2,13,2)
+y <- c(15,22,34,11)
+z <- c(17,18,19,20)
+```
+
+```{r plotlines-solution, eval=FALSE}
+x <-  c(5,7.2,13,2)
+y <- c(15,22,34,11)
+z <- c(17,18,19,20)
+plot(x,y,
+     type="p",
+     col = "green",
+     main = "Zwei Datenreihen in einem Plot",
+     xlab = "x-Achse", ylab = ""
+     )
+points(x,z, col= "red")
+legend("topleft", legend=c("x-y","x-z"),col=c("green","red"),lty=1)
+```
+
+## Layout
+
+### Mehrere Plots kombinieren
+Um mehrere Plots neben- oder untereinander anzuzeigen, kann man die Ausgaberegion mit der Funktion `layout()` unterteilen. `layout()` erwartet als Argument eine Matrix. Die Zeilen und Spalten entsprechen den Zeilen und Spalten der unterteilten Ausgaberegion und die Werte in der Matrix der Reihenfolge, in der die Ausgaberegion befüllt wird.
+
+```{r, echo = T}
+x <-  c(5,7.2,13,2)
+y <- c(15,22,34,11)
+layout(matrix(2:1,nrow=1,ncol=2))
+plot(x,y)
+curve(log(x))
+```
+
+### Ausgabe als Datei
+
+In Rstudio werden Plots in einem eigenen Fenster bzw. Tab angezeigt. Um diese zu exportieren, wählt man den Menüeintrag Èxport` aus und wählt anschließend die Eigenschaften der Datei aus (Bild oder PDF, Auflösung, ....).
+
+Mit R kann man eine graphische Ausgabe aber auch direkt in eine Datei schreiben. Dies geschieht, indem man 
+
+1. eine Datei mit einer passenden Funktion öffnet, z.B.
+  + `pdf()` für PDF-Dateien oder
+  + `jpg()` für jpg-Dateien 
+  und dabei die entsprechenden Eigenschaften als Argument übergibt (z.B. `file = ` für den Dateinamen, `width = ` und  `height = ` für Breite und Höhe ),
+2. die gewünschte Plot-Funktion inklusive aller Low-Level-Ergänzungen aufruft und
+
+3. die Datei mit dem Befehl `dev.off()`schließt. 
+
+*Vergisst man `dev.off()` - ein häufiger Fehler - wird die geöffnete Datei durch neue Plots überschrieben und lässt sich u.U. nicht mit anderen Programmen öffnen.*
+
