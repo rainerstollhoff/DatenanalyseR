@@ -19,7 +19,9 @@ server <- function(input, output) {
       return(tags$div(error_message))
     }
     if (substr(file, nchar(file) - 3, nchar(file)) != ".Rmd") {
-      return(tags$div("The file you requested is not a valid .Rmd file."))
+      error_message <- paste("The file you requested is not a valid .Rmd file.", 
+                             "<br>Requested file:", input$uri)
+      return(tags$div(error_message))
     }
     rmarkdown::render(file)
     HTML(paste(readLines(gsub(".Rmd", ".html", file)), collapse="\n"))
