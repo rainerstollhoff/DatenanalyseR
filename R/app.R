@@ -7,7 +7,7 @@ ui <- fluidPage(
 )
 
 # Define server
-server <- function(input, output) {
+server <- function(input, output, session) {
   # Render the .RMD file as HTML using rmarkdown::render()
   output$report <- renderUI({
     file <- normalizePath(paste0(getwd(), "/", input$uri))
@@ -15,12 +15,14 @@ server <- function(input, output) {
       available_files <- list.files(getwd())
       error_message <- paste("The file you requested does not exist.", 
                              "<br>Requested file:", input$uri, 
+                             "<br>HTTP request:", toString(session$request), 
                              "<br>Available files:", paste(available_files, collapse = ", "))
       return(tags$div(error_message))
     }
-    if (substr(file, nchar(file) - 3, nchar(file)) != ".Rmd") {
+    if (tolower(substr(file, nchar(file) - 3, nchar(file))) != ".rmd") {
       error_message <- paste("The file you requested is not a valid .Rmd file.", 
-                             "<br>Requested file:", input$uri)
+                             "<br>Requested file:", input$uri, 
+                             "<br>HTTP request:", toString(session$request))
       return(tags$div(error_message))
     }
     rmarkdown::render(file)
