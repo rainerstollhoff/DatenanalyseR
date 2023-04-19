@@ -1,1 +1,1 @@
-libgsl-dev
+libgsl-dev=2.5
