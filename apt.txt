@@ -1,1 +1,1 @@
-libgsl-dev=2.5
+libgsl-dev=2.5+dfsg-6
