@@ -1,4 +1,4 @@
-install.packages("https://cran.r-project.org/src/contrib/Archive/gsl/gsl_2.1-7.1.tar.gz", repos = NULL, type = "source")
+install.packages("https://cran.r-project.org/src/contrib/Archive/gsl/gsl_2.1-1.tar.gz", repos = NULL, type = "source")
 install.packages('learnr')
 install.packages('openxlsx')
 install.packages('Quandl')
