@@ -1,0 +1,678 @@
+---
+title: "ARIMA Modelle mit R"
+output: learnr::tutorial
+runtime: shiny_prerendered
+author: Rainer Stollhoff
+description: "Eine interaktive Einführung in ARIMA Modelle in R - Maximum-Likelihood-Estimation, Simulation und Prognosen"
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+knitr::opts_chunk$set(warning = FALSE, echo = TRUE)
+library(Quandl)
+Quandl.api_key("KTgBzn84d6v-JQJB8v76")
+
+
+```
+
+
+## Wiederholung
+
+Ausgangspunkt der Analyse ist ein spezifischer Datensatz. Bevor man beginnt, diesen im Detail zu analysieren, muss man diesen erst in R einlesen und ggf. Konvertierungen der Daten vornehmen. Anschließend sollte man sich zunächst einen Überblick über die Daten verschaffen, bevor man mit der spezifischen Analyse beginnt.
+
+
+
+### Datenformate
+Wir werden die Datensätze standardmäßig als `xts()` Zeitreihe in R importieren. Dazu ist das Paket `xts`nötig.
+
+```{r}
+#install.packages("xts")
+library(xts)
+```
+
+Die `xts()` Zeitreihe ist eine Erweiterung der einfachen `ts()`Zeitreihe. Insbesondere ist es möglich, im `xts` Datentyp neben den reinen Daten (Zeitpunkte und Werte) auch Metadaten (z.B. Datenquelle) abzuspeichern.
+
+### Daten importieren
+In diesem Abschnitt arbeiten wir mit Datensätzen zu Finanzmarktzeitreihen, die aus Internetquellen nach R importiert werden. Wir verwenden dazu die Pakete `quantmod` zum Import von Daten von `finance.yahoo.com` und das Paket `Quandl` zum Import von Daten von `quandl.com`.  
+
+Für die Nutzung von `quandl.com` über die API ist eine Registrierung notwendig. Mit der Registrierung erhält man einen Zugriffscode , den sogenannten API-key, den man anschließend in R mit der Funktion `Quandl.api-key()` festlegt. Bitte tragen Sie für das interaktive Tutorial Ihren persönlichen Quandl-Key unter "YourKey" ein.
+
+
+```{r}
+#install.packages("quantmod")
+library(quantmod)
+#install.packages("Quandl")
+library(Quandl)
+#Quandl.api_key("YourKey")
+```
+
+
+
+### Kleine Übung
+
+In der folgenden Übung sollen Sie die Aktienkursdaten der SAP SE für das Jahr 2017 importieren und graphisch darstellen.
+
+* Laden Sie dazu die Aktienkurse der Apple Corporation mit `quantmod` und `Quandl` herunter.
+  + Recherchieren Sie die entsprechenden Identifikationscodes (Symbol bzw. code)
+  + Laden Sie die Kursdaten herunter, achten Sie dabei auf die Angabe von Zeiträumen, Datentyp etc.
+* Stellen Sie die Kursverläufe für das Jahr 2017 mittels `plot()` graphisch dar.
+  + Konvertieren Sie wenn nötig in `xts`
+  + Wählen Sie bei mehrdimensionalen Zeitreihen den passenden Kurswert aus
+* Vergleichen Sie die Kurse aus den beiden Datenquellen
+  + Sind für denselben Tag stets dieselben Werte hinterlegt?
+  + Falls nein, wie groß sind die Unterschiede?
+  + Können Sie die Unterschiede erklären und ggf. beseitigen?
+  
+
+```{r xts, exercise=TRUE, exercise.lines = 20}
+
+```
+
+```{r xts-hint-1}
+getSymbols(Symbols= "SAP",src="yahoo")
+Quandl("FSE/SAP_X",type="xts")
+
+```
+
+```{r xts-hint-2}
+getSymbols(Symbols= "SAP",src="yahoo")
+sap_qm <- SAP.DE$SAP.DE.Close
+Quandl("FSE/SAP_X",type="xts")
+sap_ql <- sap_ql$Close
+
+```
+
+```{r xts-hint-3}
+getSymbols(Symbols= "SAP",src="yahoo")
+sap_qm <- SAP.DE$SAP.DE.Close
+Quandl("FSE/SAP_X",type="xts")
+sap_ql <- sap_ql$Close
+plot(sap_qm["2017"])
+lines(sap_ql["2017"],col=2)
+```
+
+```{r xts-hint-4}
+getSymbols(Symbols= "SAP",src="yahoo")
+sap_qm <- SAP.DE$SAP.DE.Close
+Quandl("FSE/SAP_X",type="xts")
+sap_ql <- sap_ql$Close
+plot(sap_qm["2017"])
+lines(sap_ql["2017"],col=2)
+max((sap_qm["2017"]-sap_ql["2017"])/sap_ql["2017"])
+```
+
+```{r xts-solution}
+getSymbols(Symbols= "SAP",src="yahoo")
+sap_qm <- SAP.DE$SAP.DE.Close
+sap_ql <- Quandl("FSE/SAP_X",type="xts")
+sap_ql <- sap_ql$Close
+plot(sap_qm["2017"])
+lines(sap_ql["2017"],col=2)
+max((sap_qm["2017"]-sap_ql["2017"])/sap_ql["2017"])
+# Die Unterschiede betragen maximal 0,2 Prozent. 
+plot((sap_qm["2017"]-sap_ql["2017"])/sap_ql["2017"])
+# Die Unterschiede treten nur an wenigen Tagen auf
+# Sie resultieren vermutlich aus unterschiedlichen Datenquellen bzw. Handelsplätzen: NYSE für qm und FSE für ql
+
+```
+
+
+### Definition ARMA und ARIMA Prozesse
+Autoregressive Prozesse und Moving Average Prozesse lassen sich kombinieren. Dabei werden mittels des autoregressiven Anteils die Werte vorangehender Zeitschritte summiert und mittels des Moving Average Anteils ein gleitender Durchschnitt aus den Zufallswerten vorangehender Zeitschritte hinzugefügt. 
+
+Die Zeithorizonte für den autoregressiven Anteil ($p$) und den Moving Average Anteil ($q$) können unabhängig voneinander gewählt werden. 
+
+Es ergibt sich ein ARMA(p,q)-Prozess
+
+$$X_t = \sum_{k=1}^p \phi_k X_{t-k} + W_t + \sum_{k=1}^q \theta_k W_{t-k}$$
+
+Dabei sind
+
+ - $\phi_k$ die Gewichtungsfaktor für die zurückliegenden Zeitschritte im autoregressiven Anteil
+ - $(W_t)$ normalverteilte Zufallswerte mit Erwartungswert bzw. Mittelwert Null und Varianz $\sigma^2$
+ - $\theta_k$ der Gewichtungsfaktor für die zurückliegenden Zeitschritte im Moving Average Anteil
+ 
+ 
+Wird mit dem ARMA(p,q) Modell nicht der Prozess selber beschrieben, sondern stattdessen der Differenzenprozess $\Delta X_t = X_t - X_{t-1}$, so spricht man von einem integrierten ARMA-Prozess, kurz ARIMA(p,1,q)-Prozess.
+
+Wiederholt man die Differenzbildung $d$ mal - man betrachtet also die Änderung der Änderung der .... Änderung (d-mal) - so spricht man von einem ARIMA(p,d,q) Prozess.
+
+
+
+## ARIMA - Modelle manuell bestimmen
+
+### ARIMA Modell von Aktienkursen
+
+Wir verwenden die Aktienkursdaten für SAP der Frankfurter Börse für das Jahr 2017 bezogen über Quandl - siehe vorangehende Übung. Diese lesen wir wie folgt ein:
+
+
+```{r }
+sap_ql <- Quandl("FSE/SAP_X",type="xts")
+sap_ql <- sap_ql$Close
+sap_ql_2017 <- sap_ql["2017"]
+
+```
+
+
+### Die Funktion `arima()`
+
+Die Funktion `arima()` aus der Basisfunktionalität von R ermöglicht es, automatisch ein ARIMA Modell an eine Zeitreihe anzupassen. Notwendige Argumente der Funktion sind:
+
+* `x = ` die Zeitreihendaten vom Datentyp `ts`oder `xts`
+* `order = ` ein Vektor der Länge drei mit den Meta-Parametern $(p,d,q)$ des ARIMA-$(p,d,q)$  Modells
+
+Darüber hinaus lassen sich noch weitere Parameter festlegen z.B.
+
+* `include.mean = ` soll ein konstanter Term für den Mittelwert der Zeitreihe einbezogen werden (Standard `TRUE`)
+* `seasonal = `  eine Liste zur Spezifikation von saisonalen Komponenten als ARIMA-Modell mit `order = ` Vektor der Meta-Parameter (s.o.) und `period = ` Angabe der Periodizität der saisonalen Komponenten (z.B. 12 für Monatsdaten) - siehe folgender Exkurs
+
+
+In der ersten Analyse bschränken wir uns auf ein Modell ohne saisonale Komponenten. 
+
+### Bestimmen der Meta-Parameter mittels Box-Jenkins
+
+#### Meta-Parameter d
+
+Um den Meta-Parameter $d$ zu bestimmen, prüfen wir, ob ein Trend vorliegt, graphisch und mit Hilfe einer linearen Regression:
+
+```{r }
+plot(sap_ql_2017)
+sap_ql_2017_data <- data.frame("Close" = sap_ql_2017$Close,"t"=time(sap_ql_2017))
+sap_ql_2017_lm <- lm(formula = Close ~ t, data = sap_ql_2017_data)
+summary(sap_ql_2017_lm)
+
+```
+
+Sowohl die graphische Analyse, als auch das lineare Regressionsmodell zeigen einen Trend. Durchschnittlich steigt der Aktienkurs dabei um $0,027$ Punkte pro Tag. Der Achsenabschnitt ist eine rechnerische Größe und lässt sich hier nicht sinnvoll interpretieren (da SAP im Jahre Null noch nicht existierte).
+
+Aufgrund des Trends in der Zeitreihe bilden wir für die ARIMA-Modellierung die Differenzzeitreihe und wiederholen die Analyse.
+
+
+```{r }
+sap_ql_2017_d <- diff(sap_ql_2017)
+plot(sap_ql_2017_d)
+sap_ql_2017_data_d <- data.frame("Close" = sap_ql_2017_d$Close,"t"=time(sap_ql_2017_d))
+sap_ql_2017_lm_d <- lm(formula = Close ~ t, data = sap_ql_2017_data_d)
+summary(sap_ql_2017_lm_d)
+
+```
+
+Für die Diffenzzeitreihe zeigt sich kein Trend mehr. Graphisch ist kein Anstieg oder Abfall ersichtlich und der Steigungsparameter des linearen Modell ist nahe Null (Formal korrekter: Der t-Test des Koeffizienten ergibt mit p=.369 keine signifikante Abweichung). Damit erhalten wir den ersten Meta-Parameter $d=1$.
+
+
+
+#### Meta-Parameter p, q
+
+Um die Meta-Parameter p und q zu bestimmen, gehen wir nach der Box-Jenkins Methode vor. Wir betrachten dafür zunächst die empirische Autokorrelationsfunktion und die empirische partielle Autokorrelationsfunktion.
+
+**Wichtig: Da wir in der vorangegangenen Analyse einen Trend festgestellt haben, bilden wir zunöchst die Differenzzeitreihe und führen die Analysen dann auf der Differenzzeitreihe durch*
+
+Da der direkte Aufruf aufgrund fehlender Werte in der Zeitreihe mit einer Fehlermeldung abbricht, entfernen wir fehlende Werte mit der Funktion `na.omit()`bevor wir die Funktionen `acf()` und `pacf()`aufrufen.
+
+
+```{r }
+acf(na.omit(sap_ql_2017_d))
+pacf(na.omit(sap_ql_2017_d))
+
+```
+
+Die graphische Analyse ergibt:
+
+* Weder die Autokorrelationsfunktion noch die partielle Autokorrelationsfunktion sind exponentiell abfallend oder zeigen periodische Schwankungen. 
+* Die Autokorrelationsfunktion zeigt lediglich bei Lags von 13 und 19 erhöhte Werte an. (Formal korrekt: die Autokorrelationskoeffizienten liegen am oder über dem Sginifikanzniveau - blaue gestrichelte Linie)
+* Die partielle Autokorrelation zeigt bei einem Lag von 9 deutliche und bei Lags von 13, 14 und 19 etwas erhöhte Werte an. (Formal korrekt: die partiellen Autokorrelationskoeffizienten liegen am oder über dem Sginifikanzniveau - blaue gestrichelte Linie).
+
+Diese Analyse zeigt weder einen AR noch einen MA Anteil klar an: 
+
+* Für ein AR(p) Modell erwarten wir eine exponentielle abfallende (oder periodisch schwankende) ACF und einen Spitzenwert im p-ten Koeffizienten der partiellen Autokorrelationsfunktion aber keinen für größere Koeffizienten.
+* Für ein MA(q) Modell erwarten wir eine exponentiell abfallende (oder periodisch schwankende) pACF und einen Spitzenwert im q-ten Koeffizienten der Autokorrelationsfunktion aber keinen für größere Koeffizienten.
+
+
+Für eine erste Analyse (und zu Demonstrationszwecken) ignorieren wir diese Analyse ein wenig und analysieren nichtsdestotrotz auch etwas komplexere AR Modelle.
+
+* Wir setzen den MA Metaparameter auf $q=0$.
+* Für den AR Metaparameter $p$ betrachten wir auch Werte ungleich Null.
+
+
+### Schätzen der Parameter und Vergleich der Modellgüte mittels AIC
+
+Für die gegebenen Modellparameter $p,d,q$ schätzen wir nun die ARIMA Modelle.
+
+**Wichtig: Da die `arima()` Funktion nun die Differenzzeitreihe für uns berechnet müssen wir als Datensatz wieder die Ausgangszeitreihe ohne Differenzen übergeben** 
+
+
+```{r }
+sap_ql_2017_arima010 <- arima(sap_ql_2017, order=c(0,1,0)) # Einfache Differenzzeitreihe als Basismodell
+sap_ql_2017_arima010
+sap_ql_2017_arima110 <- arima(sap_ql_2017, order=c(1,1,0)) # Einfaches AR(1) Modell der Differenzzeitreihe
+sap_ql_2017_arima110
+sap_ql_2017_arima910 <- arima(sap_ql_2017, order=c(9,1,0)) # Großes AR(9) Modell der Differenzzeitreihe entsprechend PACF Analyse
+sap_ql_2017_arima910
+
+```
+
+Bei der Interpretation der Modelle zeigt sich folgendes:
+
+* Die Varianz des Zufallsterms Parameter `sigma^2` bleibt in etwa gleich. Das ist kein gutes Zeichen, da es bedeutet, das die zusätzlichen Modellterme nur wenig geeignet sind, das zufällige Rauschen zu verringern.
+* Die Koeffizienten für die AR-Terme sind alle nahe Null. Das bedeutet, dass sie keinen deutlichen Einfluss haben.
+* Die Modellgüte - gemessen am AIC - steigt mit zunehmender Modellkomplexität leicht an. 
+
+Diese Analyse ist nur im negativen Sinne eine Bestätigung der Analyse nach der Box-Jenkins-Methode: Die Koeffizienten von ACF und pACF waren nur etwas über der Signifikanzgrenze, entsprechend sind die Koeffizienten der Modelle auch nahe Null. Zusammenfassend ergeben die komplexeren Modelle keine wesentlich bessere Vorhersage als das einfache Basismodell der Differenzzeitreihe als weißem Rauschen.
+
+Als Test lassen wir uns noch drei Modelle außerhalb unserer Erwartungshorizonts d.h. mit MA Komponente anzeigen:
+
+```{r }
+sap_ql_2017_arima011 <- arima(sap_ql_2017, order=c(0,1,1)) # Einfaches MA(1) Modell der Differenzzeitreihe
+sap_ql_2017_arima011
+sap_ql_2017_arima012 <- arima(sap_ql_2017, order=c(0,1,2)) #  MA(2) Modell der Differenzzeitreihe
+sap_ql_2017_arima012
+sap_ql_2017_arima111 <- arima(sap_ql_2017, order=c(1,1,1)) # ARMA(1,1) Modell der Differenzzeitreihe
+sap_ql_2017_arima111
+
+```
+
+Das Ergebnis bestätigt die bisherigen Analysen. Denn es zeigt sich, dass 
+
+* das einfache MA(1) Modell schlechter ist als das Nullmodel, in etwa gleich gut wie das AR(1) Modell und besser als das AR(9) Modell
+* das einfache MA(1) Modell durch Hinzufügen eines AR Terms oder eines weiteren MA Terms nicht verbessert wird und
+* der MA Koeffizient im MA(1) Modell nahe bei der Null liegt
+
+Insgesamt ist das Ergebnis dieser ersten Analyse  etwas ernüchternd: Die Schlusskurse der SAP Aktie lassen sich mit komplexen ARIMA-Modellen nicht besser vorhersagen als mit einem sehr einfachen Modell:
+
+* Vortageswert plus 
+* langfristiger Trend von durchschnittlich 0,027 Punkten Zuwachs pro Tag plus
+* zufälliges weißes Rauschen.
+
+
+*Jetzt mal ehrlich: Haben Sie wirklich gedacht, dass das klappt und man mit einfachen Verfahren Aktienkursentwicklungen vorhersagen kann? Wenn das ginge, dann würde das doch jeder machen. Und wenn das jeder machen würde und dann entsprechend Aktien kauft und verkauft, dann wäre die Vorhersage sehr schnell in den Aktienkursen eingepreist. Und übrig bleiben würde dann nur noch? Zufälliges Rauschen. Und so schließt sich der Kreis. Ob das daran liegt, dass man Aktienkurse grundsätzlich nicht vorhersagen kann oder daran, dass ständig sehr viele Leute die Aktienkurse perfekt vorhersagen und das alle dann gleichzeitig versuchen, die Vorhersage im Handel umzusetzen, das kann man im Nachhinein nicht sagen. Das ist das Paradox des freien Marktes bzw. selbstbezogener Systeme. Und das zu ergründen, übersteigt die Inhalte dieses Kurses bei Weitem.*
+
+
+### Übungsaufgabe Box-Jenkins Methode
+
+Zum Schluss dieses Abschnitts noch eine kleine Aufmunterung - wenn Sie jetzt frustriert sind und sich fragen, wozu Sie das denn jetzt lernen, wenn Sie damit doch keine Aktienkurse vorhersagen können: Probieren Sie mal andere Daten z.B. volkswirtschaftliche Daten  - da können Sie mit den Modellen tatsächlich einiges an Rauschen erklären.
+
+Und das ist dann auch Thema der Übungsaufgabe:
+
+* Laden Sie über Quandl die Zeitreihendaten für den Consumer Sentiment Index der Universität Michigan herunter
+* Konvertieren Sie die Daten ggf. ins `xts` Format
+* Geben Sie die Daten graphisch aus
+* Analysieren Sie die Daten graphisch: Gibt es einen Trend, gibt es saisonale Muster?
+* Wenden Sie die Box-Jenkins-Methode an:
+  + Bilden Sie so lange die Differenzzeitreihe, bis es keinen Trend mehr gibt und bestimmen Sie so d
+  + Ermitteln Sie q mit Hilfe der empirischen Autokollerationsfunktion
+  + Ermitteln Sie p mit Hilfe der empirischen, partiellen Autokollerationsfunktion
+* Passen Sie mit der Funktion `arima()` ein ARIMA-Modell mit den oben identifizierten Metaparametern und ohne saisonale Komponenten an
+* Interpretieren Sie die erhaltenen Modellkoeffizienten
+
+
+
+```{r bj-arima, exercise=TRUE, exercise.lines = 20}
+
+
+```
+
+```{r bj-arima-hint-1}
+data <- Quandl("UMICH/SOC1",type="xts")
+
+```
+
+```{r bj-arima-hint-2}
+data <- Quandl("UMICH/SOC1",type="xts")
+plot(data)
+
+```
+
+
+```{r bj-arima-hint-3}
+data <- Quandl("UMICH/SOC1",type="xts")
+plot(data)
+data_data <- data.frame("Data" = data,"t"=time(data))
+data_lm <- lm(formula = Data ~ t, data = data_data)
+summary(data_lm)
+```
+
+
+```{r bj-arima-hint-4}
+data <- Quandl("UMICH/SOC1",type="xts")
+plot(data)
+data_data <- data.frame("Data" = data,"t"=time(data))
+data_lm <- lm(formula = Data ~ t, data = data_data)
+summary(data_lm)  #Trendkomponente nahe Null und nicht signifikant
+acf(data) 
+pacf(data)
+```
+
+
+
+```{r bj-arima-hint-5}
+data <- Quandl("UMICH/SOC1",type="xts")
+plot(data)
+data_data <- data.frame("Data" = data,"t"=time(data))
+data_lm <- lm(formula = Data ~ t, data = data_data)
+summary(data_lm)  #Trendkomponente nahe Null und nicht signifikant
+acf(data)  #exponentieller Abfall über alle Koeffizienten
+pacf(data) #Spitze für den ersten Wert, danach keine wesentlichen part. Autokorrelationen
+data_order <- c(1,0,0)
+```
+
+
+```{r bj-arima-solution}
+data <- Quandl("UMICH/SOC1",type="xts")
+plot(data)
+data_data <- data.frame("Data" = data,"t"=time(data))
+data_lm <- lm(formula = Data ~ t, data = data_data)
+summary(data_lm) #Trendkomponente nahe Null und nicht signifikant
+acf(data) #exponentieller Abfall über alle Koeffizienten
+pacf(data) #Spitze für den ersten Wert, danach keine wesentlichen part. Autokorrelationen
+data_order <- c(1,0,0)
+data_arima <- arima(data,order=data_order)
+data_arima
+```
+
+## ARIMA Modelle automatisch bestimmen
+
+
+### Die Funktion `auto.arima()`
+
+
+Die Funktion `auto.arima()` aus dem Paket `forecast` erlaubt es, automatisch Meta-Parameter und Parameter eines ARIMA Modell anzupassen. Das einzige notwendige Argumente der Funktion ist:
+
+* `y = ` die Zeitreihendaten vom Datentyp `ts`oder `xts`
+
+Darüber hinaus lassen sich noch weitere Parameter festlegen z.B.
+
+* `d = ` Wert für den Meta-Parameter $d$ des ARIMA-$(p,d,q)$  Modells - kann auch weggelassen werden
+* `max.d`, `max.p`, `max.q` Obergrenzen für die Meta-Parameter $(p,d,q)$ des ARIMA-$(p,d,q)$  Modells - Standardmäßig $(5,2,5)$
+* `start.p`, `start.q` Startwerte für die iterative Suche der Meta-Parameter $(p,q)$ des ARIMA-$(p,d,q)$  Modells - Standardmäßig $(2,2)$
+* `seasonal = `  Angabe ob  saisonale Komponenten geschätzt werden sollen (siehe nachfolgender Exkurs)
+* `ic = ` Wahl des Gütekriteriums - Standardmäßig gilt `aicc`, d.h. ein angepasstes AIC
+
+
+In der ersten Analyse bschränken wir uns auf ein Modell ohne saisonale Komponenten, d.h. `seasonal = F`. 
+
+
+
+### Schätzen der Modellparameter mit `auto.arima()`
+
+Wir bestimmen die besten Modellparameter nun automatisch, einmal mit fester Differenzierungsordnung $d=1$ und einmal mit automatischer Bestimmung der Differenzierungsordnung.
+
+Wichtig: Auch hier verwenden wir wieder die Orginalzeitreihe.
+
+```{r }
+library(forecast)
+sap_ql_2017_arima_auto1 <- auto.arima(sap_ql_2017, d=1, seasonal = F, stepwise =F) # ARIMA(p,1,q) Modell
+sap_ql_2017_arima_auto1
+sap_ql_2017_arima_auto <- auto.arima(sap_ql_2017, seasonal = F, stepwise =F) # ARIMA(p,d,q) Modell
+sap_ql_2017_arima_auto
+
+```
+
+Das Ergebnis der automatischen Modellanpassung bestätigt (*leider*) unsere obigen Analysen. Die beste Erklärung für die Aktienkursdaten von SAP ist ein zufälliges Rauschen für die Kursänderungen.
+
+
+### Exkurs: Saisonale ARIMA-Modelle
+
+Die Erweiterung des ARIMA-Modells um saisonale Komponenten wird hier nicht weiter im Detail behandelt. 
+
+Zusammenfassend wird bei einem rein saisonalen ARIMA-Modelle ein Modell geschätzt, in dem die Zeitschritte der vorangehenden Werte stets um die Periodizität verschoben werden, d.h. für ein saisonales ARIMA(1,0,1) Modell mit Periodizität 12 - kurz $ARIMA(1,0,1)_{12}$ ergibt sich die Modellgleichung:
+
+$$X_t = \phi_1 X_{t-12} + W_t + \theta_1 W_{t-12}$$
+
+Neben reinen saisonalen ARIMA-Modellen lassen sich  auch kombinierte Modelle aufstellen. Man bezeichnet diese kurz als $ARIMA(p,d,q)x(P,D,Q)_s$ Modelle, wobei der erste Term die Spezifikation des nicht saisonalen Modellteils darstellt und der zweite Term den saisonalen Modellteil. Für ein $ARIMA(1,0,1)x(1,0,1)_{12}$ Modell ergibt sich die Modellgleichung:
+
+$$X_t = \phi_1 X_{t-1} + \Phi_1 X_{t-12} + W_t + \theta_1 W_{t-1} \Theta_1 W_{t-12}$$
+
+Wobei die kleinen Buchstaben $\phi$ und $\theta$ für die Parameter des nicht-saisonalen Modellteils und die großen Buchstaben $\Phi$ und $\Theta$ für den saisonalen Modellteil verwendet werden.
+
+Ohne große Erwartungen lassen wir nun bei der automatischen Modellwahl auch saisonale Faktoren zu. 
+
+```{r }
+auto.arima(sap_ql_2017, stepwise =F, seasonal = T) # ARIMA(p,d,q)x(P,D,Q) Modell
+
+```
+
+Und siehe da, die Möglichkeit von saisonalen Komponenten bleibt ungenutzt, da sie nicht zu einer Verbesserung des Modells führen würde.
+
+
+### Übungsaufgabe ARIMA mit `auto.arima()`
+
+Zum Schluss des Abschnitts noch eine kleine Aufmunterung - wenn Sie jetzt frustriert sind und sich fragen, wozu Sie das denn jetzt lernen, wenn Sie damit doch keine Aktienkurse vorhersagen können: Probieren Sie mal andere Daten z.B. volkswirtschaftliche Daten  - da können Sie mit den Modellen tatsächlich einiges an Rauschen erklären.
+
+Und das ist dann auch Thema der Übungsaufgabe:
+
+* Laden Sie über Quandl die Zeitreihendaten für den Consumer Sentiment Index der Universität Michigan herunter
+* Konvertieren Sie die Daten ggf. ins `xts` Format
+* Geben Sie die Daten graphisch aus
+* Analysieren Sie die Daten graphisch: Gibt es einen Trend, gibt es saisonale Muster?
+* Passen Sie mit der Funktion `auto.arima()` ein ARIMA-Modell ohne saisonale Komponenten an
+* Interpretieren Sie die erhaltenen Modellkoeffizienten
+* Vergleichen Sie die erhaltenen Modellkoeffizienten mit denen aus der manuellen Lösung mit Box-Jenkins Verfahren
+* Passen Sie mit der Funktion `auto.arima()` ein ARIMA-Modell mit saisonalen Komponenten an
+* Interpretieren Sie die erhaltenen Modellkoeffizienten und vergleichen Sie die Modelle
+
+
+```{r arima, exercise=TRUE, exercise.lines = 10}
+
+
+```
+
+```{r arima-hint-1}
+data <- Quandl("UMICH/SOC1",type="xts")
+plot(data)
+
+```
+
+```{r arima-solution}
+data <- Quandl("UMICH/SOC1",type="xts")
+plot(data)
+auto.arima(data, seasonal = F)
+auto.arima(data)
+
+```
+
+
+## ARIMA - Modelle zur Vorhersage und Simulation verwenden
+
+Ein bestehendes ARIMA Modell kann zur Simulation neuer Zeitreihendaten verwendet werden. Knüpft man in der Simulation direkt an die zum Schätzen des Modells verwendeten Zeitreihendaten an, ist jede Simulation eine mögliche zukünftige Weiterentwicklung. 
+
+Für die modellbasierte Prognose der Zeitreihendaten verwendet man in der Regel ausgehend von der letzten vorliegenden Beobachtung den erwarteten bzw. durchschnittlichen zukünftigen Verlauf als Zeitreihe - ein sogenannter Punktschätzer. Um die Unsicherheit in der Prognose zu charakterisieren, ergänzt man diese Prognose noch um sogenannte Konfidenzintervalle, die angeben in welchem Bereich sich ein festgelegter Anteil der möglichen Modellvorhersagen befindet.
+
+### Simulation mit der Funktion `arima.sim()`
+
+Die Funktion `arima.sim()` erlaubt die Simulation von Zeitreihendaten auf Basis eines vorgegebenen ARMA-Modells. Die notwendigen Argumente der Funktion sind:
+
+* `model = ` die Spezifikation des ARMA Modell als Liste mit den Elementen `ar = ` für den AR Teil und `ma = ` für den MA Teil
+* `n = ` Länge der simulierten Zeitreihe 
+
+Dazu ermöglichen weitere Argumente eine weitere Anpassung:
+
+* `rand.gen = ` Zufallsverteilung des Innovationsprozesses bzw. der Zufallskomponente $W_t$ - Standard ist `rnorm` für die Standardnormalverteilung
+* `innov = ` numerischer Vektor mit konkreten Vorgaben der Werte des Innovationsprozesses bzw. der Zufallskomponente $W-t$ 
+
+
+```{r }
+sim_arma <- arima.sim(model = list("ar"=c(.4,-.2),"ma"=c(.6,-.6)), n = 20)
+```
+
+Um aus den ARMA Daten eine ARIMA Zeitreihe zu erzeugen müssen Sie im Anschluss lediglich die Daten aufsummieren z.B. mit der Funktion `cumsum()`. 
+
+
+```{r }
+cumsum(sim_arma)
+```
+
+
+**Kleine Übungsaufgabe**
+
+Verwenden Sie die Funktion `arima.sim()` um selber die Beispielmodelle aus den Vorlesungsunterlagen (Videos und Foliensätze) zu simulieren. Tipp: Verwenden Sie dabei das Argument `innov =` um sicherzustellen, dass verschiedene Modelle denselben Innovationsprozess bzw. dieselbe Zufallskomponente verwenden.
+
+### Vorhersage mit der Funktion `predict()`
+
+Die Funktion `predict()` erlaubt die Vorhersage von Zeitreihendaten auf Basis eines vorgegebenen ARIMA-Modells und der zugrundeliegenden Zeitreihendaten. Die notwendigen Argumente der Funktion sind:
+
+* `object = ` die Spezifikation des ARIMA Modells und der Ausgangsdaten - das Ergebnis eines Aufrufs der Funktion `arima()` oder `auto.arima()` 
+* `n.ahead = ` Länge des Vorhersagezeitraums
+
+Dazu ermöglichen weitere Argumente eine weitere Anpassung:
+
+* `se.fit = ` Soll der Standardfehler des Mittelwerts ausgegeben werden?
+
+Wir verwenden für die Vorhersage das ARIMA(1,1,1)-Modell für den SAP-Kurs. Zusätzlich zu den vergangenen Daten geben wir nun eine Vorhersage für die nächsten 30 Tage an.
+
+Während die Vorhersage sehr leicht zu generieren ist, müssen wir ein paar Tricks verwenden, um Originaldaten und Vorhersage in denselben Plot zu bekommen:
+
+1. Umwandeln der Vorhersage in eine `xts` Zeitreihe und anpassen des Datums auf das letzte Datum der Originalzeitreihe plus die nächsten dreißig Tage
+2. Zusammenfassen der beiden Originalzeitreihen und der Vorhersage als mehrdimensionale `xts` Zeitreihe
+3. Plot der Originaldaten mit angepasstem Wertebereich
+4. Hinzufügen der Vorhersage als Linie
+
+```{r }
+sap_ql_2017_arima111_pred <- xts(
+  predict(sap_ql_2017_arima111,n.ahead = 30,se.fit=F),
+  last(time(sap_ql_2017))+(1:30))
+sap_ql_2017_arima111_join <- merge(sap_ql_2017, sap_ql_2017_arima111_pred)
+
+plot(sap_ql_2017_arima111_join["2017-11/",1], #Daten ab November 2017
+     main="SAP Aktienkurs und Modellvorhersage",
+     ylim=range(sap_ql_2017_arima111_join,na.rm=T), col=1)
+lines(sap_ql_2017_arima111_join[,2], col=2)
+
+
+```
+
+Die Vorhersage zeigt nur für die ersten Tage eine Veränderung und bleibt anschließend konstant. Dies war zu erwarten, da: 
+
+* Das ARIMA(1,1,1) Modell die Differenzzeitreihe als ARMA(1,1) Modell abbildet. 
+* Der Innovationsprozess bzw. die Zufallskomponente im ARMA(1,1) Modell für die Vorhersage des erwarteten bzw. durchschnittlichen Werts den Wert Null annimt.
+* Die durchschnittliche Veränderung im ARMA(1,1) Modell nur zu Beginn noch stärker von den vorangehenden Werten abhängt.
+
+Und sich so im Zeitverlauf die Änderungen relativ schnell an die erwartete Änderung von Null annähern. 
+
+### Übungsaufgabe ARIMA mit `auto.arima()`
+
+Wir setzen die vorangehende Übungsaufgabe fort mit der Zeitreihe des Consumer Sentiment Index der Universität Michigan und den von Ihnen ermittelten ARIMA Modell (nicht-saisonal und saisonal).
+
+
+* Erstellen Sie mit der Funktion `predict` eine Vorhersage der beiden Modelle für die kommenden 24 Monate
+* Stellen Sie Originaldaten ab dem Jahr 2010 und Vorhersagen der beiden Modelle graphisch dar
+* Interpretieren Sie die Vorhersagen mit Hilfe der Koeffizienten der beiden Modelle
+
+
+```{r predict, exercise=TRUE, exercise.lines = 20}
+data <- Quandl("UMICH/SOC1",type="xts")
+
+library(forecast) # Falls nötig das Paket forecast laden
+data_arima_ns <- auto.arima(data, seasonal = F)
+data_arima_s <- auto.arima(data)
+
+```
+
+```{r predict-hint-1}
+data <- Quandl("UMICH/SOC1",type="xts")
+
+library(forecast) # Falls nötig das Paket forecast laden
+data_arima_ns <- auto.arima(data, seasonal = F)
+data_arima_s <- auto.arima(data)
+
+data_arima_ns_pred <- xts(
+  predict(data_arima_ns,n.ahead=24,se.fit=F),
+  last(time(data))+(1:24)/12)
+
+```
+
+
+```{r predict-hint-2}
+data <- Quandl("UMICH/SOC1",type="xts")
+
+library(forecast) # Falls nötig das Paket forecast laden
+data_arima_ns <- auto.arima(data, seasonal = F)
+data_arima_s <- auto.arima(data)
+
+data_arima_ns_pred <- xts(
+  predict(data_arima_ns,n.ahead=24,se.fit=F),
+  last(time(data))+(1:24)/12)
+data_arima_s_pred <- xts(
+  predict(data_arima_s,n.ahead=24,se.fit=F),
+  last(time(data))+(1:24)/12)
+
+data_arima_join <- merge(data,data_arima_ns_pred,data_arima_s_pred)
+
+```
+
+```{r predict-hint-3}
+data <- Quandl("UMICH/SOC1",type="xts")
+
+library(forecast) # Falls nötig das Paket forecast laden
+data_arima_ns <- auto.arima(data, seasonal = F)
+data_arima_s <- auto.arima(data)
+
+data_arima_ns_pred <- xts(
+  predict(data_arima_ns,n.ahead=24,se.fit=F),
+  last(time(data))+(1:24)/12)
+data_arima_s_pred <- xts(
+  predict(data_arima_s,n.ahead=24,se.fit=F),
+  last(time(data))+(1:24)/12)
+
+data_arima_join <- merge(data,data_arima_ns_pred,data_arima_s_pred)
+
+plot(data_arima_join['2010-01/',1],  #Daten ab 2010
+     main="CSI und Modellvorhersagen",
+     ylim=range(data_arima_join,na.rm=T), col=1)
+```
+
+```{r predict-solution}
+data <- Quandl("UMICH/SOC1",type="xts")
+
+library(forecast) # Falls nötig das Paket forecast laden
+data_arima_ns <- auto.arima(data, seasonal = F)
+data_arima_s <- auto.arima(data)
+
+data_arima_ns_pred <- xts(
+  predict(data_arima_ns,n.ahead=24,se.fit=F),
+  last(time(data))+(1:24)/12)
+data_arima_s_pred <- xts(
+  predict(data_arima_s,n.ahead=24,se.fit=F),
+  last(time(data))+(1:24)/12)
+
+data_arima_join <- merge(data,data_arima_ns_pred,data_arima_s_pred)
+
+plot(data_arima_join['2010-01/',1],  #Daten ab 2010
+     main="CSI und Modellvorhersagen",
+     ylim=range(data_arima_join,na.rm=T), col=1)
+lines(data_arima_join[,2], col=2)
+lines(data_arima_join[,3], col=3)
+addLegend("bottom",legend.names = c("CSI","ARIMA","ARIMAs"),col=1:3,lty=1) #addLegend() statt legend() nötig, da xts Zeitreihe
+
+```
+
+
+
+
+
+## Quiz
+Ein paar Fragen, um das Verständnis der Lehrinhalte zu überprüfen.
+
+```{r quiz, echo = FALSE} 
+
+quiz(
+  question("Welche EInschränkungen gelten an die Box-Jenkins Methode?",
+    answer("Sie basiert auf der empirischen, partiellen Autokorrelationsfunktion.", correct = TRUE),
+    answer("Sie liefert nur für große p und q gute Ergebnisse."),
+    answer("Sie liefert nur für kleine p und q gute Ergebnisse.", correct = TRUE),
+    answer("Sie basiert auf der Autokorrelationsfunktion.", correct = TRUE)
+  ),
+  question("Was ist der Unterschied zwischen einem ARIMA(1,1,1) und einem ARIMA(1,0,1) Modell?",
+    answer("Das ARIMA(1,1,1) Modell passt ein ARIMA(1,0,1) Modell an die Differenzzeitreihe an.", correct = TRUE),
+    answer("Das ARMIMA(1,0,1) Modell ist die Differenzzeitreihe des ARIMA(1,1,1) Modells"),
+    answer("Das ARMIA(1,0,1) Modell wird mit der Funktion `arima0()` geschätzt, das ARIMA(1,1,1) Modell mit der Funktion `auto.arima()`"),
+    answer("Das ARIMA(1,0,1) Modell verwendet einen linearen Trend, das ARIMA(1,1,1) Modell dagegen die exponentielle Glättung erster Ordnung.")
+  ),
+   question("Durch welches Argument übergibt man der Funktion `arima()` die Meta-parameter q,d,p?",
+    answer("order", correct = TRUE),
+    answer("pars"),
+    answer("x"),
+    answer("method")
+  )
+)
+```
+
