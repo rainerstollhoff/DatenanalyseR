@@ -1,2 +1,2 @@
 libgsl-dev
-libglpk
+glpk-utils
