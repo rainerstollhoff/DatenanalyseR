@@ -64,10 +64,12 @@ library("tidyverse")
 
 Die Bibliotheken des `tidyverse` wurde von Hadley Wickham und einem Autorenkollektiv entwickelt. Mehr Informationen finden sich auf der [englischsprachigen Seite des Projekts](https://www.tidyverse.org/).
 
-Eine Übersicht über die in `readr` implementierten Funktionen findet sich auch in dem [data-import-cheatsheet](./www/data-import.pdf).
+Eine Übersicht über die in `readr` implementierten Funktionen findet sich auch in diesem [data-import-cheatsheet ](./www/data-import.pdf).
 
 
 Eine Übersicht über die in `dplyr` implementierten Funktionen findet sich auch in dem [data-transformation-cheatsheet](./data-transformation.pdf).
+
+Aktualisierte Versionen finden sich unter: [Posit Cheatsheets](https://posit.co/resources/cheatsheets/?type=posit-cheatsheets&_page=1/)
 
 ### Verwendete Datensätze
 
