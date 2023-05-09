@@ -1,0 +1,525 @@
+---
+title: "GARCH und ARMA-GARCH Modelle mit R"
+output: learnr::tutorial
+runtime: shiny_prerendered
+author: Rainer Stollhoff
+description: "Eine interaktive Einführung in GARCH und kombinierte ARMA-GARCH Modelle in R - Maximum-Likelihood-Estimation, Simulation und Prognosen"
+
+# GARCH und ARMA-GARCH Modelle mit R © 2021 by Rainer Stollhoff is licensed under CC BY-SA 4.0. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/
+---
+
+ <p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="https://git.th-wildau.de/r3/GARCH_R">GARCH und ARMA-GARCH Modelle mit R"</a> by <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://www.th-wildau.de/rainer-stollhoff/">Rainer Stollhoff</a> is licensed under <a href="http://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY-SA 4.0<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1"></a></p> 
+
+```{r setup, include=FALSE}
+library(learnr)
+knitr::opts_chunk$set(warning = FALSE, echo = TRUE)
+library(xts)
+library(Quandl)
+library(quantmod)
+
+
+## Sucht nach einem Quandl API key und gibt einen Warnhinweis, falls dieser fehlt.
+if(length(Quandl.api_key())!=1){
+Qkey.current <- file.exists("./Quandl_key.txt")
+Qkey.parent <- file.exists("../Quandl_key.txt")
+if(Qkey.current|Qkey.parent){
+  if(Qkey.current){
+      Quandl.api_key(readChar(file("./Quandl_key.txt"),nchars = 30))
+  }else{
+      Quandl.api_key(readChar(file("../Quandl_key.txt"),nchars = 30))
+  }
+}else{
+  warning("Teile des Tutoriums benötigen den Zugriff auf Quandl.com. Bitte speichern Sie einen gültigen Quandl API Key in einer Datei Quandl_key.txt im R-Arbeitsverzeichnis ab, damit dieser automatisch eingelesen werden kann.")
+}
+}
+
+```
+
+## Wiederholung
+
+### Initialisierung Datenquellen
+
+Wir werden Datensätze mit den Paketen `Quandl` und `quantmod`  als `xts()` Zeitreihe in R importieren. Dazu müssen die entsprechenden Pakete geladen werden.
+
+```{r, echo = FALSE}
+library(xts)
+library(Quandl)
+library(quantmod)
+```
+
+Für die Nutzung von `quandl.com` über die API ist eine Registrierung notwendig. Mit der Registrierung erhält man einen Zugriffscode , den sogenannten API-key, den man anschließend in R mit der Funktion `Quandl.api-key()` festlegt. In diesem interaktiven Tutorial ist mein persönlicher API key hinterlegt - bitte gehen Sie daher verantwortungsvoll mit den Datenabrufen von Quandl um.Für die Nutzung in Ihrer eigenen R-Installation benötigen Sie einen eigenen API key.
+
+
+  
+### Definition GARCH Prozess
+
+
+Ein generalisierter Auto-Regressiver Prozess mit bedingter Heteroskedastizität (Auto-Regressive Conditional Heteroscedaticity - GARCH) von der Ordnung $(p,q)$ ergibt sich als Produkt eines Zufallswerts $W_t$  (sog. Innovationsprozess) und einer schrittweise fortgeschriebenen Volatilität $\sigma_t$ sog. Volatilitätsprozess:
+
+$$X_t = W_t \cdot \sigma_t$$
+
+Dabei sind
+
+ - $(W_t)$ (in der Regel) normalverteilte Zuwächse
+ - $\sigma_t$ ein stochastischer Prozess mit 
+  $$ \sigma_t^2 = \omega + \alpha_1 X_{t-1}^2 + \alpha_2 X_{t-2}^2 + \cdots + \alpha_p X_{t-p} + \beta_1 \sigma_{t-1}^2 + \beta_2 \sigma_{t-2}^2 + \cdots + \beta_q \sigma_{t-q}$$ 
+  mit $\omega > 0$, $\alpha_t,\beta_t \geq 0$
+  
+Siehe (Bollerslev,1986)[^2]
+
+[^2]: T. Bollerslev: Generalized Autoregressive Conditional Heteroskedasticity. In: Journal of Econometrics. Vol. 31, No. 3, 1986, S. 307–327
+
+## GARCH - Modelle automatisch bestimmen
+
+### GARCH Modelle von Aktienkursen
+
+Wir verwenden die Aktienkursdaten für SAP der Frankfurter Börse für das Jahr 2017 bezogen über Quandl. Diese lesen wir wie folgt ein:
+
+
+```{r }
+sap_ql <- Quandl("FSE/SAP_X",type="xts")
+sap_ql <- sap_ql$Close
+sap_ql_2017 <- sap_ql["2017"]
+
+```
+
+Das einfache GARCH-Modell lässt sich sinnvollerweise nur für Zeitreihen ohne Trendwachstum und mit Erwartungswert Null anwenden. Für den Einstieg bilden wir daher aus den Kursdaten die Differenzzeitreihe. Für die Modellierung schätzt das GARCH-Modell nun einen konstanten Mittelwert. Später werden wir noch kennenlernen, wie man in kombinierten ARMA-GARCH Modellen den Mittelwert auch mit Hilfe eines ARMA-Modells besser modellieren kann.
+
+
+```{r }
+sap_ql_2017d <- diff.xts(sap_ql["2017"],na.pad=F) #Das Setzen von na.pad verhindert das Auffuellen der Zeitreihe mit fehlenden Werten NAs
+
+```
+
+
+
+
+### Die Funktion `garchFit()` aus dem Paket `fGarch`
+
+In R gibt es verschiedene Pakete, um mit GARCH Modellen zu arbeiten. Wir verwenden das Paket `fGarch`.
+
+Die Funktion `garchFit()` aus dem Paket `fGarch` ermöglicht es, automatisch ein GARCH Modell an eine Zeitreihe anzupassen. Notwendige Argumente der Funktion sind:
+
+* `formula = ` die Spezifikation des Modells. Für einfache GARCH Modelle ein Ausdruck der Form `~ garch(p,q)` wobei p und q die Metaparameter für den AR-ähnlichen Teil bzw. den MA-ähnlichen Teil des Modell sind.
+* `data = ` die Zeitreihendaten vom Datentyp `ts`oder `xts`
+
+Darüber hinaus lassen sich noch weitere Parameter festlegen z.B.
+
+* `cond.dist = ` Wahrscheinlichkeitsverteilung des Innovationsprozesses $W_t$ (Standard ist die Normalverteilung `norm`)
+* `include.mean = ` soll ein konstanter Term für den Mittelwert der Zeitreihe einbezogen werden (Standard `TRUE`)
+
+
+### Schätzen eines GARCH(1,0) Modells
+
+Wir wenden die Funktion `garchFit()` auf die Differenzzeitreihe der SAP-Aktienkurse des Jahres 2017 an, um die Modellparameter eines GARCH(1,o) Modells - entspricht ARCH(1) Modell -  zu schätzen. 
+
+
+```{r }
+#install.packages("fGarch")
+library(fGarch)
+sap_ql_2017d_garch10 <- garchFit(data = sap_ql_2017d, formula = ~ garch(1,0), trace =F) # der Parameter trace=F reduziert die Ausgabe
+sap_ql_2017d_garch10
+
+```
+
+Das Ergebnis der  Modellanpassung liefert ein GARCH(0,1) Modell. Die ermittelten Koeffizienten lassen sich wie folgt interpretieren:
+
+* `mu` : Der verbliebene Mittelwert $\mu$ der Zeitreihe - wird dem GARCH Modell additiv hinzugefügt $X_t+\mu$
+* `omega` : Die Untergrenze für die Varianz
+* `alpha1` : Der Einfluss der vorangehenden Beobachtung (quadratische Abweichung vom Mittelwert) auf die Varianz des nächsten Zeitschrittes
+
+In diesem Fall zeigt sich eine Untergrenze der Varianz größer Null (formal: signifikanter Unterschied mit $p<0.001$).
+Die anderen Parameter sind dagegen weniger relevant: Ein sehr kleiner verbliebener Mittelwert (formal: `mu`nicht signifikant unterschiedlich von Null) und ein vernachlässigbarer Einfluss vergangener Beobachtungen auf die Varianz (formal:  `alpha1` nicht signifikant unterschiedlich Null). 
+
+
+### Schätzen eines GARCH(0,1) Modells
+
+Obwohl die vorangehende Analyse keine AR-ähnliche Komponente mit signifikantem Einfluß gezeigt hat, untersuchen wir nun den Einfluss einer zusätzlichen MA-ähnlichen Komponente mittels GARCH(1,1)-Modell - primär zu Demonstrationszwecken.
+
+
+```{r }
+#install.packages("fGarch")
+sap_ql_2017d_garch11 <- garchFit(data = sap_ql_2017d, formula = ~ garch(1,1), trace =F) # der Parameter trace=F reduziert die Ausgabe
+sap_ql_2017d_garch11
+
+```
+
+Zusätzlich zu den oben bereits diskutierten Modellparametern wird nun zusätzlich noch ein weiterer Parameter geschätzt:
+
+* `beta1` : Koeffizient für den gleitenden Durchschnittswert der Varianz
+
+In diesem Fall zeigt sich, dass der vormals signifikante konstante Varianzterm `omega` nun an Bedeutung verloren hat. Wichtiger ist nun der gleitende Durchschnittswert, wonach rund 90% der Varianz von einem Zeitschritt an den nächsten weitergegeben werden. 
+
+Wichtig: Auch wenn die Koeffizienten für `omega` und `alpha1` sich statistisch nicht signifikant von Null unterscheiden, so spielen Sie im Modell dennoch eine Rolle. Dies erkennt man bei einem Blick auf die Modellformel der Varianz:
+
+$$ \sigma_t^2 = \omega + \alpha_1 X_{t-1}^2 +\beta_1 \sigma_{t-1}^2$$ 
+Wie bereits erläutert werden mit $\beta_1$ zwar rund 90% der Varianz des vorangehenden Zeitschritts übernommen. Ohne die zusätzlichen Terme $\omega$ und $\alpha_1 X_{t-1}^2$ würde die Varianz ausgehend von einem Startwert $\sigma_0$ dennoch exponentiell gegen Null gehen ($\sigma_t \approx \sigma_0 \cdot 0.9^t$). 
+
+###  Vergleich der Modelle
+
+Für einen graphischen Vergleich stellen wir die Differenzzeitreihe als Punkte sowie die Modellschätzer der Varianzen bzw. der Standardabweichungen $\sigma_t$ als Liniendiagramme dar.
+
+
+
+```{r }
+plot(sap_ql_2017d, main ="Vergleich der GARCH-Modelle", type="p")
+lines(xts(sap_ql_2017d_garch10@sigma.t,order.by=time(sap_ql_2017d)),col=2) #Aufgrund eines anderen Datentyps extrahiert man hier die Komponenten mit @ und nicht mit $
+lines(xts(sap_ql_2017d_garch11@sigma.t,order.by=time(sap_ql_2017d)),col=3) #Aufgrund eines anderen Datentyps extrahiert man hier die Komponenten mit @ und nicht mit $
+addLegend("bottomleft",legend.names = c("Delta-SAP","GARCH(1,0)","GARCH(1,1)"),col=1:3,lty=1) #addLegend() statt legend() nötig, da xts Zeitreihe
+
+```
+
+Der Vergleich der beiden Kurven zeigt, dass
+
+* die Varianz sich in beiden Modellen im Zeitverlauf ändert,
+* die Varianz stets oberhalb von ca. 0,5 liegt
+* Die Reaktion auf Änderungen im Innovationsprozess beim GARCH(1,0) Prozess schneller erfolgt als beim GARCH(1,1) Prozess, d.h. sie steigt schneller an, fällt aber auch schneller wieder ab
+
+Ergänzend betrachten wir noch die AIC der beiden Prozesse als zusammenfassendes Gütekriterium:
+
+```{r }
+sap_ql_2017d_garch10@fit$ics
+sap_ql_2017d_garch11@fit$ics
+
+```
+
+Hierbei zeigt sich nur ein sehr geringer Unterschied. Nach AIC wäre das GARCH(1,1) Modell geringfügig besser - niedrigere AIC. Beim Blick auf das BIC (bei der die Anzahl der Parameter stärker eingeht), wäre dagegen das einfachere GARCH(1,0) Modell besser.
+
+
+
+### Übungsaufgabe GARCH 
+
+Zum Schluss des Abschnitts noch eine Übungsaufgabe:
+
+* Laden Sie über Quandl die Zeitreihendaten für die Siemens AG herunter
+* Betrachten Sie die Kursveränderungen im Jahr 2020
+* Bestimmen Sie mit manueller, schrittweiser Selektion ein geeignetes GARCH(p,q) Modell:
+  + Schätzen Sie wiederholt GARCH(p,q) Modelle für unterschiedliche Meta-parameter (p,q) - Tipp: Fangen sie klein an.
+  + Lassen Sie sich die Güte der Modelle mittels AIC anzeigen
+  + Vergleichen Sie die AIC der erhaltenen Modelle und wählen das nach AIC beste aus
+* Stellen Sie die Differenzzeitreihe und die vom Modell geschätzte Varianzkomponente graphisch dar
+* Interpretieren Sie das erhaltene GARCH Modell
+
+
+```{r garch, exercise=TRUE, exercise.lines = 10}
+
+
+```
+
+```{r garch-hint-1}
+sie_ql <- Quandl("FSE/SIE_X",type="xts")
+sie_ql <- sie_ql$Close
+sie_ql_2020d <- diff.xts(sie_ql["2020"],na.pad=F)
+
+```
+
+
+
+```{r garch-hint-2}
+sie_ql <- Quandl("FSE/SIE_X",type="xts")
+sie_ql <- sie_ql$Close
+sie_ql_2020d <- diff.xts(sie_ql["2020"],na.pad=F)
+garchFit(data = sie_ql_2020d, formula = ~ garch(0,0), trace =F)@fit$ics 
+## Im obigen Befehlsaufruf die Meta-parameter verändern und das beste Modell (niedrigster Wert für AIC) finden
+```
+
+
+```{r garch-hint-3}
+sie_ql <- Quandl("FSE/SIE_X",type="xts")
+sie_ql <- sie_ql$Close
+sie_ql_2020d <- diff.xts(sie_ql["2020"],na.pad=F)
+#garchFit(data = sie_ql_2020d, formula = ~ garch(2,1), trace =F)@fit$ics
+sie_ql_2020d_garch <- garchFit(data = sie_ql_2020d, formula = ~ garch(2,1), trace =F)
+
+```
+
+
+```{r garch-hint-4}
+sie_ql <- Quandl("FSE/SIE_X",type="xts")
+sie_ql <- sie_ql$Close
+sie_ql_2020d <- diff.xts(sie_ql["2020"],na.pad=F)
+#garchFit(data = sie_ql_2020d, formula = ~ garch(2,1), trace =F)@fit$ics
+sie_ql_2020d_garch <- garchFit(data = sie_ql_2020d, formula = ~ garch(2,1), trace =F)
+sie_ql_2020d_garch
+plot(sie_ql_2020d, main ="Vergleich der GARCH-Modelle", type="p")
+lines(xts(sie_ql_2020d_garch@sigma.t,order.by=time(sie_ql_2020d)),col=2) 
+
+```
+
+
+```{r garch-solution}
+sie_ql <- Quandl("FSE/SIE_X",type="xts")
+sie_ql <- sie_ql$Close
+sie_ql_2020d <- diff.xts(sie_ql["2020"],na.pad=F)
+#garchFit(data = sie_ql_2020d, formula = ~ garch(2,1), trace =F)@fit$ics
+sie_ql_2020d_garch <- garchFit(data = sie_ql_2020d, formula = ~ garch(2,1), trace =F)
+sie_ql_2020d_garch 
+plot(sie_ql_2020d, main ="Vergleich der GARCH-Modelle", type="p",ylim=c(-12,10)) # ylim anpassen um alles zu sehen 
+lines(xts(sie_ql_2020d_garch@sigma.t,order.by=time(sie_ql_2020d)),col=2) 
+# Es zeigt sich eine stark erhöhte Volatilität zu Beginn der beiden Corona-Pandemiewellen, Erkennen Sie noch andere unruhige Zeiträume und können Sie diese zuordnen?
+```
+
+### Exkurs: Simulation von GARCH Modellen mit der Funktion `garchSim()`
+
+Die Funktion `garchSim()` erlaubt die Simulation von Zeitreihendaten auf Basis eines vorgegebenen GARCH-Modells. Die notwendigen Argumente der Funktion sind:
+
+* `spec = ` die Spezifikation des GARCH Modells als Ergebnis eines Funktionsaufrufs von `garchSpec()` 
+* `n = ` Länge der simulierten Zeitreihe - Standard ist 100
+
+Dazu ermöglichen weitere Argumente eine weitere Anpassung:
+
+* `n.start = ` Länge der Initialisierungsphase des Prozesses, sogenannte burn-in Phase
+
+Um die Funktion `garchSim()` zu verwenden, müssen wir also zunächst die Funktion `garchSpec()` aufrufen. Dieses Vorgehen wird übrigens gerne verwendet, da man so die Spezifikation als eigenes, standardisiertes Objekt ausgliedern kann.
+
+Die Funktion `garchSpec()` lässt insbesondere folgende Spezifikationen als Argumente zu:
+
+* `model = ` Eine Liste mit den GARCH Parametern:
+  + `omega`, `alpha` und `beta` für die GARCH Koeffizientenvektoren.
+* `cond.dist = ` Wahrscheinlichkeitsverteilung des Innovationsprozesses $W_t$ (Standard ist die Normalverteilung `norm`)
+* `rseed = ` Zahl zur Initialisierung des Zufallszahlengenerators. Setzt man hier immer dieselbe Zahl ein, so ergeben sich stets dieselben Zufallskomponenten.
+
+Wir simulieren im folgenden einen GARCH(1,2) Prozess und stellen das Ergebnis graphisch dar. 
+
+```{r }
+spec_garch <- garchSpec(model = list("omega"=c(.4),"alpha"=c(.1),"beta" = c(.3,.2)))
+sim_garch <- garchSim(spec_garch, n = 100)
+plot(sim_garch,type="p")
+```
+
+**Kleine Übungsaufgabe**
+
+Verwenden Sie die Funktionen `garchSpec()` und `garchSim()` um selber die Beispielmodelle aus den Vorlesungsunterlagen (Videos und Foliensätze) zu simulieren. Tipp: Verwenden Sie dabei das Argument `rseed =` um sicherzustellen, dass verschiedene Modelle denselben Innovationsprozess bzw. dieselbe Zufallskomponente verwenden.
+
+
+## Kombinierte ARMA-GARCH - Modelle 
+
+### Modellgleichungen der kombinierten Modelle
+
+Das klassische GARCH Modell beschränkt sich auf die Modellierung einer zeitabhängigen Varianz des Prozesses. Der Mittelwert ist dabei Null. 
+$$X_t = W_t \cdot \sigma_t $$
+
+Eine einfache Erweiterung besteht in dem Hinzufügen eines konstanten Terms $\mu$ (siehe oben)
+
+$$X_t =\mu + W_t \cdot \sigma_t $$
+
+Im Gegensatz zu GARCH Modellen unterstellen ARMA Modelle eine über die Zeit hinweg konstante Varianz und modellieren zeitabhängige Mittelwerte:
+
+$$X_t = \sum_{k=1}^p \phi_k X_{t-k} + W_t + \sum_{k=1}^q \theta_k W_{t-k}$$
+
+Die Varianz ergibt sich dabei direkt aus der Varianz der Zufallskomponenten $W_t,W_{t-1},\ldots$, welche als konstant angenommen wird: $Var(W_t) = \sigma^2$.
+
+Beide Modelle lassen sich auch als ARMA-GARCH Modell kombinieren:
+
+* das ARMA Modell beschreibt die Entwicklung des Mittelwerts
+* das GARCH Modell beschreibt die Entwicklung der Varianz
+
+Die kombinierten Modellformeln ergeben dann:
+
+$$X_t = \mu + \sum_{k=1}^p \phi_k X_{t-k} + W_t\cdot \sigma_t + \sum_{k=1}^q \theta_k W_{t-k}\cdot \sigma_{t-k} $$
+mit
+
+$$ \sigma_t^2 = \omega + \alpha_1 X_{t-1}^2 + \alpha_2 X_{t-2}^2 + \cdots + \alpha_p X_{t-p} + \beta_1 \sigma_{t-1}^2 + \beta_2 \sigma_{t-2}^2 + \cdots + \beta_q \sigma_{t-q}$$ 
+
+### Schätzen von kombinierten ARMA-GARCH-Modellen mit der Funktion `garchFit()`
+
+Die Funktion `garchFit()` aus dem Paket `fGarch` lässt sich auch verwenden, um kombinierte Modelle zu schätzen. Dies geschieht durch die Angabe eines ARMA Terms in der Modellformel im Argument `formula = `
+
+* für einfache GARCH Modelle ein Ausdruck der Form `~ garch(p_g,q_g)` wobei p und q die Metaparameter für den AR-ähnlichen Teil bzw. den MA-ähnlichen Teil des Modell sind
+* für kombinierte Modelle ein Ausdruck der Form `~ arma(p_a,q_a) + garch(p_g,q_g)` wobei p_a und q_a die Metaparemater für den AR Teil bzw. den MA Teil des ARMA Modells sind, p_g und q_g als Metaparemater für den AR-ähnlichen Teil bzw. den MA-ähnlichen Teil des GARCH Modell bestehen bleiben
+
+
+
+### Schätzen eines kombinierten ARIMA-GARCH Modells
+
+Wir wollen mit der Funktion `garchFit()`  ein kombiniertes ARMA-GARCH Modell bestimmen. Um aussagekräftige Ergebnisse  und komplexere Modelle zu bekommen, verwenden wir nun die Goldpreise der letzten zehn Jahre. Diese laden wir zunächst ein und verwenden  die Funktion `auto.arima()` aus dem Paket `forecast`, um die ARMA Meta-parameter zu bestimmen. Falls nötig bilden wir die Differenzzeitreihe manuell.
+Diese und die Metaparameter aus `auto.arima()` verwenden wir dann, um in Aufrufen der Funktion `garchFit()` die Meta-parameter des ARMA Teils festzulegen. Durch wiedrholte Aufrufe von `garchFit()` für verschiedene Metaparameter des GARCH-Prozesses selektieren wir manuell ein geeignetes Modell.
+
+
+```{r }
+#install.packages("forecast")
+library(forecast)
+gold <- Quandl("LBMA/GOLD",start_date="2010-01-01",type="xts")[,1] # Einschränkung auf USD Kurs am Vormittag
+auto.arima(gold,seasonal = F, stepwise =F) # Hier mit automatischer Bestimmung von d
+```
+
+Das Ergebnis des automatischen Auswahlprozesses ist ein ARIMA(2,1,2) Modell. Die Differenzierungsordnung haben wir hier automatisch bestimmt. Da $d>0$ bilden wir die erste Differenzzeitreihe und überprüfen:
+
+```{r }
+gold_d <- diff.xts(gold,na.pad = F)
+gold_d_arima <- auto.arima(gold_d, d=0,seasonal = F, stepwise =F)
+gold_d_arima
+```
+
+Wie erwartet ein (2,0,2) Modell. Wir verwenden nun die Metaparameter $p_a=2$ und $q_a=2$ für den ARMA-Teil.
+Wir probieren nun verschiedene Meta-Parameter für den GARCH Teil.
+
+
+```{r }
+garchFit(data = gold_d, formula = ~ arma(2,2) + garch(1,0), trace =F)@fit$ics
+garchFit(data = gold_d, formula = ~ arma(2,2) + garch(1,1), trace =F)@fit$ics
+garchFit(data = gold_d, formula = ~ arma(2,2) + garch(2,1), trace =F)@fit$ics
+garchFit(data = gold_d, formula = ~ arma(2,2) + garch(1,2), trace =F)@fit$ics
+garchFit(data = gold_d, formula = ~ arma(2,2) + garch(2,2), trace =F)@fit$ics
+
+```
+
+Unter den getesteten Modellen erscheint ein GARCH(1,1) Modell ausreichend - die AIC ist besser als beim GARCH(1,0) Modell und vergleichbar oder besser als bei komplexeren Modellen.
+
+### Interpretation eines kombinierten ARIMA-GARCH Modells
+
+Wir passen das Modell an, und analysieren es.
+
+```{r }
+gold_d_a202g11 <- garchFit(data = gold_d, formula = ~ arma(2,2) + garch(1,1), trace =F)
+gold_d_a202g11
+plot(gold_d, main ="Graphische Darstellung des ARMA(2,2)GARCH(1,1)-Modells", type="p")
+lines(xts(gold_d_a202g11@fitted,order.by=time(gold_d)),col=2)
+lines(xts(gold_d_a202g11@sigma.t,order.by=time(gold_d)),col=3)
+addLegend("bottomleft",legend.names = c("Delta-Gold","X_t","sigma_t"),col=1:3,lty=1) #addLegend() statt legend() nötig, da xts Zeitreihe
+
+```
+
+Das geschätzte Modell beinhaltet einen Mittelwert-ARMA-Prozess mit
+
+* kleiner Konstante mu,
+* kleiner gegenläufiger AR(1) Komponente und deutlicher verstärkender AR(2) Komponente und
+* kleiner verstärkender MA(1) Komponenete und deutlicher gegenläufiger MA(2) Komponente.
+
+Das bedeutet, dass die Kursänderungen sich im Mittelwert kurzfristig durch die AR Komponenten verstärken und von der Konstanten mu entfernen können, mittelfristig durch die MA Komponenten aber wieder dorthin zurückgebracht werden.
+
+Betrachtet man den GARCH Anteil mit
+
+* deutlichem konstanten Varianzanteil `omega`, 
+* kleinerem AR-ähnlichen Anteil `alpha` und 
+* deutlichem MA-ähnlichen Anteil `beta`.  
+
+so ergibt dies eine schwächere Reaktion auf kurzfristie Veränderungen im AR-ähnlichen Anteil und mittelfristig anhaltende Phasen erhöhter Varianz durch den deutlichen MA-ähnlichen Anteil.
+
+
+Die graphische Analyse des gesamten Zeitraums bestätigt dies und es lässt sich erkennen, dass 
+
+* der erwartete Prozess $X_t$ stets nahe bei Null verläuft - insbesondere im Vergleich zur großen Streuungsbreite der tatsächlichen Kursänderungen - und
+* es Perioden mit deutlich erhöhter Varianz gibt, z.B. zu Zeiten der Eurokrise 2011 oder im Corona-Jahr 2020
+
+Das Modell kann also die Phasen erhöhter Varianz gut erfassen, es gelingt aber nicht, die einzelnen Kursänderungen systematisch vorherzusagen.
+
+Wir schauen uns das Jahr 2020 noch etwas genauer an und ergänzen einen gleitenden Durchschnittswert:
+
+```{r }
+plot(gold_d["2020"], main ="Graphische Darstellung des ARMA(2,2)GARCH(1,1)-Modells", type="p")
+lines(xts(gold_d_a202g11@fitted,order.by=time(gold_d)),col=2)
+lines(xts(gold_d_a202g11@sigma.t,order.by=time(gold_d)),col=3)
+lines(xts(filter(gold_d["2020"],"convolution",sides=1,filter=rep(1/10,10)),order.by=time(gold_d["2020"])),col=4)
+addLegend("bottomleft",legend.names = c("Delta-Gold","X_t","sigma_t","gl.Durchschnitt"),col=1:3,lty=1) #addLegend() statt legend() nötig, da xts Zeitreihe
+
+```
+
+Es zeigt sich, dass insbesondere mit Beginn der ersten weltweiten Corona Welle im März 2020 die Varianz der Kursänderungen zunimmt. Parallel dazu nehmen die Schwankungen des erwarteten Wertes von $X_t$ zu, das Modell zeigt  aber zunächst keine offensichtliche stabile Verschiebung (z.B. als dauerhaft von Null verschiedene Mittelwerte). Im Gegensatz dazu lassen sich mit dem gleitenden Durchschnitt Perioden anhaltender Kurszuwächse (z.B. im April oder Juli) feststellen. 
+
+Der Vergleich der Modellbasierten Mittelwertvorhersage mit dem direkt anhand der Daten gewonnenen gleitenden Durchschnitt zeigt einerseits, dass das ARMA-GARCH-Modell zur Vorhersage von Regelmäßigkeiten in den Zeitreihendaten nur begrenzt geeignet ist. Andererseits ist der gleitende Durchschnitt aber auch kein geeigneter Vergleichsmaßstab für Prognosemodelle, da er in Kenntnis der tatsächlichen Daten rückwirkend ermittelt wurde. Damit bleibt offen, ob es entweder über das ARMA-GARCH-Modell hinaus bessere Verfahren gibt, um Kursänderungen des Goldpreises vorherzusagen, oder ob die Vorhersage der Kursänderungen des Goldpreises grundsätzlich nur schlecht möglich ist. 
+
+*Somit wären wir wieder - wie auch bei Aktienkursen - beim Paradox perfekter Märkte angelangt.*
+
+
+### Übungsaufgabe ARMA-GARCH 
+
+Zum Schluss des Abschnitts erneut eine kleine Aufmunterung. Wir verwenden wieder den Consumer Sentiment Index der Universität Michigan.
+
+Ihre Aufgabe:
+
+* Wiederholung der ARIMA Übungsaufgabe
+  + Laden Sie über Quandl die Zeitreihendaten für den Consumer Sentiment Index der Universität Michigan herunter
+  + Konvertieren Sie die Daten ggf. ins `xts` Format
+  + Geben Sie die Daten graphisch aus
+  + Passen Sie mit der Funktion `auto.arima()` ein ARIMA-Modell ohne saisonale Komponenten an
+* Schätzen und Analyse eines ARMA-GARCH Modells
+  + Verwenden Sie die mittels `auto.arima()` ermittelten Meta-Parameter für den ARMA Teil
+  + Selektieren Sie mittels AIC einen geeigneten GARCH Teil
+  + Interpretieren Sie die erhaltenen Modelle
+  + Stellen Sie die Ergebnisse graphisch dar
+
+```{r armagarch, exercise=TRUE, exercise.lines = 20}
+
+
+```
+
+```{r armagarch-hint-1}
+data <- Quandl("UMICH/SOC1",type="xts")
+plot(data)
+auto.arima(data, seasonal = F)
+
+```
+
+```{r armagarch-hint-2}
+data <- Quandl("UMICH/SOC1",type="xts")
+plot(data)
+auto.arima(data, seasonal = F)
+# garchFit(data = data, formula = ~ arma(4,1) + garch(1,0), trace =F)@fit$ics
+```
+
+
+```{r armagarch-hint-3}
+data <- Quandl("UMICH/SOC1",type="xts")
+plot(data)
+auto.arima(data, seasonal = F)
+# garchFit(data = data, formula = ~ arma(4,1) + garch(1,0), trace =F)@fit$ics
+data_a41_g11 <- garchFit(data = data, formula = ~ arma(4,1) + garch(1,1), trace =F)
+data_a41_g11
+```
+
+
+```{r armagarch-hint-4}
+data <- Quandl("UMICH/SOC1",type="xts")
+plot(data)
+auto.arima(data, seasonal = F)
+# garchFit(data = data, formula = ~ arma(4,1) + garch(1,0), trace =F)@fit$ics
+data_a41_g11 <- garchFit(data = data, formula = ~ arma(4,1) + garch(1,1), trace =F)
+data_a41_g11
+plot(data, main ="Graphische Darstellung des ARMA(4,1)GARCH(1,1)-Modells", type="p")
+lines(xts(data_a41_g11@fitted,order.by=time(data)),col=2)
+lines(xts(data_a41_g11@sigma.t,order.by=time(data)),col=3)
+```
+
+
+```{r armagarch-solution}
+data <- Quandl("UMICH/SOC1",type="xts")
+plot(data)
+auto.arima(data, seasonal = F)
+# garchFit(data = data, formula = ~ arma(4,1) + garch(1,0), trace =F)@fit$ics
+data_a41_g11 <- garchFit(data = data, formula = ~ arma(4,1) + garch(1,1), trace =F)
+data_a41_g11
+plot(data, main ="Graphische Darstellung des ARMA(4,1)GARCH(1,1)-Modells", type="p")
+lines(xts(data_a41_g11@fitted,order.by=time(data)),col=2)
+lines(xts(data_a41_g11@sigma.t,order.by=time(data)),col=3,on =NA) # Der Zusatz on=NA bewirkt das Einzeichnen in einem darunterliegenden Plot
+
+```
+
+
+
+## Quiz
+Ein paar Fragen, über die direkte Anwendung der Lehrinhalte hinaus.
+
+```{r quiz, echo = FALSE}
+quiz(
+  question("Welchen Aspekt einer Zeitreihe kann man mit GARCH Modellen erfassen?",
+    answer("Veränderungen des Mittelwerts bzw. Durchschnittswerts"),
+    answer("Veränderungen der Kurswerte"),
+    answer("Veränderungen der Varianz bzw. Variabilität", correct = TRUE),
+    answer("Veränderungen der Differenzzeitreihe")
+  ),
+  question("Was soll das @ bei GARCH-Modellen in R?",
+    answer("Das @ entspricht hier dem Listenauswahloperator $.", correct = TRUE),
+    answer("Das @ dient dazu, den Zeitraum einzuschränken."),
+    answer("Mit dem @ können die Metaparameter festgelegt werden."),
+    answer("Das @ dient dem Hinzufügen von Punkten zu einem Plot.")
+  ),
+   question("Mit welchem Argumentaufruf bringt man `auto.arima()` dazu, selbständig eine geeignete Differenzordnung zu ermitteln?",
+    answer("d=0"),
+    answer("d=1"),
+    answer("d=NA", correct = TRUE),
+    answer("d=auto")
+  )
+)
+```
+
