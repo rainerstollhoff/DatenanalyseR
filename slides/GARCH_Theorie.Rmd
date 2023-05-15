@@ -1,0 +1,376 @@
+---
+title: "Theorie der GARCH Prozesse"
+author: "Prof. Dr. Rainer Stollhoff"
+output:
+  ioslides_presentation: default
+  powerpoint_presentation:
+    slide_level: 2
+    fig_caption: yes
+    toc: yes
+    reference_doc: TH_template_Rmd.pptx
+# Theorie der GARCH Prozesse © 2021 by Rainer Stollhoff is licensed under CC BY-SA 4.0. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/
+---
+ <p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="https://git.th-wildau.de/r3/GARCH_Theorie">Theorie der GARCH Prozesse"</a> by <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://www.th-wildau.de/rainer-stollhoff/">Rainer Stollhoff</a> is licensed under <a href="http://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY-SA 4.0<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1"></a></p> 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  tidy = FALSE,
+  fig.asp = 1,
+  dev = "png"
+  )
+set.seed(10)
+par(mar=c(3,2,2,.2),mgp=c(1.5,.5,0))
+```
+
+
+
+
+
+# Wiederholung und Motivation stochastische Prozesse
+
+## Zeitreihen, Stochastische Prozesse und Modelle
+
+* Eine Zeitreihe ist in der Praxis eine Datenreihe von Zahlenwerten mit einem endlichen Zeitindex: $x_t$ mit $t=1,\ldots,T$.
+  + Aufeinanderfolgende Beobachtungen $x_t$ und $x_{t+1}$ haben dabei denselben zeitlichen Abstand, z.B. einen Kalendertag, eine Stunde, ...
+  + In der Mathematik wird eine Zeitreihe als eine bestimmte Realisierung eines stochastischen Prozesses verstanden.
+
+* Ein stochastischer Prozess ist eine Folge von Zufallsvariablen $(X_t)$ mit einem ganzzahligen Index mit $t$.
+  + Der Prozess ist damit vor einer *Ewigkeit* gestartet und läuft auch bis in *alle Ewigkeit*. Diese Unendlichkeit spielt in der Praxis nur selten Rolle, vereinfacht aber die Mathematik. So gibt es bspw. keine Randwertprobleme bei einem gleitenden Mittelwert.
+
+* Stochastische Prozesse können als Modell für Zeitreihendaten verwendet werden. Man schätzt dafür geeignete Parameter des Prozesses bzw. Modells, die die Zeitreihendaten möglichst gut repräsentieren.
+
+
+## Anwendung: Kursverläufe von Aktien
+
+Der Kurs einer Aktie spiegelt die Bewertung eines Unternehmens wieder. Aktien werden an Börsen oder außerbörslich gehandelt, wodurch sich Preise bilden. Die Bewertung des Unternehmens und damit die Preise der Aktien unterliegen in jedem Zeitpunkt zufälligen Einflüssen. Diese können positiv oder negativ auf den Unternehmenswert einwirken und addieren sich in ihrer Auswirkung.
+
+In der Tat sehen Aktienkursverläufe - zumindest kurzfristig - einer stetigen Irrfahrt sehr ähnlich. 
+
+Auf der folgenden Folie finden Sie die Plots von drei stetigen Irrfahrten mit normalverteilten Zuwächsen und drei entsprechend standardisierten Tagesschlussständen von europäischen Aktienindices von 1991 bis 1998. Erkennen Sie einen Unterschied?
+
+
+## Anwendung: Kursverläufe von Aktien
+
+:::::::::::::: {.columns}
+::: {.column}
+
+```{r , echo = TRUE, eval= FALSE}
+standardize <- function(invec){
+  delta <- diff(invec)
+  delta.stand <- (delta-mean(delta))/sd(delta)
+  cumsum(delta.stand)
+}
+
+EU.stand <- apply(EuStockMarkets,2,standardize)[1:1859,]
+plot(cumsum(rnorm(n=1859)),
+     type="l",col=1,ylim=c(-100,100))
+for(i in 1:2) lines(cumsum(rnorm(n=1859)),col=i+1)
+for(i in 1:3) lines(EU.stand[,i],col=i+3)
+```
+
+:::
+
+::: {.column}
+
+```{r , echo = FALSE}
+standardize <- function(invec){
+  delta <- diff(invec)
+  delta.stand <- (delta-mean(delta))/sd(delta)
+  cumsum(delta.stand)
+}
+EU.stand <- apply(EuStockMarkets,2,standardize)[1:1859,]
+plot(cumsum(rnorm(n=1859)),type="l",col=1,ylim=c(-100,100))
+for(i in 1:2) lines(cumsum(rnorm(n=1859)),col=i+1)
+for(i in 1:3) lines(EU.stand[,i],col=i+3)
+```
+
+:::
+::::::::::::::
+
+
+## Differenzenprozess und -zeitreihe
+
+Für einen stochastischen Prozess $(X_t)$ nennen wir die Änderungen von einem Zeitschritt auf den nächsten 
+$$ \Delta X_t = X_t - X_{t-1}$$
+den Differenzenprozess zu $(X_t)$.
+
+Analoges gilt für eine Zeitreihe $x_t$ und die Differenzzeitreihe $\Delta x_t$.
+
+In der Analyse von Aktienkursen betrachtet man häufig nicht den Kurswert selber, sondern die Zuwächse innerhalb eines festen Zeitraums z.B. die täglichen Gewinne und Verluste.
+
+Im folgenden die Plots von dreimal Gaussschem Weissen Rauschen und drei entsprechend standardisierten Veränderungen in den Tagesschlussständen von europäischen Aktienindices von 1991 bis 1998. Erkennen Sie einen Unterschied?
+
+
+## Anwendung: Kursveränderungen von Aktien
+
+:::::::::::::: {.columns}
+::: {.column}
+
+```{r , echo = TRUE, eval= FALSE}
+standardize <- function(invec){
+  delta <- diff(invec)
+  delta.stand <- (delta-mean(delta))/sd(delta)
+  delta.stand
+}
+
+EU.delta.stand <- apply(EuStockMarkets,2,standardize)[1:1859,]
+plot((rnorm(n=1858)),
+     type="p",col=1,ylim=c(-5,5),pch=20)
+for(i in 1:2) points((rnorm(n=1858)),col=i+1,pch=20)
+for(i in 1:3) points(EU.delta.stand[,i],col=i+3,pch=20)
+```
+
+:::
+
+::: {.column}
+
+```{r , echo = FALSE}
+standardize <- function(invec){
+  delta <- diff(invec)
+  delta.stand <- (delta-mean(delta))/sd(delta)
+  delta.stand
+}
+
+EU.delta.stand <- apply(EuStockMarkets,2,standardize)[1:1859,]
+plot((rnorm(n=1858)),
+     type="p",col=1,ylim=c(-5,5),pch=20,cex=.7)
+for(i in 1:2) points((rnorm(n=1858)),col=i+1,pch=20,cex=.7)
+for(i in 1:3) points(EU.delta.stand[,i],col=i+3,pch=20,cex=.7)
+```
+
+:::
+::::::::::::::
+
+
+  
+
+# Generalised Auto-Regressive Conditional Heteroscedacity (GARCH) Prozesse
+
+## Motivation 
+
+* Stochastische Prozesse sind ein mathematisches Konstrukt
+  + Stochastische Prozesse bestehen aus Zufallskomponenten und funktionalen Zusammenhängen
+  + Differenzenprozesse bilden die Änderungen zwischen aufeinanderfolgenden Zeitpunkten ab
+* Aktienkurse lassen sich als Zeitreihe darstellen
+  + Aktienkurse zeigen eine starke Zufallskomponente
+    * Aktienkurse gleichen in erster Ordnung einer Irrfahrt
+    * Kursänderungen gleichen in erster Ordnung einem Weissen Rauschen
+  + Aktienkurse zeigen Phasen schwacher und starker Veränderungen
+    * Volatilität ist über den Zeitverlauf nicht konstant
+    * damit: Grundannahme bzw. -eigenschaft der ARIMA-Modelle (bedingt konstante Varianz, $Var(X_t|X_{t-1},X_{t-2},\ldots)=\sigma^2$ - sog. bedingte *Homoskedastizität*) nicht erfüllt
+* Familie stochastischer Prozesse mit fluktuierender Volatilität nötig
+  + Volatilitätsprozesse mit zeitabhängiger Varianz $Var(X_t|X_{t-1},X_{t-2},\ldots)=\sigma_t$ - sog.bedingte *Heteroskedastizität*.
+  
+    
+## Definition ARCH Prozess
+
+
+Ein (linearer) Auto-Regressiver Prozess mit bedingter Heteroskedastizität (Auto-Regressive Conditional Heteroscedaticity - ARCH) von der Ordnung $p$ ergibt sich als Produkt eines Zufallswerts $W_t$  (sog. Innovationsprozess) und einer schrittweise fortgeschriebenen Volatilität $\sigma_t$ sog. Volatilitätsprozess:
+
+$$X_t = W_t \cdot \sigma_t$$
+
+Dabei sind
+
+ - $(W_t)$ (in der Regel) normalverteilte Zuwächse
+ - $\sigma_t$ ein stochastischer Prozess mit 
+  $$ \sigma_t^2 = \omega + \alpha_1 X_{t-1}^2 + \alpha_2 X_{t-2}^2 + \cdots + \alpha_p X_{t-p}$$ 
+  mit $\omega > 0$ und $\alpha_t \geq 0$
+  
+Damit ergibt sich eine zeitabhängige bedingte Varianz von $X_t$
+
+$$Var(X_t|X_{t-1},X_{t-2},\ldots)= \sigma_t^2 = \omega + \alpha_1 X_{t-1}^2 + \alpha_2 X_{t-2}^2 + \cdots + \alpha_p X_{t-p}$$ 
+
+Für die Einführung der ARCH Prozesse in (Engle, 1982)[^1] erhielt Robert F. Engle in 2003 den Nobelpreis für Wirtschaftswissenschaften.
+
+[^1]: Robert F. Engle: Autoregressive Conditional Heteroskedasticity with Estimates of the Variance of UK. Inflation. In: Econometrica. Vol.: 50, pp. 987–1008, 1982
+
+## Beispiel: ARCH(p) Prozesse
+
+
+:::::::::::::: {.columns}
+::: {.column}
+
+```{r ,echo = TRUE, eval = FALSE}
+## Prozessparameter
+n <- 50
+omega <- .25
+alpha <- c(0.5,0.4)
+##Zufallsprozess
+set.seed(20)
+w <- rnorm(n=n)
+## Verschiedene ARCH-Prozesse
+x <- matrix(0,3,n)
+sigma <- matrix(1,3,n) 
+sigma[1,] <- rep(sqrt(omega),n)
+x[1,] <- w*sigma[1,] #WR
+for(t in 3:length(w)){
+  sigma[2,t] <- sqrt(omega+alpha[1]*x[2,t-1]^2)
+  x[2,t] <- w[t]*sigma[2,t] #ARCH(1)
+  sigma[3,t] <- sqrt(omega+alpha[1]*x[3,t-1]^2+alpha[2]*x[3,t-2]^2)
+  x[3,t] <- w[t]*sigma[3,t] #ARCH(2)
+} 
+
+# Prozess
+par(mar=c(3,3,2,.2),mgp=c(1.5,.5,0))
+plot(w, type="p",ylim=c(-8,8))
+abline(h=0,col=1,lty=3)
+abline(h=1,col=6,lty=3)
+abline(h=-1,col=6,lty=3)
+for(p in 0:2){lines(x[p+1,],col=p+2)}
+for(p in 0:2){lines(sigma[p+1,],col=p+2,lty=2)}
+legend("topleft",c("W","ARCH(0)","ARCH(1)","ARCH(2)",paste("sigma",0:2)),
+       col=c(1:4,2:4),lty=c(rep(1,4),rep(2,3)),ncol = 3)
+
+```
+:::
+
+::: {.column}
+
+```{r }
+## Prozessparameter
+n <- 50
+omega <- .25
+alpha <- c(0.5,0.4)
+##Zufallsprozess
+set.seed(20)
+w <- rnorm(n=n)
+## Verschiedene ARCH-Prozesse
+x <- matrix(0,3,n)
+sigma <- matrix(1,3,n) 
+sigma[1,] <- rep(sqrt(omega),n)
+x[1,] <- w*sigma[1,] #WR
+for(t in 3:length(w)){
+  sigma[2,t] <- sqrt(omega+alpha[1]*x[2,t-1]^2)
+  x[2,t] <- w[t]*sigma[2,t] #ARCH(1)
+  sigma[3,t] <- sqrt(omega+alpha[1]*x[3,t-1]^2+alpha[2]*x[3,t-2]^2)
+  x[3,t] <- w[t]*sigma[3,t] #ARCH(2)
+} 
+
+# Prozess
+par(mar=c(3,3,2,.2),mgp=c(1.5,.5,0))
+plot(w, type="p",ylim=c(-8,8))
+abline(h=0,col=1,lty=3)
+abline(h=1,col=6,lty=3)
+abline(h=-1,col=6,lty=3)
+for(p in 0:2){lines(x[p+1,],col=p+2)}
+for(p in 0:2){lines(sigma[p+1,],col=p+2,lty=2)}
+
+legend("topleft",c("W","ARCH(0)","ARCH(1)","ARCH(2)",paste("sigma",0:2)),col=c(1:4,2:4),lty=c(rep(1,4),rep(2,3)),ncol = 3)
+```
+
+:::
+::::::::::::::
+
+
+
+  
+## Definition GARCH Prozess
+
+
+Ein generalisierter Auto-Regressiver Prozess mit bedingter Heteroskedastizität (Auto-Regressive Conditional Heteroscedaticity - GARCH) von der Ordnung $(p,q)$ ergibt sich als Produkt eines Zufallswerts $W_t$  (sog. Innovationsprozess) und einer schrittweise fortgeschriebenen Volatilität $\sigma_t$ sog. Volatilitätsprozess:
+
+$$X_t = W_t \cdot \sigma_t$$
+
+Dabei sind
+
+ - $(W_t)$ (in der Regel) normalverteilte Zuwächse
+ - $\sigma_t$ ein stochastischer Prozess mit 
+  $$ \sigma_t^2 = \omega + \alpha_1 X_{t-1}^2 + \alpha_2 X_{t-2}^2 + \cdots + \alpha_p X_{t-p} + \beta_1 \sigma_{t-1}^2 + \beta_2 \sigma_{t-2}^2 + \cdots + \beta_q \sigma_{t-q}$$ 
+  mit $\omega > 0$, $\alpha_t,\beta_t \geq 0$
+  
+Siehe (Bollerslev,1986)[^2]
+
+[^2]: T. Bollerslev: Generalized Autoregressive Conditional Heteroskedasticity. In: Journal of Econometrics. Vol. 31, No. 3, 1986, S. 307–327
+  
+## Beispiel: GARCH(p,q) Prozesse
+
+
+:::::::::::::: {.columns}
+::: {.column}
+
+```{r ,echo = TRUE, eval = FALSE}
+## Prozessparameter
+n <- 50
+omega <- .25
+alpha <- c(0.3,0.2)
+beta <- c(0.3,0.2)
+
+##Zufallsprozess
+set.seed(20)
+w <- rnorm(n=n)
+## Verschiedene GARCH-Prozesse
+x <- matrix(0,3,n)
+sigma <- matrix(1,3,n) 
+for(t in 3:length(w)){
+  sigma[1,t] <- sqrt(omega+beta[1]*sigma[2,t-1]^2)
+  x[1,t] <- w[t]*sigma[1,t] #GARCH(0,1)
+  sigma[2,t] <- sqrt(omega+alpha[1]*x[2,t-1]^2+beta[1]*sigma[2,t-1]^2)
+  x[2,t] <- w[t]*sigma[2,t] #GARCH(1,1)
+  sigma[3,t] <- sqrt(omega+alpha[1]*x[3,t-1]^2+alpha[2]*x[3,t-2]^2+beta[1]*sigma[2,t-1]^2+beta[2]*sigma[2,t-2]^2)
+  x[3,t] <- w[t]*sigma[3,t] #GARCH(2,2)
+} 
+
+# Prozess
+par(mar=c(3,3,2,.2),mgp=c(1.5,.5,0))
+plot(w, type="p",ylim=c(-8,8))
+abline(h=0,col=1,lty=3)
+abline(h=1,col=6,lty=3)
+abline(h=-1,col=6,lty=3)
+for(q in 0:2){lines(x[q+1,],col=q+2)}
+for(q in 0:2){lines(sigma[q+1,],col=q+2,lty=2)}
+
+legend("topleft",c("W","GARCH(0,1)","GARCH(1,1)","GARCH(2,2)",paste("sigma",0:2)),col=c(1:4,2:4),lty=c(rep(1,4),rep(2,3)),ncol = 3)
+
+```
+:::
+
+::: {.column}
+
+```{r }
+## Prozessparameter
+n <- 50
+omega <- .25
+alpha <- c(0.3,0.2)
+beta <- c(0.3,0.2)
+
+##Zufallsprozess
+set.seed(20)
+w <- rnorm(n=n)
+## Verschiedene GARCH-Prozesse
+x <- matrix(0,3,n)
+sigma <- matrix(1,3,n) 
+for(t in 3:length(w)){
+  sigma[1,t] <- sqrt(omega+beta[1]*sigma[2,t-1]^2)
+  x[1,t] <- w[t]*sigma[1,t] #GARCH(0,1)
+  sigma[2,t] <- sqrt(omega+alpha[1]*x[2,t-1]^2+beta[1]*sigma[2,t-1]^2)
+  x[2,t] <- w[t]*sigma[2,t] #GARCH(1,1)
+  sigma[3,t] <- sqrt(omega+alpha[1]*x[3,t-1]^2+alpha[2]*x[3,t-2]^2+beta[1]*sigma[2,t-1]^2+beta[2]*sigma[2,t-2]^2)
+  x[3,t] <- w[t]*sigma[3,t] #GARCH(2,2)
+} 
+
+# Prozess
+par(mar=c(3,3,2,.2),mgp=c(1.5,.5,0))
+plot(w, type="p",ylim=c(-8,8))
+abline(h=0,col=1,lty=3)
+abline(h=1,col=6,lty=3)
+abline(h=-1,col=6,lty=3)
+for(q in 0:2){lines(x[q+1,],col=q+2)}
+for(q in 0:2){lines(sigma[q+1,],col=q+2,lty=2)}
+
+legend("topleft",c("W","GARCH(0,1)","GARCH(1,1)","GARCH(2,2)",paste("sigma",0:2)),col=c(1:4,2:4),lty=c(rep(1,4),rep(2,3)),ncol = 3)
+```
+
+:::
+::::::::::::::
+
+
+
+
+## Schätzen von Modellparametern eines GARCH Prozesses
+
+Um die Metaparameter $p,q$ und möglichst gute Modellparameter $\omega, \alpha,\beta$ zu bestimmen, wird in der Regel eine **Maximum-Likelihood-Estimation** (MLE) durchgeführt. Diese wählt die Parameter, bei denen die beobachteten Zeitreihendaten dem Modell nach eine möglichst große Wahrscheinlichkeit aufweisen.
+
+Die Likelihood lässt sich für die ersten Beobachtungen nur schwer direkt bestimmen. Daher beschränkt man sich auf eine einfachere Form, die sogenannte Quasi-Likelihood für Beobachtungen $t\geq q$. Diese wird häufig mit Hilfe eines angepassten Akaike Informations Kriteriums (AIC) optimiert, welches die Anforderung an eine möglichst geringe Zahl an Parametern integriert.

@@ -1,22 +1,43 @@
 ---
 title: "ARIMA Modelle mit R"
+author: Rainer Stollhoff
+
 output: learnr::tutorial
 runtime: shiny_prerendered
-author: Rainer Stollhoff
 description: "Eine interaktive Einführung in ARIMA Modelle in R - Maximum-Likelihood-Estimation, Simulation und Prognosen"
----
+bibliography: references.bib
 
-```{r setup, include=FALSE}
+# ARIMA Modelle mit R © 2021 by Rainer Stollhoff is licensed under CC BY-SA 4.0. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/
+---
+ <p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="https://git.th-wildau.de/r3/ARIMA_R">ARIMA Modelle mit R</a> by <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://www.th-wildau.de/rainer-stollhoff/">Rainer Stollhoff</a> is licensed under <a href="http://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY-SA 4.0<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1"></a></p> 
+ 
+
+
+```{r setup, include=FALSE, warning=TRUE}
 library(learnr)
 knitr::opts_chunk$set(warning = FALSE, echo = TRUE)
 library(Quandl)
-Quandl.api_key("KTgBzn84d6v-JQJB8v76")
+library(quantmod)
 
+## Sucht nach einem Quandl API key und gibt einen Warnhinweis, falls dieser fehlt.
+if(length(Quandl.api_key())!=1){
+Qkey.current <- file.exists("./Quandl_key.txt")
+Qkey.parent <- file.exists("../Quandl_key.txt")
+if(Qkey.current|Qkey.parent){
+  if(Qkey.current){
+      Quandl.api_key(readChar(file("./Quandl_key.txt"),nchars = 30))
+  }else{
+      Quandl.api_key(readChar(file("../Quandl_key.txt"),nchars = 30))
+  }
+}else{
+  warning("Teile des Tutoriums benötigen den Zugriff auf Quandl.com. Bitte speichern Sie einen gültigen Quandl API Key in einer Datei Quandl_key.txt im R-Arbeitsverzeichnis ab, damit dieser automatisch eingelesen werden kann.")
+}
+}
 
 ```
 
 
-## Wiederholung
+## Einleitung 
 
 Ausgangspunkt der Analyse ist ein spezifischer Datensatz. Bevor man beginnt, diesen im Detail zu analysieren, muss man diesen erst in R einlesen und ggf. Konvertierungen der Daten vornehmen. Anschließend sollte man sich zunächst einen Überblick über die Daten verschaffen, bevor man mit der spezifischen Analyse beginnt.
 
@@ -30,12 +51,12 @@ Wir werden die Datensätze standardmäßig als `xts()` Zeitreihe in R importiere
 library(xts)
 ```
 
-Die `xts()` Zeitreihe ist eine Erweiterung der einfachen `ts()`Zeitreihe. Insbesondere ist es möglich, im `xts` Datentyp neben den reinen Daten (Zeitpunkte und Werte) auch Metadaten (z.B. Datenquelle) abzuspeichern.
+Die `xts()` Zeitreihe ist eine Erweiterung der einfachen `ts()`Zeitreihe. Insbesondere ist es möglich, im `xts` Datentype neben den reinen Daten (Zeitpunkte und Werte) auch Metadaten (z.B. Datenquelle) abzuspeichern.
 
 ### Daten importieren
 In diesem Abschnitt arbeiten wir mit Datensätzen zu Finanzmarktzeitreihen, die aus Internetquellen nach R importiert werden. Wir verwenden dazu die Pakete `quantmod` zum Import von Daten von `finance.yahoo.com` und das Paket `Quandl` zum Import von Daten von `quandl.com`.  
 
-Für die Nutzung von `quandl.com` über die API ist eine Registrierung notwendig. Mit der Registrierung erhält man einen Zugriffscode , den sogenannten API-key, den man anschließend in R mit der Funktion `Quandl.api-key()` festlegt. Bitte tragen Sie für das interaktive Tutorial Ihren persönlichen Quandl-Key unter "YourKey" ein.
+Für die Nutzung von `quandl.com` über die API ist eine Registrierung notwendig. Mit der Registrierung erhält man einen Zugriffscode , den sogenannten API-key, den man anschließend in R mit der Funktion `Quandl.api-key()` festlegt. In diesem interaktiven Tutorial ist mein persönlicher API key hinterlegt - bitte gehen Sie daher verantwortungsvoll mit den Datenabrufen von Quandl um.Für die Nutzung in Ihrer eigenen R-Installation benötigen Sie einen eigenen API key.
 
 
 ```{r}
@@ -69,13 +90,13 @@ In der folgenden Übung sollen Sie die Aktienkursdaten der SAP SE für das Jahr 
 ```
 
 ```{r xts-hint-1}
-getSymbols(Symbols= "SAP",src="yahoo")
+getSymbols(Symbols= "SAP.DE",src="yahoo")
 Quandl("FSE/SAP_X",type="xts")
 
 ```
 
 ```{r xts-hint-2}
-getSymbols(Symbols= "SAP",src="yahoo")
+getSymbols(Symbols= "SAP.DE",src="yahoo")
 sap_qm <- SAP.DE$SAP.DE.Close
 Quandl("FSE/SAP_X",type="xts")
 sap_ql <- sap_ql$Close
@@ -83,7 +104,7 @@ sap_ql <- sap_ql$Close
 ```
 
 ```{r xts-hint-3}
-getSymbols(Symbols= "SAP",src="yahoo")
+getSymbols(Symbols= "SAP.DE",src="yahoo")
 sap_qm <- SAP.DE$SAP.DE.Close
 Quandl("FSE/SAP_X",type="xts")
 sap_ql <- sap_ql$Close
@@ -92,7 +113,7 @@ lines(sap_ql["2017"],col=2)
 ```
 
 ```{r xts-hint-4}
-getSymbols(Symbols= "SAP",src="yahoo")
+getSymbols(Symbols= "SAP.DE",src="yahoo")
 sap_qm <- SAP.DE$SAP.DE.Close
 Quandl("FSE/SAP_X",type="xts")
 sap_ql <- sap_ql$Close
@@ -102,7 +123,7 @@ max((sap_qm["2017"]-sap_ql["2017"])/sap_ql["2017"])
 ```
 
 ```{r xts-solution}
-getSymbols(Symbols= "SAP",src="yahoo")
+getSymbols(Symbols= "SAP.DE",src="yahoo")
 sap_qm <- SAP.DE$SAP.DE.Close
 sap_ql <- Quandl("FSE/SAP_X",type="xts")
 sap_ql <- sap_ql$Close
@@ -137,7 +158,9 @@ Wird mit dem ARMA(p,q) Modell nicht der Prozess selber beschrieben, sondern stat
 
 Wiederholt man die Differenzbildung $d$ mal - man betrachtet also die Änderung der Änderung der .... Änderung (d-mal) - so spricht man von einem ARIMA(p,d,q) Prozess.
 
+### Literaturhinweise
 
+Die hier behandelten Themen finden sich in den meisten Lehrbüchern zur Zeitreihenanalyse. Als Beispiel für ein englischsprachiges Lehrbuch zur Zeitreihenanalyse mit R ist [@hyndman2018].
 
 ## ARIMA - Modelle manuell bestimmen
 
@@ -284,7 +307,7 @@ Insgesamt ist das Ergebnis dieser ersten Analyse  etwas ernüchternd: Die Schlus
 * zufälliges weißes Rauschen.
 
 
-*Jetzt mal ehrlich: Haben Sie wirklich gedacht, dass das klappt und man mit einfachen Verfahren Aktienkursentwicklungen vorhersagen kann? Wenn das ginge, dann würde das doch jeder machen. Und wenn das jeder machen würde und dann entsprechend Aktien kauft und verkauft, dann wäre die Vorhersage sehr schnell in den Aktienkursen eingepreist. Und übrig bleiben würde dann nur noch? Zufälliges Rauschen. Und so schließt sich der Kreis. Ob das daran liegt, dass man Aktienkurse grundsätzlich nicht vorhersagen kann oder daran, dass ständig sehr viele Leute die Aktienkurse perfekt vorhersagen und das alle dann gleichzeitig versuchen, die Vorhersage im Handel umzusetzen, das kann man im Nachhinein nicht sagen. Das ist das Paradox des freien Marktes bzw. selbstbezogener Systeme. Und das zu ergründen, übersteigt die Inhalte dieses Kurses bei Weitem.*
+*Jetzt mal ehrlich: Haben Sie wirklich gedacht, dass das klappt und man mit einfachen Verfahren Aktienkursentwicklungen vorhersagen kann? Wenn das ginge, dann würde das doch jeder machen. Und wenn das jeder machen würde und dann entsprechend Aktien kauft und verkauft, dann wäre die Vorhersage sehr schnell in den Aktienkursen eingepreist. Und übrig bleiben würde dann nur noch? Zufälliges Rauschen. Und so schließt sich der Kreis. Ob das daran liegt, dass man Aktienkurse grundsätzlich nicht vorhersagen kann oder daran, dass ständig sehr viele Leute die Aktienkurse perfekt vorhersagen und das alle dann gleichzeitig versuchen, die Vorhersage im Handel umsetzen, das kann man im Nachhinein nicht sagen. Das ist das Paradox des freien Marktes bzw. selbstbezogener Systeme. Und das zu ergründen, übersteigt die Inhalte dieses Kurses bei Weitem.*
 
 
 ### Übungsaufgabe Box-Jenkins Methode
@@ -676,3 +699,5 @@ quiz(
 )
 ```
 
+ 
+## References

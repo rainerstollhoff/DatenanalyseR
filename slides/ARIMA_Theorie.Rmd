@@ -1,0 +1,883 @@
+---
+title: "Theorie der ARIMA Prozesse"
+author: "Prof. Dr. Rainer Stollhoff"
+output:
+  beamer_presentation: default
+  slidy_presentation: default
+  powerpoint_presentation:
+    slide_level: 2
+    fig_caption: yes
+    toc: yes
+    reference_doc: TH_template_Rmd.pptx
+# Theorie der ARIMA Prozesse © 2021 by Rainer Stollhoff is licensed under CC BY-SA 4.0. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/
+---
+
+ <p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="https://git.th-wildau.de/r3/ARIMA_Theorie">Theorie der ARIMA Prozesse</a> by <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://www.th-wildau.de/rainer-stollhoff/">Rainer Stollhoff</a> is licensed under <a href="http://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY-SA 4.0<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1"></a></p> 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  tidy = FALSE,
+  fig.asp = 1,
+  dev = "png"
+  )
+set.seed(10)
+par(mar=c(3,2,2,.2),mgp=c(1.5,.5,0))
+```
+
+
+
+
+
+# Einführung in stochastische Prozesse
+
+## Zeitreihen, Stochastische Prozesse und Modelle
+
+* Eine Zeitreihe ist in der Praxis eine Datenreihe von Zahlenwerten mit einem endlichen Zeitindex: $x_t$ mit $t=1,\ldots,T$.
+  + Aufeinanderfolgende Beobachtungen $x_t$ und $x_{t+1}$ haben dabei denselben zeitlichen Abstand, z.B. einen Kalendertag, eine Stunde, ...
+  + In der Mathematik wird eine Zeitreihe als eine bestimmte Realisierung eines stochastischen Prozesses verstanden.
+
+* Ein stochastischer Prozess ist eine Folge von Zufallsvariablen $(X_t)$ mit einem ganzzahligen Index mit $t$.
+  + Der Prozess ist damit vor einer *Ewigkeit* gestartet und läuft auch bis in *alle Ewigkeit*. Diese Unendlichkeit spielt in der Praxis nur selten Rolle, vereinfacht aber die Mathematik. So gibt es bspw. keine Randwertprobleme bei einem gleitenden Mittelwert.
+
+* Stochastische Prozesse können als Modell für Zeitreihendaten verwendet werden. Man schätzt dafür geeignete Parameter des Prozesses bzw. Modells, die die Zeitreihendaten möglichst gut repräsentieren.
+
+## Beispiel: Weisses Rauschen (White Noise) Prozess
+
+Der einfachste stochastische Prozess besteht aus identisch verteilten, voneinander unabhängigen Zufallsvariablen mit endlichem Erwartungswert und endlicher Varianz.
+
+*Vereinfacht: In jedem Zeitschritt wird mittels desselben Zufallsprinzips ein neuer Wert ermittelt.*
+
+Beispiele für Weisses Rauschen und deren Realisierungen:
+
+* *Ewiger Münzwurf*: Werfe in jedem Zeitpunkt eine Münze 
+  +
+    ```{r , echo = TRUE}
+      sample(c("Kopf","Zahl"),size=10,replace=T)
+    ```
+
+* *Ewiger Würfelwurf*: Werfe zu jedem Zeitpunkt einen Würfel
+  +
+    ```{r , echo = TRUE}
+      sample(1:6,size=10,replace=T)
+    ```
+
+* *Gaussches Weisses Rauschen*: Ziehe zu jedem Zeitpunkt aus einer Normalverteilung. Im folgenden ein Beispiel für ein Gaussches Weisses Rauschen für normalverteilte Zufallsvariablen mit Erwartungswert 0 und Standardabweichung 1.
+
+***
+
+:::::::::::::: {.columns}
+::: {.column}
+
+```{r , echo = TRUE, eval = FALSE}
+plot(rnorm(n=1000),
+     type="p",pch=20)
+```
+
+:::
+
+::: {.column}
+
+```{r }
+plot(rnorm(n=1e3),type="p",pch=20)
+```
+
+:::
+::::::::::::::
+
+## Beispiel: Irrfahrt (Random Walk)
+
+Auch eine Irrfahrt beruht auf identisch verteilten, voneinander unabhängigen Zufallsvariablen mit endlichem Erwartungswert und endlicher Varianz. Diese werden allerdings nicht direkt ausgegeben, sondern immer weiter aufsummiert.
+
+**Vereinfacht: In jedem Zeitschritt wird mittels desselben Zufallsprinzips ein neuer Wert ermittelt und zu der bestehenden Summe dazu addiert.**
+
+Beispiele für eine Irrfahrt und deren Realisierung
+
+* *Diskrete Irrfahrt*: Füge in jedem Zeitpunkt mit 50% Wahrscheinlichkeit entweder 1 hinzu, oder ziehe mit 50% Wahrscheinlichkeit 1 ab.
+  +
+    ```{r , echo = TRUE}
+      einzelschritt <- sample(c(-1,1),size=10,replace=T)
+      cumsum(einzelschritt)
+    ```
+
+* *Stetige Irrfahrt (Normalverteilung)*: Füge in jedem Zeitpunkt eine Normalverteilte Zufallsvariable hinzu. Im folgenden ein Beispiel für eine stetige Irrfahrt mit einer normalverteilten Zufallsvariablen mit Erwartungswert 0 und Standardabweichung 1.
+
+***
+
+:::::::::::::: {.columns}
+::: {.column}
+
+```{r , echo = TRUE, eval = FALSE}
+plot(cumsum(rnorm(n=100)),
+     type="l",col=1,ylim=c(-20,20))
+for(i in 1:10){
+  lines(cumsum(rnorm(n=100)),
+        type="l",col=i)
+}
+```
+
+:::
+
+::: {.column}
+
+```{r}
+plot(cumsum(rnorm(n=100)),type="l",col=1,ylim=c(-20,20))
+for(i in 1:10) lines(cumsum(rnorm(n=100)),type="l",col=i)
+
+```
+
+:::
+::::::::::::::
+
+
+## Anwendung: Kursverläufe von Aktien
+
+Der Kurs einer Aktie spiegelt die Bewertung eines Unternehmens wieder. Aktien werden an Börsen oder außerbörslich gehandelt, wodurch sich Preise bilden. Die Bewertung des Unternehmens und damit die Preise der Aktien unterliegen in jedem Zeitpunkt zufälligen Einflüssen. Diese können positiv oder negativ auf den Unternehmenswert einwirken und addieren sich in ihrer Auswirkung.
+
+In der Tat sehen Aktienkursverläufe - zumindest kurzfristig - einer stetigen Irrfahrt sehr ähnlich. 
+
+Auf der folgenden Folie finden Sie die Plots von drei stetigen Irrfahrten mit normalverteilten Zuwächsen und drei entsprechend standardisierten Tagesschlussständen von europäischen Aktienindices von 1991 bis 1998. Erkennen Sie einen Unterschied?
+
+
+## Anwendung: Kursverläufe von Aktien
+
+:::::::::::::: {.columns}
+::: {.column}
+
+```{r , echo = TRUE, eval= FALSE}
+standardize <- function(invec){
+  delta <- diff(invec)
+  delta.stand <- (delta-mean(delta))/sd(delta)
+  cumsum(delta.stand)
+}
+
+EU.stand <- apply(EuStockMarkets,2,standardize)[1:1859,]
+plot(cumsum(rnorm(n=1859)),
+     type="l",col=1,ylim=c(-100,100))
+for(i in 1:2) lines(cumsum(rnorm(n=1859)),col=i+1)
+for(i in 1:3) lines(EU.stand[,i],col=i+3)
+```
+
+:::
+
+::: {.column}
+
+```{r , echo = FALSE}
+standardize <- function(invec){
+  delta <- diff(invec)
+  delta.stand <- (delta-mean(delta))/sd(delta)
+  cumsum(delta.stand)
+}
+EU.stand <- apply(EuStockMarkets,2,standardize)[1:1859,]
+plot(cumsum(rnorm(n=1859)),type="l",col=1,ylim=c(-100,100))
+for(i in 1:2) lines(cumsum(rnorm(n=1859)),col=i+1)
+for(i in 1:3) lines(EU.stand[,i],col=i+3)
+```
+
+:::
+::::::::::::::
+
+
+## Differenzenprozess und -zeitreihe
+
+Für einen stochastischen Prozess $(X_t)$ nennen wir die Änderungen von einem Zeitschritt auf den nächsten 
+$$ \Delta X_t = X_t - X_{t-1}$$
+den Differenzenprozess zu $(X_t)$.
+
+Analoges gilt für eine Zeitreihe $x_t$ und die Differenzzeitreihe $\Delta x_t$.
+
+In der Analyse von Aktienkursen betrachtet man häufig nicht den Kurswert selber, sondern die Zuwächse innerhalb eines festen Zeitraums z.B. die täglichen Gewinne und Verluste.
+
+Im folgenden die Plots von dreimal Gaussschem Weissen Rauschen und drei entsprechend standardisierten Veränderungen in den Tagesschlussständen von europäischen Aktienindices von 1991 bis 1998. Erkennen Sie einen Unterschied?
+
+
+## Anwendung: Kursveränderungen von Aktien
+
+:::::::::::::: {.columns}
+::: {.column}
+
+```{r , echo = TRUE, eval= FALSE}
+standardize <- function(invec){
+  delta <- diff(invec)
+  delta.stand <- (delta-mean(delta))/sd(delta)
+  delta.stand
+}
+
+EU.delta.stand <- apply(EuStockMarkets,2,standardize)[1:1859,]
+plot((rnorm(n=1858)),
+     type="p",col=1,ylim=c(-5,5),pch=20)
+for(i in 1:2) points((rnorm(n=1858)),col=i+1,pch=20)
+for(i in 1:3) points(EU.delta.stand[,i],col=i+3,pch=20)
+```
+
+:::
+
+::: {.column}
+
+```{r , echo = FALSE}
+standardize <- function(invec){
+  delta <- diff(invec)
+  delta.stand <- (delta-mean(delta))/sd(delta)
+  delta.stand
+}
+
+EU.delta.stand <- apply(EuStockMarkets,2,standardize)[1:1859,]
+plot((rnorm(n=1858)),
+     type="p",col=1,ylim=c(-5,5),pch=20,cex=.7)
+for(i in 1:2) points((rnorm(n=1858)),col=i+1,pch=20,cex=.7)
+for(i in 1:3) points(EU.delta.stand[,i],col=i+3,pch=20,cex=.7)
+```
+
+:::
+::::::::::::::
+
+## Fazit
+
+* Stochastische Prozesse sind ein mathematisches Konstrukt
+  + Stochastische Prozesse bestehen aus Zufallskomponenten und funktionalen Zusammenhängen
+    - Weisses Rauschen hat nur eine Zufallskomponente
+    - Eine Irrfahrt ist die Summe von Weissem Rauschen 
+  + Differenzenprozesse bilden die Änderungen zwischen aufeinanderfolgenden Zeitpunkten ab
+* Aktienkurse lassen sich als Zeitreihe darstellen
+  + Aktienkurse zeigen eine starke Zufallskomponente
+    * Aktienkurse gleichen in erster Ordnung einer Irrfahrt
+    * Kursänderungen gleichen in erster Ordnung einem Weissen Rauschen
+* Stochastische Prozesse kann man verwenden als Modell 
+  + zur Repräsentation von Zeitreihendaten oder 
+  + zur Simulation von Zeitreihendaten.
+* Zu besseren Modellierung von Aktienkursen und anderen Finanzzeitreihen sind komplexere Modellfamilien nötig
+
+
+# Erweiterte Zeitreihenanalyse
+
+## Lage- und Streuungsparameter von Zeitreihen
+
+Eine Zeitreihe $x_t$ mit $t=1,\ldots,T$ kann man mit Hilfe der deskriptiven Statistik beschreiben:
+
+* Mittelwert:
+$$\bar{x} = \frac{1}{T}\sum_{t=1}^T x_t$$
+Beschreibt den durchschnittlichen Wert im Zeitablauf.
+
+Zusätzlich zum Mittelwert haben wir auch andere Verfahren der Glättung einer Zeitreihe kennen gelernt, z.B. 
+
+* Gleitender Durchschnitt - rückwärtsgerichtet mit Horizont s:
+$$\mu_t^s = \frac{1}{s+1}\sum_{i=-s}^0 x_i$$
+Beschreibt den durchschnittlichen Wert über gleitende Zeitfenster
+
+* Exponentielle Glättung 1. Ordnung:
+$$n_t = \alpha \cdot x_t + (1- \alpha) \cdot n_{t-1}$$
+Beschreibt das Niveau einer geglätteten Zeitreihe
+
+Neben den Durchschnittswerten als Lageparameter ist für die Analyse häufig auch die Schwankung der Zeitreihe um den Durchschnittswert interessant. Der einfachste Streuungsparameter ist die Varianz. 
+
+* (Stichproben-)Varianz:
+$$\sigma^2 = \frac{1}{T-1}\sum_{t=1}^T (x_t-\bar{x})^2$$
+Beschreibt die Schwankungsbreite der Werte im Zeitablauf.
+
+## Autokovarianz und Autokorrelation
+
+Zusätzlich zur Varianz lässt sich auch beschreiben, ob ein Zusammenhang zwischen Schwankungen an direkt oder verzögert aufeinanderfolgenden Zeitpunkten besteht. 
+
+* empirische Autokovarianzfunktion für eine Verzögerung (*lag*) von h:
+$$\gamma(h) = \frac{1}{T-1}\sum_{t=1}^{T-h} (x_t-\bar{x})\cdot (x_{t+h}-\bar{x})$$
+Beschreibt den Zusammenhang zwischen verschiedenen Zeitabständen. Beispielsweise:
+  + $\gamma(0)$ gleich der Varianz (Grundgesamtheit)
+  + $\gamma(1)$ Kovarianz zwischen aufeinanderfolgenden Zeitschritten
+  
+* empirische Autokorrelationsfunktion für eine Verzögerung (*lag*) von h:
+$$\rho(h) = \frac{\gamma(h)}{\gamma(0)}$$
+  
+  
+Im Folgenden zeigen wir ein Gauss`sches Weisses Rauschen (siehe unten) mit gleitendem Durchschnitt (rückwärtsgerichtet, Horizont 3 und Gewichte $\frac{1}{4}) und den daraus abgeleiteten Random Walk sowie darunter die zugehörigen Auto-Korrelationsfunktionen.
+
+***
+
+:::::::::::::: {.columns}
+::: {.column}
+
+```{r , echo = TRUE, eval = FALSE}
+layout(matrix(1:2,2,1))
+
+## Prozesse und gl. Durchschnitt
+w <- rnorm(n=100)
+plot(w, type="p",pch=20, ylim=c(-10,10))
+lines(filter(w,rep(1/4,4),
+             method="convolution",sides=1),col=1)
+lines(cumsum(w),type="l",col=2)
+abline(h=0,col=3)
+legend("topright",c("GWR","Irrfahrt"),col=1:2,lty=1)
+
+## Autokorrelationsfunktionen
+plot(acf(w,lag.max=20,plot=F),type="l",ci=0,main="")
+lines(0:20,acf(cumsum(w),lag.max=20,plot=F)$acf,col=2)
+legend("topright",c("GWR","Irrfahrt"),col=1:2,lty=1)
+
+```
+
+:::
+
+::: {.column}
+
+```{r }
+layout(matrix(1:2,2,1))
+par(mar=c(3,3,2,.2),mgp=c(1.5,.5,0))
+
+## Prozesse und gl. Durchschnitt
+w <- rnorm(n=100)
+plot(w, type="p",pch=20, ylim=c(-10,10))
+lines(filter(w,rep(1/4,4),
+             method="convolution",sides=1),col=1)
+lines(cumsum(w),type="l",col=2)
+abline(h=0,col=3)
+legend("topright",c("GWR","Irrfahrt"),col=1:2,lty=1)
+
+## Autokorrelationsfunktionen
+plot(acf(w,lag.max=20,plot=F),type="l",ci=0,main="")
+lines(0:20,acf(cumsum(w),lag.max=20,plot=F)$acf,col=2)
+legend("topright",c("GWR","Irrfahrt"),col=1:2,lty=1)
+```
+
+:::
+::::::::::::::
+
+## Interpretation der Autokorrelationsfunktion
+
+Die Autokorrelationsfunktion zeigt den Zusammenhang zwischen aufeinanderfolgenden Zeitpunkten mit festem Abstand (Verzögerung) an.
+
+* Die Autokovarianz bzw. -korrelation mit Verzögerung 0 entspricht der Varianz der Zeitreihe bzw. ist immer gleich 1.
+* Die Autokovarianz bzw. -korrelation mit Verzögerung 1 zeigt den Zusammenhang zwischen aufeinanderfolgenden Zeitpunkten an:
+  + Gilt $\gamma(1)>0$ bzw. $\rho(1)>0$ so folgt auf einen überdurchschnittlichen Wert ebenso ein überdurchschnittlicher Wert
+  + Gilt $\gamma(1)<0$ bzw. $\rho(1)<0$ so folgt auf einen überdurchschnittlichen Wert ebenso ein entgegengesetzt unterdurchschnittlicher Wert (analog unterdurchschnittlich gefolgt von überdurchschnittlich)
+* Autokovarianzen bzw. -korrelationen mit Verzögerungen größer 1 sind vor allem bei periodischen Zeitreihen relevant (vgl. klassische Zeitreihenanalyse mit saisonalen Komponenten)
+  + Ist die Verzögerung genau gleich der Länge einer Periode, so ist die Autokovarianz bzw.-korrelation in der Regel größer 0. 
+  + Bei monatlichen Daten zeigen $\gamma(12)$ bzw. $\rho(12)$ den Zusammenhang zwischen aufeinanderfolgenen Jahreswerten desselben Monats an.
+  
+  Im folgenden die Autokorrelationsfunktion der DAX Zeitreihe zwischen 1991 und 1998.
+
+## Anwendung Autokorrelationsfunktion von Aktienkursen
+
+:::::::::::::: {.columns}
+::: {.column}
+
+```{r , echo = TRUE, eval = FALSE}
+DAX <- EuStockMarkets[,"DAX"]
+layout(matrix(1:2,2,1))
+# Autokorrelation der Indexwerte
+acf(DAX,main="Indexwerte",
+    xlab="Lag in Jahren (260 Tage)")
+
+# Autokorrelation der Zuwächse
+acf(diff(DAX),main="Zuwächse",
+    xlab="Lag in Jahren (260 Tage)")
+
+
+```
+
+:::
+
+::: {.column}
+
+```{r }
+DAX <- EuStockMarkets[,"DAX"]
+layout(matrix(1:2,2,1))
+par(mar=c(3,3,4,.2),mgp=c(2,.5,0))
+
+# Autokorrelation der Indexwerte
+acf(DAX,main="Indexwerte",
+    xlab="Lag in Jahren (260 Tage)")
+
+# Autokorrelation der Zuwächse
+acf(diff(DAX),main="Zuwächse",
+    xlab="Lag in Jahren (260 Tage)")
+```
+
+:::
+::::::::::::::
+
+
+## Interpretation Autokorrelationsfunktion von Aktienkursen
+
+* Aktienkurse weisen in der Regel eine hohe Autokorrelation auf
+  + Aktienkurse stehen für eine Unternehmensbewertung
+  + Unternehmensbewertungen verändern sich zwischen aufeinanderfolgenden Tagen wenig
+  + auf eine hohe Bewertung folgt in der Regel weiterhin eine hohe Bewertung
+* Veränderungen von Aktienkursen weisen in der Regel geringe Autokorrelationen auf (für Verzögerungen größer 0)
+  + Veränderungen von Aktienkursen entsprechen einer Änderung in der Unternehmensbewertung durch neue Informationen
+  + Veränderungen folgen in der Regel keinem regelmäßigen, wiederkehrenden Muster
+  + Insbesondere besteht in der Regel kein Zusammenhang zwischen den Veränderungen eines Tages und denen der darauf folgenden Tage
+
+
+## Fazit
+
+* Mit der Autokovarianz- und Autokorrelationsfunktion lassen sich Zusammenhänge zwischen aufeinanderfolgenen Zeitpunkten feststellen
+  + bei einer Verzögerung von Null entspricht die Autokovarianz der Varianz
+  + bei einer Verzögerung von 1  erhält man Zusammenhänge zwischen aufeinanderfolgenden Tagen
+  + bei einer Verzögerung von 2 erhält man den Zusammenhang zwischen einem Tag und dem übernächsten Tag, u.s.w.
+* Autokovarianz- und Autokorrelation lassen sich auf Zeitreihen und Differenzzeitreihen anwenden
+* Autokovarianz- und Autokorrelation geben einen Aufschluss über Regelmäßigkeiten in der Zeitreihe z.B.
+  + stetiges Wachstum von Aktienkursen
+  + periodische Zusammenhänge
+* Modelle für Aktienkurse sollten Zusammenhänge darstellen können
+
+# Moving Average (MA) Prozesse
+
+## Definition Moving Average Prozesse
+
+Ein Moving Average (Gleitende Durchschnitt) Prozess ergibt sich als gleitender, rückwärtsgerichteter Durchschnittswert einer stetigen Irrfahrt mit normalverteilten Zuwächsen $(W_t)$:
+
+$$X_t = W_t + \theta_1 W_{t-1} + \cdots + \theta_{q} W_{t-q} = W_t + \sum_{k=1}^q \theta_k W_{t-k}$$
+
+Dabei sind
+
+ - $q$ der Horizont des Prozesses
+ - $\theta_i$ die Gewichtungsfaktoren für die zurückliegenden Zeitschritte
+ - $W_t$ normalverteilte Zufallsvariablen mit Erwartungswert bzw. Mittelwert Null und Varianz $\sigma^2$
+
+Häufig nennt man einen Moving Average Prozess mit Zeithorizont $q$ auch einen MA(q) Prozess.
+
+
+## Vergleich: Moving Average Prozess und gleitender Durchschnitt
+
+* Berechnungsformel MA und gleitender Durchschnitt vergleichbar 
+$$X_t = W_t + \theta_1 W_{t-1} + \cdots + \theta_{q} W_{t-q}$$
+  + rückwärtsgerichteter Horizont $q$
+  + Unterschiede in der Gewichtung des aktuellen Wertes
+    - bei Moving Average i.d.R. fest mit Wert 1
+    - bei gleitendem Durchschnitt frei wählbar
+    
+* Unterschied in der Sichtweise
+  + Moving Average Prozess 
+    - mathematisches Objekt
+    - erlaubt analytische Untersuchung
+    - definiert einen stochastischen Prozess
+    - Modell zur Simulation von Zeitreihendaten
+  + Gleitender Durchschnitt 
+    - Methode der deskriptiven Statistik
+    - entfernt zufällige Schwankungen aus beobachteten Werten einer Zeitreihe
+    - glättet die Zeitreihenkurve
+    - zur vereinfachten Darstellung von Zeitreihendaten
+
+
+## Moving Average Prozesse - Beispiel
+
+
+:::::::::::::: {.columns}
+::: {.column}
+
+Im folgenden die Realisierung einer stetigen Irrfahrt und zweier darauf aufbauender MA-Prozesse.
+
+```{r ,echo = TRUE, eval = FALSE}
+W <- rnorm(n=20)
+theta1 <- c(1,.4)
+
+X1 <- filter(x=W,filter=theta1,
+             method="convolution",sides=1)
+theta2 <- c(1,.4,.3,.2,.1)
+X2 <- filter(x=W,filter=theta2,
+             method="convolution",sides=1)
+
+plot(W,ylim=c(-2,4),pch=20,type="b")
+lines(X1,col=2,type="l")
+lines(X2,col=3,type="l")
+legend("topleft",c("W","MA(1)","MA(4)"),
+       col=1:3,lty=1:3)
+```
+
+:::
+
+::: {.column}
+
+```{r }
+W <- rnorm(n=20)
+theta1 <- c(1,.4)
+
+X1 <- filter(x=W,filter=theta1,
+             method="convolution",sides=1)
+theta2 <- c(1,.4,.3,.2,.1)
+X2 <- filter(x=W,filter=theta2,
+             method="convolution",sides=1)
+
+plot(W,ylim=c(-2,4),pch=20,type="b")
+lines(X1,col=2,type="l")
+lines(X2,col=3,type="l")
+legend("topleft",c("W","MA(1)","MA(4)"),
+       col=1:3,lty=1:3)
+```
+
+:::
+::::::::::::::
+
+
+# Auto-Regressive (AR) Prozesse
+
+## Definition Auto-Regressive Prozesse
+
+Ein (linearer) Auto-Regressiver (AR) Prozess ergibt sich als schrittweise Fortschreibung aus der Summe seiner bisherigen Werte und eines neu hinzugekommenenen Zufallswerts. Ein AR Prozess mit Zeithorizont 1 ist definiert durch:
+
+$$X_t = \phi \cdot X_{t-1} + W_t$$
+
+Dabei sind
+
+ - $(W_t)$ normalverteilte Zuwächse
+ - $\phi$ der Gewichtungsfaktor für den zurückliegenden Zeitschritte mit $|\phi|<1$
+  - $W_t$ normalverteilte Zufallsvariablen mit Erwartungswert bzw. Mittelwert Null und Varianz $\sigma^2$
+ 
+Wendet man die obige Formel iterativ wieder auf $X_{t-1}$, dann auf $X_{t-2}$ usw. an, ergibt sich eine neu Darstellung nur anhand der Zuwächse als
+
+$$X_t = \phi \cdot X_{t-1} + W_t = \phi \cdot (\phi \cdot X_{t-2} + W_{t-1}) + W_t= \ldots = \sum_{i=0}^{\infty} \phi^i \cdot W_{t-i}$$
+
+
+
+## Vergleich: AR-Prozess und exponentielle Glättung
+
+* Berechnungsformel AR und dem Niveau in der exponentiellen Glättung erster Ordnung vergleichbar 
+$X_t = \phi \cdot X_{t-1} + W_t$ und $n_t =  (1- \alpha) \cdot n_{t-1} + \alpha \cdot x_t$
+  + Rollen vertauscht 
+    - Prozess $X$ und Niveau $n$ bzw. 
+    - Zufallsterm $W$ und Zeitreihenwert $x$
+    
+* Unterschied in der Sichtweise
+  + AR-Prozess 
+    - mathematisches Objekt
+    - erlaubt analytische Untersuchung
+    - definiert einen stochastischen Prozess
+    - Modell zur Simulation von Zeitreihendaten
+  + Exponentielle Glättung 
+    - Methode der deskriptiven Statistik
+    - entfernt zufällige Schwankungen aus beobachteten Werten einer Zeitreihe
+    - glättet die Zeitreihenkurve zur Niveaukurve
+    - zur vereinfachten Darstellung von Zeitreihendaten
+    
+
+## Autokovarianz und -korrelation Auto-Regressive Prozesse
+
+Für einen Auto-Regressiven (AR) Prozess gilt  
+
+* für die analytische Autokovarianz
+$$\gamma(h) = Cov(x_{t+h},X_t) = \frac{\phi^h \cdot \sigma^2}{1-\phi^2}$$
+  *Die Herleitung basiert auf der Darstellung anhand der Zuwächse und erfordert ein paar Rechenschritte.*
+  
+* für die analytische Autokorrelation
+$$\rho(h) = \frac{\gamma(h)}{\gamma(0)} = \phi^h $$
+
+Da $|\phi|<1$ sinkt der Zusammenhang zwischen aufeinanderfolgenden Abschnitten also exponentiell mit dem Zeitabstand. 
+
+
+
+## Beispiel für einen AR-Prozess mit Zeithorizont 1
+
+:::::::::::::: {.columns}
+::: {.column}
+
+Im folgenden ein Beispiel für eine Realisierung eines AR-Prozesses mit Zeithorizont 1, $\phi = 0,9$ und Startwert 0 sowie dessen empirische und analytische Autokorrelationsfunktion.
+
+```{r ,echo = TRUE, eval = FALSE}
+layout(matrix(1:2,2,1))
+par(mar=c(3,3,2,.2),mgp=c(1.5,.5,0))
+
+## Prozess mit Zuwachsdarstellung
+phi <- 0.8
+w <- rnorm(n=1000)
+x <- w
+for(i in 2:length(w)) x[i] <- phi*x[i-1]+ w[i]
+
+# Prozess
+plot(x, type="l")
+
+## Autokorrelationsfunktionen
+plot(acf(x,lag.max=20,plot=F),type="l",ci=0,main="",ylim=c(0,1))
+lines(0:20,phi^(0:20),col=2)
+legend("topright",c("empirische ACF","analytische ACF"),col=1:2,lty=1)
+
+```
+
+:::
+
+::: {.column}
+
+```{r }
+layout(matrix(1:2,2,1))
+par(mar=c(3,3,2,.2),mgp=c(1.5,.5,0))
+
+## Prozess mit Zuwachsdarstellung
+phi <- 0.8
+w <- rnorm(n=100)
+x <- w
+for(i in 2:length(w)) x[i] <- x[i-1]+ phi*w[i]
+
+# Prozess
+plot(x, type="l")
+
+## Autokorrelationsfunktionen
+plot(acf(x,lag.max=20,plot=F),type="l",ci=0,main="",ylim=c(0,1))
+lines(0:20,phi^(0:20),col=2)
+legend("topright",c("empirische ACF","analytische ACF"),col=1:2,lty=1)
+```
+
+:::
+::::::::::::::
+    
+    
+## Auto-Regressive Prozesse mit Zeithorizont p - AR(p) Prozess
+
+Ein (linearer) Auto-Regressiver (AR) Prozess mit Zeithorizont p basiert auf den vorangehenden p Zeitschritten und ist definiert durch:
+
+$$X_t = \phi_1 \cdot X_{t-1} + \phi_2 \cdot X_{t-2} + \cdots + \phi_p \cdot X_{t-p} + W_t = \sum_{k=1}^p \phi_k X_{t-k} + W_t$$
+
+Dabei sind
+
+ - $(W_t)$ normalverteilte Zuwächse mit Erwartungswert bzw. Mittelwert Null und Varianz $\sigma^2$
+ - $\phi_i$ die Gewichtungsfaktoren für die zurückliegenden Zeitschritte 
+ 
+Die mathematische Analyse eines AR(p) Prozesses wie z.B. die Ermittlung der analytische Autokorrelationsfunktion ist deutlich komplexer als die eines einfachen AR(1) Prozesses und unterbleibt hier.
+
+## Beispiel für einen AR(2)-Prozess
+
+:::::::::::::: {.columns}
+::: {.column}
+
+Im folgenden ein Beispiel für eine Realisierung eines AR(2)-Prozesses mit $\phi_1 = 0,9$, $\phi_2 = - 0,5$ und Startwert 0 sowie dessen empirische Autokorrelationsfunktion.
+
+```{r ,echo = TRUE, eval = FALSE}
+layout(matrix(1:2,2,1))
+par(mar=c(3,3,2,.2),mgp=c(1.5,.5,0))
+
+## Prozess mit Zuwachsdarstellung
+phi <- c(0.7,-0.5)
+w <- rnorm(n=1000)
+x <- w
+x[2] <- phi[1]*x[1]+w[2]
+for(i in 3:length(w)) x[i] <- phi[1]*x[i-1]+phi[2]*x[i-2]+ w[i]
+
+# Prozess
+plot(x, type="l")
+
+## Autokorrelationsfunktionen
+plot(acf(x,lag.max=20,plot=F),type="l",ci=0,main="")
+
+```
+:::
+
+::: {.column}
+
+```{r }
+layout(matrix(1:2,2,1))
+par(mar=c(3,3,2,.2),mgp=c(1.5,.5,0))
+
+## Prozess mit Zuwachsdarstellung
+phi <- c(0.7,-0.5)
+w <- rnorm(n=1000)
+x <- w
+x[2] <- phi[1]*x[1]+w[2]
+for(i in 3:length(w)) x[i] <- phi[1]*x[i-1]+phi[2]*x[i-2]+ w[i]
+
+# Prozess
+plot(x, type="l")
+
+## Autokorrelationsfunktionen
+plot(acf(x,lag.max=20,plot=F),type="l",ci=0,main="")
+```
+
+:::
+::::::::::::::
+
+
+## Partielle Autokorrelation
+
+Die Autokorrelationsfunktion aggregiert alle Zusammenhänge zwischen aufeinanderfolgen Zeitpunkten. Sie berücksichtigt damit auch indirekte Zusammenhänge. So beinhaltet die Autokorrelationsfunktion mit lag 2 nicht nur den direkten Zusammenhang zwischen $X_t$ und $X_{t+2}$, sondern auch den indirekten Zusammenhang von $X_t$ über $X_{t+1}$ zu $X_{t+2}$.
+
+Diese indirekten Zusammenhänge führen auch bei einem AR-Prozess mit Verzögerung 1 dazu, dass die Autokorrelation auch für Verzögerungen größer 1 nicht null ist. Aufgrund der Konstruktionsweise kann man aber einen direkten Zusammenhang zwischen $X_t$ und $X_{t+2}$ ausschließen (ebenso $X_{t+3}$, $X_{t+4}$,...). 
+
+Um den direkten Zusammenhang zu analysieren betrachtet man daher stattdessen die partielle Autokorrelation, als die verbleibende Korrelation zwischen zwei Zeitpunkten, wenn alle Korrelationen der dazwischen liegenden Zeitpunkte entfernt wurden.
+
+Für den Fall eines AR-Prozesses entspricht die partielle Autokorrelation zur Verzögerung $h$ genau dem Koeffizienten $\phi_h$.
+
+Eine allgemeine, formale Definition der partiellen Autokorrelation benötigt ein etwas erweitertes Verständnis der Wahrscheinlichkeitsrechnung und unterbleibt hier daher.
+  
+Im Folgenden zeigen wir einen AR(2) Prozess sowie darunter die zugehörige Auto-Korrelationsfunktion und partielle Autokorrelationsfunktion.
+
+***
+
+:::::::::::::: {.columns}
+::: {.column}
+
+```{r , echo = TRUE, eval = FALSE}
+layout(matrix(1:2,2,1))
+par(mar=c(3,3,2,.2),mgp=c(1.5,.5,0))
+
+## Prozess mit Zuwachsdarstellung
+phi <- c(0.7,-.5)
+w <- rnorm(n=1000)
+x <- w
+x[2] <- phi[1]*x[1]+w[2]
+for(i in 3:length(w)) x[i] <- phi[1]*x[i-1]+phi[2]*x[i-2]+ w[i]
+
+# Prozess
+plot(x, type="l")
+
+## Autokorrelationsfunktionen
+plot(acf(x,lag.max=10,plot=F),type="l",ci=0,main="",ylim=c(-1,1))
+lines(pacf(x,lag.max=10,plot=F)$acf,col=2)
+legend("topright",c("Autokorrelationsfunktion","part. Autokorrelationsfunktion"),lty=1,col=1:2)
+
+```
+
+:::
+
+::: {.column}
+
+```{r }
+layout(matrix(1:2,2,1))
+par(mar=c(3,3,2,.2),mgp=c(1.5,.5,0))
+
+## Prozess mit Zuwachsdarstellung
+phi <- c(0.7,-.5)
+w <- rnorm(n=1000)
+x <- w
+x[2] <- phi[1]*x[1]+w[2]
+for(i in 3:length(w)) x[i] <- phi[1]*x[i-1]+phi[2]*x[i-2]+ w[i]
+
+# Prozess
+plot(x, type="l")
+
+## Autokorrelationsfunktionen
+plot(acf(x,lag.max=10,plot=F),type="l",ci=0,main="",ylim=c(-1,1))
+lines(pacf(x,lag.max=10,plot=F)$acf,col=2)
+legend("topright",c("Autokorrelationsfunktion","part. Autokorrelationsfunktion"),lty=1,col=1:2)
+```
+
+:::
+::::::::::::::
+
+
+# (Integrierte) Auto-Regressive Moving Average Prozesse (ARIMA)
+
+## Definition ARMA Prozess
+Autoregressive Prozesse und Moving Average Prozesse lassen sich kombinieren. Dabei werden mittels des autoregressiven Anteils die Werte vorangehender Zeitschritte summiert und mittels des Moving Average Anteils ein gleitender Durchschnitt aus den Zufallswerten vorangehender Zeitschritte hinzugefügt. 
+
+Die Zeithorizonte für den autoregressiven Anteil ($p$) und den Moving Average Anteil ($q$) können unabhängig voneinander gewählt werden. 
+
+Es ergibt sich ein ARMA(p,q)-Prozess
+
+$$X_t = \sum_{k=1}^p \phi_k X_{t-k} + W_t + \sum_{k=1}^q \theta_k W_{t-k}$$
+
+Dabei sind
+
+ - $\phi_k$ die Gewichtungsfaktor für die zurückliegenden Zeitschritte im autoregressiven Anteil
+ - $(W_t)$ normalverteilte Zufallswerte mit Erwartungswert bzw. Mittelwert Null und Varianz $\sigma^2$
+ - $\theta_k$ die Gewichtungsfaktor für die zurückliegenden Zeitschritte im Moving Average Anteil
+ 
+ 
+## Definition ARIMA Prozess
+
+Wird mit dem ARMA(p,q) Modell nicht der Prozess selber beschrieben, sondern stattdessen der Differenzenprozess $\Delta X_t = X_t - X_{t-1}$, so spricht man von einem integrierten ARMA-Prozess, kurz ARIMA(p,1,q)-Prozess.
+
+Wiederholt man die Differenzbildung $d$ mal - man betrachtet also die Änderung der Änderung der .... Änderung (d-mal) - so spricht man von einem ARIMA(p,d,q) Prozess.
+
+Im folgenden sind Realisierungen verschiedener ARIMA(p,d,q) Prozesse dargestellt. Der zugrundeliegende Zufallsprozess bleibt dabei stets derselbe.
+
+## Beispiel: ARIMA(p,d,q) Prozesse
+
+
+:::::::::::::: {.columns}
+::: {.column}
+
+```{r ,echo = TRUE, eval = FALSE}
+## Prozessparameter
+phi <- c(0.9,-0.9,0.5)
+theta <- c(.5,.4,.3)
+##Zufallsprozess
+w <- c(rep(0,5),rnorm(n=50))
+## Verschiedene ARMA-Prozesse
+x1 <- x2 <- x3 <- y1 <- y2 <- w
+for(t in 3:length(w)){
+  x1[t] <- sum(phi[1]*x1[t-1])+w[t]+sum(theta[1]*w[t-1]) #ARMA(1,1)
+  x2[t] <- sum(phi[1:2]*x2[t-(1:2)])+w[t]+sum(theta[1:2]*w[t-(1:2)]) #ARMA(2,2)
+  x3[t] <- sum(phi[1:3]*x3[t-(1:3)])+w[t]+sum(theta[1:3]*w[t-(1:3)]) #ARMA(3,3)
+} 
+y1 <- cumsum(x1) #ARIMA(1,1,1)
+y2 <- cumsum(x2) #ARIMA(2,1,2)
+
+
+# Prozess
+layout(matrix(1:2,2,1))
+par(mar=c(3,3,2,.2),mgp=c(1.5,.5,0))
+
+plot(w, type="l",ylim=c(-8,8))
+abline(h=0,col=6,lty=2)
+lines(x1,col=2); lines(x2,col=3); lines(x3,col=4)
+legend("topleft",c("W","ARMA(1,1)","ARMA(2,2)","ARMA(3,3)"),col=1:4,lty=1,ncol = 2)
+
+plot(w, type="l",ylim=c(-20,20))
+abline(h=0,col=6,lty=2)
+lines(y1,col=5); lines(y2,col=6)
+legend("topleft",c("W","ARIMA(1,1,1)","ARIMA(2,1,2)"),col=c(1,5:6),lty=1)
+
+```
+:::
+
+::: {.column}
+
+```{r }
+## Prozessparameter
+phi <- c(0.9,-0.9,0.5)
+theta <- c(.5,.4,.3)
+##Zufallsprozess
+w <- c(rep(0,5),rnorm(n=50))
+## Verschiedene ARMA-Prozesse
+x1 <- x2 <- x3 <- y1 <- y2 <- w
+for(t in 3:length(w)){
+  x1[t] <- sum(phi[1]*x1[t-1])+w[t]+sum(theta[1]*w[t-1]) #ARMA(1,1)
+  x2[t] <- sum(phi[1:2]*x2[t-(1:2)])+w[t]+sum(theta[1:2]*w[t-(1:2)]) #ARMA(2,2)
+  x3[t] <- sum(phi[1:3]*x3[t-(1:3)])+w[t]+sum(theta[1:3]*w[t-(1:3)]) #ARMA(3,3)
+} 
+y1 <- cumsum(x1) #ARIMA(1,1,1)
+y2 <- cumsum(x2) #ARIMA(2,1,2)
+
+
+# Prozess
+layout(matrix(1:2,2,1))
+par(mar=c(3,3,2,.2),mgp=c(1.5,.5,0),cex=.7)
+
+plot(w, type="l",ylim=c(-8,8))
+abline(h=0,col=6,lty=2)
+lines(x1,col=2); lines(x2,col=3); lines(x3,col=4)
+legend("topleft",c("W","ARMA(1,1)","ARMA(2,2)","ARMA(3,3)"),col=1:4,lty=1,ncol = 2)
+
+plot(w, type="l",ylim=c(-20,20))
+abline(h=0,col=6,lty=2)
+lines(y1,col=5); lines(y2,col=6)
+legend("topright",c("W","ARIMA(1,1,1)","ARIMA(2,1,2)"),col=c(1,5:6),lty=1)
+```
+
+:::
+::::::::::::::
+
+
+# Schätzen von Modellparametern eines ARIMA Prozesses
+
+## Heuristiken für die Metaparameter p,d,q
+
+* Differenzenparameter $d$:
+  + ARMA-Modelle haben keinen Trend
+  + Bilde solange Differenzen, solange die Zeitreihe noch einen Trend hat
+* AR-Parameter $p$:
+  + für einen AR(p)-Prozess entsprechen die Modellparameter $\phi_k$ analytisch den partiellen Autokorrelationen 
+  + wähle daher $p$ als größte Verzögerung mit empirischer partieller Autokorrelation ungleich Null
+* MA-Parameter $q$:
+  + für einen MA(q)-Prozess besteht analytisch eine Autokorrelation nur bis zur Verzögerung $q$
+  + wähle daher $q$ als größte Verzögerung mit empirischer Autokorrelation ungleich Null
+
+Die oben dargestellte Heuristik für die Auswahl der Parameter p und q wird auch Box-Jenkins-Methode genannt. Sie liefert gute Ergebnisse für kleine p und q ($p+q \leq 2$).
+
+## ARMA-Parameter
+
+Um für feste p,d,q möglichst gute Modellparameter $\phi,\theta,\sigma$ zu bestimmen, gibt es verschiedene Herangehensweisen:
+
+* **Maximum-Likelihood-Estimation**: wählt die Parameter, bei denen die beobachteten Zeitreihendaten dem Modell nach eine möglichst große Wahrscheinlichkeit aufweisen
+* **Quadratische Fehlersumme**: wählt die Parameter, bei denen die Summe der quadrierten Abstände zwischen beobachteten Zeitreihendaten und 1-Zeitschritt-Modellvorhersage möglichst klein ist
+* **Yule-Walker**: wählt die Parameter durch Lösen der sogenannten Yule-Walker-Gleichungen (u.a. Invertieren der empirischen Autokorrelationsmatrix)
+  
+Alternativ lassen sich Meta-Parameter und ARMA-Parameter integriert mit Hilfe des Akaike Informations Kriteriums (AIC) bestimmen, welches eine Maximum-Likelihood-Estimation mit der Anforderung an eine möglichst geringe Zahl an Parametern kombiniert.

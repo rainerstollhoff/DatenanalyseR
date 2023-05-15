@@ -4,7 +4,9 @@ output: learnr::tutorial
 runtime: shiny_prerendered
 author: Rainer Stollhoff
 description: "Eine interaktive Einführung in die Zeitreihenanalyse mit klassischem Kompomentenmodell in R"
+# Zeitreihenanalyse Komponentenmodell © 2021 by Rainer Stollhoff is licensed under CC BY-SA 4.0. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/
 ---
+ <p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="https://git.th-wildau.de/r3/Komponentenmodell_R">Zeitreihenanalyse Komponentenmodell</a> by <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://www.th-wildau.de/rainer-stollhoff/">Rainer Stollhoff</a> is licensed under <a href="http://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY-SA 4.0<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1"></a></p>
 
 ```{r setup, include=FALSE}
 library(learnr)
@@ -562,8 +564,6 @@ Da die meisten Methoden bzw. Modelle sehr ähnliche Werte erzeugen, bietet es si
 Ebenso ist es sinnvoll, gleichzeitig immer nur eine eingeschränkte Auswahl der Verfahren anzuzeigen. Dies gelingt am Besten, indem Sie zuerst alles anzeigen (wie auch in der Musterlösung) und anschließend den auszublendenden Zeilen das Kommentarzeichen # voranstellen.
 
 Ein Hinweis: Wir haben bislang die Funktion `predict()` verwendet, um die geschätzten Werte eines Modells zu erhalten. Für die Holt-Winters-Modelle funktioniert die Funktion `predict()` allerdings anders. Sie liefert immer nur einzelne Zahlenwerte für eine Vorhersage zukünftiger Werte. Um die geschätzten Werte für die bekannten Beobachtungen zu erhalten verwenden wir in der folgenden Übung daher den Aufruf `fitted(co2_hw)[,"xhat"]` (oder alternativ `co2_hw$fitted[,"xhat"]`).
-
-*Dank an Felix Rothe, der mich auf einen entsprechenden Fehler in einer Vorgängerversion dieses Dokuments hingewiesen hat.*
 
 
 ```{r prepare_all_comp, echo=FALSE}
