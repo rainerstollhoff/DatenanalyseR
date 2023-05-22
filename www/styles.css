@@ -1,0 +1,57 @@
+.image-container {
+    max-width: 100%;
+}
+
+.max-size-image {
+    max-width: 700px;
+    height: auto;
+}
+
+.custom-iframe {
+    max-width: 1280px;   /* Set the maximum width as a percentage of the container */
+    min-width: 720px;   /* Set the minimum width as a percentage of the container */
+  }
+
+
+.mail-image {
+    max-height: 40px;
+    height: auto;
+}
+
+.hint {
+    font-style: italic;
+}
+
+.tab-links{
+    list-style-type: none;
+}
+
+.tab-links a {
+    display: block;
+    padding: 10px;
+    background-color: #f0f0f0;
+    color: #333;
+    text-decoration: none;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    border-radius: 5px 5px 0 0;
+}
+
+.tab-links a.active {
+    background-color: #fff;
+    border-color: #ccc;
+    border-bottom-color: transparent;
+}
+
+.tab-content {
+    display: none;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-top: none;
+    border-radius: 0 5px 5px 5px;
+}
+
+.tab-content:target {
+    display: block;
+}
