@@ -1,17 +1,39 @@
-.image-container {
-    max-width: 100%;
-}
-
-.max-size-image {
-    max-width: 700px;
+.small-image {
+    width: 50%;
     height: auto;
 }
 
-.custom-iframe {
-    max-width: 1280px;   /* Set the maximum width as a percentage of the container */
-    min-width: 720px;   /* Set the minimum width as a percentage of the container */
+.mid-image {
+    width: 70%;
+    height: auto;
+}
+
+.big-image {
+    width: 100%;
+    height: auto;
+}
+
   }
 
+.iframe-container {
+    position: relative;
+    width: 50%;
+    overflow: hidden;
+}
+
+.iframe-container::before {
+content: "";
+display: block;
+padding-bottom: 56.25%; /* for an aspect ratio of 16:9 */
+}
+
+.iframe-container iframe {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+}
 
 .mail-image {
     max-height: 40px;
