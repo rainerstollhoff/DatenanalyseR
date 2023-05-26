@@ -13,6 +13,9 @@
     height: auto;
 }
 
+.text-size-image {
+    height: 2em; /* Set the height relative to the default text font size */
+    width: auto; /* Maintain the aspect ratio */
   }
 
 .iframe-container {
