@@ -7,15 +7,15 @@ author: Rainer Stollhoff, Felix Rothe
 description: "Eine interaktive Einführung in verschiede ML-Algorithmen in R mit dem Paket mlr"
 editor_options: 
   chunk_output_type: inline
+# Maschinelles Lernen in R mit mlr © 2021 by Rainer Stollhoff is licensed under CC BY-SA 4.0. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/
 ---
-
+ <p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="https://git.th-wildau.de/r3/MaschinellesLernenR">Maschinelles Lernen in R mit mlr</a> by <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://www.th-wildau.de/rainer-stollhoff/">Rainer Stollhoff</a> is licensed under <a href="http://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY-SA 4.0<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1"></a></p> 
 
 ```{r setup, include=FALSE}
 library(learnr)
 library(tidyverse)
 library(mlr)
 knitr::opts_chunk$set(echo = T, warning = FALSE)
-load(file="./www/shiny.RData")
 ```
 
 ## Einleitung
@@ -124,7 +124,7 @@ mpg_reg <- select(mpg,!hwy)
 Desweiteren sind im Datensatz einige nicht-numerische Variablen enthalten. Diese werden in binäre Dummy-Variablen umkodiert.
 
 ```{r, echo = T}
-mpg_reg <- createDummyFeatures(type.convert(mpg_reg),target="cty")
+mpg_reg <- createDummyFeatures(type.convert(mpg_reg,as.is=F),target="cty")
 ```
 
 Der finale Datensatz hat damit die Dimension:
@@ -236,21 +236,27 @@ Wir optimieren diese Hyperparameter anschließend
 * innerhalb der vorgegebenen Wertebereiche
 * auf einem Raster möglicher Wertekombinationen (Rastersuche in 5-facher Disktretisierung des Wertebereichs)  
 
-```{r , message = FALSE, warning = FALSE, eval = FALSE}
+```{r , message = FALSE, warning = FALSE, eval = TRUE}
 param_tree <- makeParamSet(
   makeIntegerParam("minsplit",5,10),
   makeIntegerParam("maxdepth",1,5),
   makeNumericParam("cp",.01,.1))
+
+```
+
+```{r, eval = FALSE}
+## Der folgende Codeblock benötigt etwas mehr Laufzeit und wird daher nicht ausgeführt. Stattdessen laden wir die vorberechneten Ergebnisse
 tune_tree <- tuneParams(rlearn_tree,
                         rtask.train,
                         cv5,
                         mse,
                         param_tree,
                         makeTuneControlGrid(resolution=5))
+save(tune_tree,file="./www/tune_tree.RData")
 ```
 
-
 ```{r }
+load(file="./www/tune_tree.RData")
 tune_tree
 ```
 
@@ -313,20 +319,29 @@ Wir optimieren diese Hyperparameter anschließend
 * innerhalb der vorgegebenen Wertebereiche
 * auf einem Raster möglicher Wertekombinationen (Rastersuche in 5-facher Disktretisierung des Wertebereichs)  
 
-```{r , message = FALSE, warning = FALSE, eval = FALSE}
+```{r , message = FALSE, warning = FALSE}
 param_gbm <- makeParamSet(
   makeIntegerParam("n.trees",50,200),
   makeIntegerParam("interaction.depth",1,5),
   makeNumericParam("shrinkage",.01,1))
+
+```
+
+```{r , eval = FALSE}
+## Der folgende Codeblock benötigt etwas mehr Laufzeit und wird daher nicht ausgeführt. Stattdessen laden wir die vorberechneten Ergebnisse
 tune_gbm <- tuneParams(rlearn_gbm,
                         rtask.train,
                         cv5,
                         mse,
                         param_gbm,
                         makeTuneControlGrid(resolution=5))
+save(tune_gbm,file="./www/tune_gbm.RData")
+
 ```
 
+
 ```{r}
+load(file="./www/tune_gbm.RData")
 tune_gbm
 ```
 
@@ -384,6 +399,15 @@ Wiederholen Sie die durchgeführten Analysen mit dem Verfahren Random Forest.
 Verwenden Sie dazu das untenstehende Übungsfenster. Der darin enthaltene Code ist in dieser Form ausführbar, es fehlt aber das Tuning der Hyperparameter bzw. die Befehle sind auskommentiert. Ergänzen Sie selbstständig. Eine Musterlösung gibt es nicht.
 
 ```{r sup_reg_rf, echo = T, exercise = TRUE, exercise.lines = 30}
+
+mpg_reg <- select(mpg,!hwy)
+mpg_reg <- createDummyFeatures(type.convert(mpg_reg,as.is=F),target="cty")
+rtask <- makeRegrTask(data=mpg_reg,target="cty")
+set.seed(1)
+ho = makeResampleInstance("Holdout",task=rtask,split=.8)
+rtask.train = subsetTask(rtask,ho$train.inds[[1]])
+rtask.test = subsetTask(rtask,ho$test.inds[[1]])
+
 rlearn_rf <- makeLearner("regr.randomForest")
 getParamSet(rlearn_rf)
 
@@ -439,7 +463,7 @@ Anschließend erzeugen wir für die verbliebenen nicht-numerischen Variablen wie
 
 ```{r , echo = T}
 mpg_bin <- select(mpg_bin,-hwy,-cty,-model)
-mpg_bin <- createDummyFeatures(type.convert(mpg_bin),target="class")
+mpg_bin <- createDummyFeatures(type.convert(mpg_bin,as.is=F),target="class")
 
 ```
 
@@ -535,21 +559,29 @@ getParamSet(learn_cbtree)
 
 Wir optimieren ausgewählte Hyperparameter im Tuning analog dem Vorgehen für die Regressionsbeispiele.
 
-```{r , echo = T,  message = FALSE, warning = FALSE, eval = FALSE}
+```{r , echo = T,  message = FALSE, warning = FALSE}
 param_cbtree <- makeParamSet(
   makeIntegerParam("minsplit",5,10),
   makeIntegerParam("maxdepth",1,5),
   makeNumericParam("cp",.01,.1))
+
+```
+
+```{r, eval = FALSE}
+## Der folgende Codeblock benötigt etwas mehr Laufzeit und wird daher nicht ausgeführt. Stattdessen laden wir die vorberechneten Ergebnisse
 tune_cbtree <- tuneParams(learn_cbtree,
                         cbtask.train,
                         cv5,
                         acc,
                         param_cbtree,
                         makeTuneControlGrid(resolution=5))
+save(tune_cbtree,file="./www/tune_cbtree.RData")
 ```
 
 
+
 ```{r , echo = T}
+load(file="./www/tune_cbtree.RData")
 tune_cbtree
 learn_cbtree <- setHyperPars(learn_cbtree,par.vals = tune_cbtree$x)
 model_cbtree <- train(learn_cbtree,cbtask.train)
@@ -582,20 +614,28 @@ Wir konzentrieren uns auf die Hyperparameter:
 * `kernel` zur Auswahl des verwendeten Kernel - hier nur `radial basis` und `polynomial`
 * `gamma` als Skalierungsfaktor
 
-```{r , echo = T,  message = FALSE, warning = FALSE, eval = FALSE}
+```{r , echo = T,  message = FALSE, warning = FALSE}
 param_cbsvm <- makeParamSet(
   makeDiscreteParam("kernel",c("radial basis","polynomial")),
   makeNumericParam("gamma",.01,1))
+
+```
+
+```{r , eval = FALSE}
+## Der folgende Codeblock benötigt etwas mehr Laufzeit und wird daher nicht ausgeführt. Stattdessen laden wir die vorberechneten Ergebnisse
 tune_cbsvm <- tuneParams(learn_cbsvm,
                         cbtask.train,
                         cv5,
                         acc,
                         param_cbsvm,
                         makeTuneControlGrid(resolution=5))
+save(tune_cbsvm,file="./www/tune_cbsvm.RData")
+
 ```
 
 
 ```{r , echo = T}
+load(file="./www/tune_cbsvm.RData")
 tune_cbsvm
 learn_cbsvm <- setHyperPars(learn_cbsvm,par.vals = tune_cbsvm$x)
 model_cbsvm <- train(learn_cbsvm,cbtask.train)
@@ -658,7 +698,7 @@ Für multinomiale Klassifikationsaufgaben wird die Variable `class` mit sieben v
 table(mpg$class)
 mpg_mult <- mpg
 mpg_mult <- select(mpg_mult,-model)
-mpg_mult <- createDummyFeatures(type.convert(mpg_mult),target="class")
+mpg_mult <- createDummyFeatures(type.convert(mpg_mult,as.is=F),target="class")
 ```
 
 
@@ -723,16 +763,24 @@ param_cmtree <- makeParamSet(
   makeIntegerParam("minsplit",1,10),
   makeIntegerParam("maxdepth",1,5),
   makeNumericParam("cp",.01,.1))
+
+```
+
+```{r , eval = FALSE}
+## Der folgende Codeblock benötigt etwas mehr Laufzeit und wird daher nicht ausgeführt. Stattdessen laden wir die vorberechneten Ergebnisse
 tune_cmtree <- tuneParams(learn_cmtree,
                         cmtask.train,
                         cv5,
                         acc,
                         param_cmtree,
                         makeTuneControlGrid(resolution=5))
+save(tune_cmtree,file="./www/tune_cmtree.RData")
+
 ```
 
 
 ```{r , echo = T}
+load(file="./www/tune_cmtree.RData")
 tune_cmtree
 learn_cmtree <- setHyperPars(learn_cmtree,par.vals = tune_cmtree$x)
 model_cmtree <- train(learn_cmtree,cmtask.train)
@@ -766,19 +814,28 @@ getParamSet(learn_cmnn)
 ```
 
 
-```{r , echo = T,  message = FALSE, warning = FALSE, eval = FALSE}
+```{r , echo = T,  message = FALSE, warning = FALSE}
 param_cmnn <- makeParamSet(
   makeIntegerParam("size",1,10))
+
+```
+
+```{r , eval = FALSE}
+## Der folgende Codeblock benötigt etwas mehr Laufzeit und wird daher nicht ausgeführt. Stattdessen laden wir die vorberechneten Ergebnisse
 tune_cmnn <- tuneParams(learn_cmnn,
                         cmtask.train,
                         cv5,
                         acc,
                         param_cmnn,
                         makeTuneControlRandom(maxit=5))
+save(tune_cmnn,file="./www/tune_cmnn.RData")
 
 ```
 
+
 ```{r , echo = T}
+load(file="./www/tune_cmnn.RData")
+
 tune_cmnn
 learn_cmnn <- setHyperPars(learn_cmnn,par.vals = tune_cmnn$x)
 model_cmnn <- train(learn_cmnn,cmtask.train)

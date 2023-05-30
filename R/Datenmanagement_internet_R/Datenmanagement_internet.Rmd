@@ -4,13 +4,30 @@ output: learnr::tutorial
 runtime: shiny_prerendered
 author: Rainer Stollhoff
 description: "Das Tutorial zeigt, wie man mit Hilfe spezieller R Pakete Daten aus Onlinequellen schnell und einfach einlesen kann."
+# Datenmanagement - Import von Online Datenquellen © 2021 by Rainer Stollhoff is licensed under CC BY-SA 4.0. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/
 ---
+ <p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="https://git.th-wildau.de/r3/Datenmanagement_internetR">Datenmanagement - Import von Online Datenquellen</a> by <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://www.th-wildau.de/rainer-stollhoff/">Rainer Stollhoff</a> is licensed under <a href="http://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY-SA 4.0<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1"></a></p>
 
 ```{r setup, include=FALSE}
 library(learnr)
 knitr::opts_chunk$set(echo = FALSE)
 library(Quandl)
-Quandl.api_key("KTgBzn84d6v-JQJB8v76")
+
+
+## Sucht nach einem Quandl API key und gibt einen Warnhinweis, falls dieser fehlt.
+if(length(Quandl.api_key())!=1){
+Qkey.current <- file.exists("./Quandl_key.txt")
+Qkey.parent <- file.exists("../Quandl_key.txt")
+if(Qkey.current|Qkey.parent){
+  if(Qkey.current){
+      Quandl.api_key(readChar(file("./Quandl_key.txt"),nchars = 30))
+  }else{
+      Quandl.api_key(readChar(file("../Quandl_key.txt"),nchars = 30))
+  }
+}else{
+  warning("Teile des Tutoriums benötigen den Zugriff auf Quandl.com. Bitte speichern Sie einen gültigen Quandl API Key in einer Datei Quandl_key.txt im R-Arbeitsverzeichnis ab, damit dieser automatisch eingelesen werden kann.")
+}
+}
 
 
 ```
