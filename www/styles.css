@@ -1,0 +1,82 @@
+.small-image {
+    width: 50%;
+    height: auto;
+}
+
+.mid-image {
+    width: 70%;
+    height: auto;
+}
+
+.big-image {
+    width: 100%;
+    height: auto;
+}
+
+.text-size-image {
+    height: 2em; /* Set the height relative to the default text font size */
+    width: auto; /* Maintain the aspect ratio */
+  }
+
+.iframe-container {
+    position: relative;
+    width: 50%;
+    overflow: hidden;
+}
+
+.iframe-container::before {
+content: "";
+display: block;
+padding-bottom: 56.25%; /* for an aspect ratio of 16:9 */
+}
+
+.iframe-container iframe {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+}
+
+.mail-image {
+    max-height: 40px;
+    height: auto;
+}
+
+.hint {
+    font-style: italic;
+}
+
+.tab-links{
+    list-style-type: none;
+}
+
+.tab-links a {
+    display: block;
+    padding: 10px;
+    background-color: #f0f0f0;
+    color: #333;
+    text-decoration: none;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    border-radius: 5px 5px 0 0;
+}
+
+.tab-links a.active {
+    background-color: #fff;
+    border-color: #ccc;
+    border-bottom-color: transparent;
+}
+
+.tab-content {
+    display: none;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-top: none;
+    border-radius: 0 5px 5px 5px;
+}
+
+.tab-content:target {
+    display: block;
+}
