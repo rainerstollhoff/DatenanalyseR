@@ -1,0 +1,643 @@
+---
+title: "Unsupervised Learning in R"
+output: learnr::tutorial
+runtime: shiny_prerendered
+
+author: Rainer Stollhoff
+description: "Eine interaktive Einführung in Unsupervised Learning"
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+```{r setup, include=FALSE}
+library(learnr)
+library(tidyverse)
+knitr::opts_chunk$set(echo = T, warning = FALSE)
+```
+
+## Einleitung
+
+In diesem Tutorial werden verschiedene Verfahren des Maschinellen Lernens zum Unsupervised Learning vorgestellt. Dabei wird vorausgesetzt, dass die theoretischen Grundlagen des Unsupervised Learning sowie Anwendungskenntnisse in der explorativen Datenanalyse bereits weitgehend vorhanden sind.  
+
+Der Fokus liegt auf der konkreten Anwendung der Verfahren, dem Einfluß der Parameter und Hyperparameter auf die erzielten Ergebnisse und deren Interpretation.
+
+<!-- Die Umsetzung findet dabei in R statt. Soweit möglich setzt das Tutorial aber keine Kenntnisse in R voraus. Insbesondere sind die Übungen durch einfaches Anpassen von Parametern bzw. Argumenten umsetzbar. Für vertiefte Analysen oder im Fall von Fehlern bei der Anwendung sind Kenntnisse in R aber unumgänglich. -->
+
+### Unsupervised Learning
+
+Die Aufgabe im Unsupervised Learning besteht darin, die in den Variablen $x$ enthaltene Information zugänglicher zu machen oder zu komprimieren. 
+
+Man unterscheidet zwischen: 
+
+* Dimensionsreduktion: Ziele sind eine Kompression der Information und die Darstellung der Daten in einer zweidimensionalen Projektion.
+* Clustering: Einteilen der Beobachtungen in diskrete Gruppen, sodass Beobachtungen innerhalb einer Gruppe zueinander ähnlich sind und Beobachtungen verschiedener Gruppen sich unterscheiden.
+
+Sowohl für Dimensionsreduktion - als auch für Clustering existiert eine Vielzahl an verschiedenen Verfahren bzw. Lern-Algorithmen. Alle dieser Verfahren haben ihre eigenen Stärken und Schwächen. Im Rahmen dieser Einführung wird für jede der beiden Aufgabentypen eine Auswahl an Verfahren vorgestellt. 
+
+Konkret werden betrachtet:
+
+* Hauptkomponentenanalyse / Principal Component Analysis (PCA)
+* t-verteilte stochatische Nachbarschaftseinbettung / t-distributed stochastic neighbour embedding (t-SNE)
+
+* k-means Clustering
+* hierarchisches Clustering
+
+### Datensatz
+
+Als Anwendungsfall dienen die demografischen und sozio-ökonomischen Strukturdaten der Wahlkreise der Bundesrepublik Deutschland bezogen von der Webseite des Bundeswahlleisters. Diese beinhalten Beobachtungen von 48 Merkmalen in den 299 Wahlkreisen.
+
+Aufgrund der Datenbereitstellung müssen die Daten nach dem Download zunächst noch für die weitere Verwendung angepasst werden. Dazu zählt das Überspringen der ersten 8 Zeilen mit Metadaten sowie die korrekten Datenformatierungen. Danach werden die aggregierten Daten für Bundesländer bzw. Deutschland herausgefiltert.
+
+Zusätzlich werden die Spaltennamen vereinfacht.
+
+```{r btw, echo = T}
+btw21_strukturdaten <- read_delim("https://www.bundeswahlleiter.de/dam/jcr/b1d3fc4f-17eb-455f-a01c-a0bf32135c5d/btw21_strukturdaten.csv",
+delim = ";", escape_double = FALSE, col_types = cols(`Wahlkreis-Nr.` = col_integer()),
+locale = locale(decimal_mark = ",", grouping_mark = "."),
+trim_ws = TRUE, skip = 8)
+#names(btw21_strukturdaten) <- make.names(names(btw21_strukturdaten))
+
+btw21 <- btw21_strukturdaten |> filter(`Wahlkreis-Nr.`<300) |> select(-Fußnoten) |> select(-`Wahlkreis-Nr.`)
+dim(btw21)
+
+print(names(btw21))
+Langnamen_btw21 <- names(btw21)
+
+names(btw21) <- c(names(btw21[1:3]),paste("X",4:50,sep=""))
+
+```
+
+#### Merkmalsanalyse
+
+Der Datensatz enthält `r length(select_if(btw21,is.numeric))` metrische Variablen. Diese weisen untereinander starke Abhängigkeiten auf in den meisten Fällen in Form von Gesamtzahlen und disaggregierten Zahlen.
+
+Dies zeigt sich in teilweise hohen wechselseitigen Korrelationen. 
+
+```{r}
+btw21 |> select_if(is.numeric) |> cor() |> abs() |> quantile()
+```
+
+
+Im folgenden werden diese graphisch dargestellt als Heatmap mit der FUnktion `ggcorrplot()` aus dem Paket `ggcorrplot`
+
+```{r}
+library(ggcorrplot)
+btw21 |> select_if(is.numeric) |> cor() |> ggcorrplot(hc.order = FALSE, type = "lower",tl.cex = 8) 
+
+```
+
+#### Politische Gruppierungen
+Die Wahlkreise lassen sich politisch trennen nach dem jeweiligen Bundesland. Hierfür ergeben sich die folgenden Häufigkeiten:
+
+```{r}
+table(btw21$Land)
+```
+
+Zudem lässt sich unterscheiden, ob die Wahlkreise innerhalb derselben Gemeinde liegen oder mehrere Gemeinden beinhalten.
+
+```{r}
+btw21 <- btw21 |>  mutate("MehrereGemeinden" = `Gemeinden am 31.12.2019 (Anzahl)`>1) 
+btw21 |> group_by(Land) |> select(MehrereGemeinden) |> table()
+```
+
+Klar erkennbar sind hier die Stadtstaaten Berlin, Bremen und Hamburg.
+
+Eine weitere (leider immer noch) relevante Unterscheidung ist die nach alten und neuen Bundesländern. Hierzu müssen wir diese zunächst per Hand anlegen. Berlin erhält einen Sonderstatus.
+
+
+```{r}
+btw21 <- btw21 |> 
+  mutate("NeuAlt" = case_when(
+    Land == "Berlin" ~"Berlin",
+    Land %in% c("Brandenburg","Mecklenburg-Vorpommern","Sachsen","Sachsen-Anhalt","Thüringen") ~ "Neu",
+    TRUE ~ "Alt"))
+btw21 |>  group_by(Land) |>  select(NeuAlt) |> table()
+```
+
+
+
+## Dimensionsreduktion  {.tabset}
+
+Das Ziel der Dimensionsreduktion ist es, die in den Daten enthaltene Information zu komprimieren und eine Darstellung der Daten in einer niedriger dimensionalen Projektion zu ermöglichen.
+
+Ergebnis der Dimensionsreduktion sind Projektionen der ursprünglichen Beobachtungen auf neue Merkmale.
+
+### Hauptkomponentenanalyse (PCA)
+
+In der Hauptkomponetenanalyse werden iterativ lineare Projektionen der ursprünglichen Merkmale bestimmt, die
+
+* durch den Mittelpunkt der Daten gehen,
+* orthogonal zu den vorher bestimmten Projektionen liegen bzw. statistisch unkorreliert sind und
+* die - nach Anrechnung der vorher bestimmten Projektionen - einen möglichst großen Teil der noch verbleibenden Varianz in den Daten erfassen.
+
+#### Naive Herangehensweise
+
+Die Hauptkomponentenanalyse wird auf den metrischen/numerischen Variablen mit dem Befehl `princomp()` durchgeführt.
+
+```{r , echo = T}
+btw21_PCA <- select_if(btw21,is.numeric) |> princomp()
+```
+
+Einen ersten Überblick über die Bedeutung der einzelnen Komponenten erhält man durch eine graphische Darstellung.
+
+```{r, echo = T}
+plot(btw21_PCA)
+```
+
+Es zeigt sich, dass der überwältigende Teil der Varianz in den Daten bereits durch die erste Komponente erklärt wird. Das ist etwas ungewöhnlich und bedarf einer weiteren Untersuchung. Wir betrachten die Zusammensetzung der ersten Komponente.
+
+```{r}
+btw21_PCA$loadings[,1] |> round(1)
+```
+
+Es zeigt sich, dass die erste Komponente nahezu ausschließlich Variable Nummer 37 beinhaltet. Dabei handelt es sich um `r Langnamen_btw21[37]`.
+Diese wird in EUR gemessen und erreicht damit sehr hohe Zahlen.
+
+Im Gegensatz dazu werden andere Zahlen wie die Arbeitslosenquote als Prozentzahlen angegeben und enthalten nur vergleichsweise niedrige Zahlen.
+
+Vergleichen wir die Varianzen der einzelnen Merkmale so zeigen sich:
+
+```{r}
+select_if(btw21,is.numeric) |> summarise_all(var) |> quantile()
+```
+
+extreme Unterschiede in den Varianzen. Kein Wunder, dass einige Merkmale für die gesamte Varianz keine Rolle spielen. Wir sollten die Merkmale daher zunächst auf eine gleiche Varianz hin standardisieren, bevor wir die Hauptkomponentenanalyse durchführen.
+
+#### Hauptkomponentenanalyse mit standardisierten Merkmalen
+
+Zunächst standardisieren wir die Merkmale mit dem Befehlsaufruf `across(everything(),~./sd(.))`, der die Werte in jedem Merkmal durch die Standardabweichung des Merkmals teilt. Die neuen Merkmale weisen alle eine Standardabweichung und damit auch eine Varianz von 1 auf. Die Gesamtvarianz ist damit gleich der Anzahl der Merkmale, hier `r length(select_if(btw21,is.numeric))`.
+
+Anschließend wird sie Hauptkomponentenanalyse mit dem Befehl `princomp()` durchgeführt.
+
+```{r , echo = T}
+btw21_PCA <- select_if(btw21,is.numeric) |> mutate(across(everything(),~./sd(.))) |> princomp()
+```
+
+Einen ersten Überblick über die Bedeutung der einzelnen Komponenten erhält man durch eine graphische Darstellung.
+
+```{r, echo = T}
+plot(btw21_PCA)
+sum(btw21_PCA$sdev[1:2]^2)/sum(btw21_PCA$sdev^2)
+```
+
+Man sieht nun, dass die Gesamtvarianz sich zwar auf mehrere Komponenten aufteilt, aber ungefähr die Hälfte der Gesamtvarianz bereits in den ersten beiden Komponenten enthalten ist.
+
+Wir betrachten die Zusammensetzung der ersten beiden Komponenten - stark vereinfacht durch Runden auf die erste Nachkommastelle:
+
+```{r}
+btw21_PCA$loadings[,1:2] |> round(1)
+```
+
+Es zeigt sich, dass beide Komponenten durch mehrere Merkmale beladen werden, ohne dass es einzelne Merkmale gibt, die einen übermäßigen Einfluss ausüben.
+
+
+#### Einbinden der Hauptkomponenten in die Datenanalyse
+
+Die ermittelten Hauptkomponenten lassen sich nun dem Datensatz hinzufügen und für die weitere Analyse nutzen. Wir erstellen so einen scatterplot der ersten beiden Hauptkomponenten, färben die Punkte je nach Bundesland getrennt ein und wählen ein Symbol je nach Anzahl der Gemeinden (siehe oben):
+
+```{r}
+btw21 |> 
+  add_column(as_tibble(btw21_PCA$scores)) |> 
+  ggplot(aes(x=Comp.1,y=Comp.2)) +
+    geom_point(aes(color=Land,shape=MehrereGemeinden))
+```
+
+Auf den ersten Blick lässt sich erkennen, dass die Wahlkreise aus derselben bzw. mit nur einer Gemeinde am linken Rand liegen (niedrige Werte in Comp.1) und diejenigen mit mehreren Gemeinden am rechten Rand. Dies lässt auf die Unterschiede zwischen Stadt und Land als Haupttreiber der ersten Komponente schließen.
+
+Wir ergänzen daher noch die Anzahl der Gemeinden im Plot.
+
+```{r}
+btw21 |> 
+  add_column(as_tibble(btw21_PCA$scores)) |> 
+  ggplot(aes(x=Comp.1,y=Comp.2)) +
+    geom_point(aes(color=Land,shape=MehrereGemeinden,size=`Gemeinden am 31.12.2019 (Anzahl)`))
+```
+
+Dies bestätigt die Vermutung. 
+
+Ersetzten wir nun noch die Bundesländer durch die Einteilung nach neuen und alten Bundesländern so erhalten wir eine gute Darstellung über die Unterschiede zwischen den Wahlkreisen:
+
+```{r}
+btw21 |> 
+  add_column(as_tibble(btw21_PCA$scores)) |> 
+  ggplot(aes(x=Comp.1,y=Comp.2)) +
+    geom_point(aes(color=NeuAlt,size = `Gemeinden am 31.12.2019 (Anzahl)`))
+```
+
+Hinsichtlich der sozio-ökonomischen Daten bestehen die größten Unterschiede zwischen den Wahlkreisen zwischen ländlichen und urbanen Wahlkreisen. Darauf folgen die Unterschiede zwischen den Wahlkreisen in den neuen und alten Bundesländern.
+
+
+
+### Explorative Faktoranalyse (EFA)
+
+Einer explorativen Faktorenanalyse (EFA) liegt die Annahme zu Grunde, dass hinter den beobachteten Variablen grundlegende Faktoren stehen. Diese Faktoren sind unbeobachtbar, bestimmen aber die Realisierungen der beobachtbaren Variablen. Als Analogie dienen beispielsweise Schulnoten als beobachtbare Merkmale hinter denen grundlegende Faktoren, wie die allgemeine Intelligenz, das sprachliche Ausdrucksvermögen etc. liegen. 
+
+Das Ziel in der explorativen Faktoranalyse ist es, ausgehend von einem Datensatz mit beobachtbaren Variablen potentielle zu Grunde liegende Faktoren zu identifizieren. Die m beobachtbaren Variablen $x=(x_1,...,x_m)$ sind dann eine lineare Funktion der k Faktoren $f=(f_1,...,f_k)$, d.h. es gilt für die p-te Variable $x_p = m_p + l_{p,1} f_1 + ... + l_{p,k} f_k$ wobei $m_p$ der Mittelwert von $x_p$ ist. Man nennt die Koeffizienten $l_{p,q}$ auch Faktorladung der Variable p auf den Faktor q.
+
+#### Rotation
+Beim Anpassen einer EFA werden zunächst ähnlich wie in der Hauptkomponetenanalyse zueinander orthogonale d.h. unkorrelierte Faktoren identifiziert. Dies führt in der Regel dazu, dass jede Variable durch mehrere Faktoren beeinflußt wird. Für eine bessere Interpretierbarkeit der Faktoren wäre es aber wünschenswert, wenn die Variablen jeweils nur durch wenige Faktoren beeinflußt wären.
+
+Aus diesem Grund rotiert man die erhaltenen Faktoren meistens im Anschluss noch, so dass jede Variable nur von wenigen der rotierten Faktoren beeinflusst wird. Hierbei gibt es unter anderem folgende Ansätze:
+
+- `varimax`: Eine orthogonale Rotation maximiert die Varianz der quadrierten Faktorladungen für die Faktoren. Dies führt dazu, dass jede Variable nur durch einen oder wenige Faktoren stark beeinflusst wird. Die Faktoren bleiben weiter unkorreliert bzw. orthogonal.
+- `oblimin`: Versucht das Kreuzprodukt der Faktorladungen zu minimieren. Dies führt dazu, dass für jede Variable möglichst viele Faktoren keinen Einfluss ausüben. Die Faktoren können dann miteinander korreliert sein.
+
+#### Explorative Faktoranalyse mit R
+
+In R lässt sich die EFA mit der Funktion `Rtsne()`aus dem Paket `psych` durchführen. Die Argumente der Funktion sind insbesondere:
+
+- `r`: Wahlweise eine Korrelations- oder Kovarianzmatrix oder eine Datentabelle
+- `nfactors`: Anzahl der zu extrahierenden Faktoren
+- `fm`: Methode zur Bestimmung der Faktoren, unter anderem `minres` zur Minimierung der Residuen
+- `rotate`: Zur Auswahl stehen unter anderem `varimax` und `oblimin` (siehe oben)
+
+
+Das Ergebnis des Befehlsaufrufs ist eine Liste welche insbesondere die folgenden Elemente enthält:
+
+- `Vaccounted`: Der Anteil der erklärten Varianz.
+- `loadings`: Die Faktorladungen für jede Variable
+- `communalities`: Anteil der gemeinsamen Varianz and der Varianz jeder Variablen
+- `scores`: Die Bedeutung der Faktoren für die einzelnen Beobachtungen
+
+
+#### Einbinden der Explorativen Faktoranalyse in die Datenanalyse
+
+```{r}
+library("psych")
+btw21_efa <- select_if(btw21,is.numeric) |> fa(nfactors=4,fm="minres",rotate="oblimin")
+
+btw21_efa
+```
+
+Für den Beispielsfall der Bundestagswahl zeigt sich, dass in einem Modell mit 4 Faktoren, die ersten drei Faktoren jeweils ca. 20% der Varianz in den Beobachtungen erklären. Diese drei Faktoren sind untereinander auch leicht positiv korreliert.
+
+Betrachtet man die Faktorladungen so zeigt sich, dass die alle Faktoren viele Variablen beeinflussen. Allerdings bestehen für einzelne Variablen deutliche Unterschiede so z.B.:
+
+- werden die Variablen X5, X13, X24, X36, X37 und X41 (Demographie, Elekto-PKW, BIP pro Kopf, Erwerbstätige s.u.) fast nur durch den ersten Faktor beeinflusst
+- werden die Variablen X46 bis X50 (SGBII- und Arbeitslosenkennzahlen, s.u.) nur durch den zweiten Faktor beeinflusst
+
+```{r}
+Langnamen_btw21[which(abs(btw21_efa$loadings[,1])>.8)+2]
+Langnamen_btw21[which(abs(btw21_efa$loadings[,2])>.8)+2]
+```
+
+Wir wiederholen die graphische Analyse der PCA mit den Faktorgewichten der ersten beiden Faktoren:
+
+```{r}
+btw21 |> 
+  add_column(as_tibble(btw21_efa$scores)) |> 
+  ggplot(aes(x=MR1,y=MR2)) +
+    geom_point(aes(color=NeuAlt,size = `Gemeinden am 31.12.2019 (Anzahl)`))
+```
+
+Auch bei der EFA zeigt sich eine deutliche Trennung der Wahlkreise erstens nach neuen und alten Bundesländern sowie Berlin und zweitens nach ländlichen und urbanen Wahlkreisen. 
+
+
+#### Exkurs: Unterschiede zwischen PCA und EFA
+
+Die explorative Faktoranalyse ist der Hauptkomponentenanalyse (PCA) sehr ähnlich. Sie unterscheiden sich allerdings hinsichtlich der Zielsetzung:
+
+- PCA: Iterative Reduktion der Dimension durch Projektion auf orthogonale Komponenten 
+- EFA: Identifikation einer vorab festgelegten Anzahl an grundlegenden Faktoren 
+
+und hinsichtlich der statistischen Vorgehensweise:
+
+- PCA: Komponenten mit maximaler Varianz in den beobachtbaren Variablen
+- EFA: Faktoren mit maximaler gemeinsamer Varianz zwischen den beteiligten Variablen
+
+
+### t-verteilte stochastische Nachbarschaftseinbettung (t-SNE)
+
+Die  t-verteilte stochastische Nachbarschaftseinbettung (t-SNE) ist im Gegensatz zur PCA und zur Faktoranalyse eine nicht-lineare Methode zur Dimensionsreduktion, d.h. es wird nicht nach linearen Kombinationen der Merkmale gesucht. Stattdessen steht hier eine Reduktion auf 2 Dimensionen für die Visualisierung im Vordergrund.
+
+In R lässt sich die t-SNE mit der Funktion `Rtsne()`aus dem Paket `Rtsne` durchführen. Die Projektionen werden in dem Listenelement `Y` gespeichert und das Ergebnis lässt sich mit der Plot Funktion direkt darstellen.
+
+```{r}
+library("Rtsne")
+btw21_tsne <- select_if(btw21,is.numeric) |> Rtsne()
+plot(btw21_tsne$Y)
+```
+
+Im Gegensatz zur Hauptkomponentenanalyse ist bei t-SNE keine weitere Analyse der Projektion bzw. Reduktion selber mehr möglich. Für eine weiter Analyse können wir allerdings die Korrelationen zwischen den neuen Projektionsdimensionen und den ursprünglichen Merkmalen berechnen.
+
+```{r}
+btw21_tsnecor <-   btw21 |> 
+  add_column(as_tibble(btw21_tsne$Y)) |> 
+  select_if(is.numeric) |> cor()
+
+round(btw21_tsnecor[,49:50],1)
+  
+```
+
+Hierbei zeigen sich keine eindeutigen Muster. Eine direkte Zuordnung der Projektionsdimensionen zu den ursprünglichen Merkmalen ist damit nicht möglich.
+
+
+In einem weiteren Schritt lässt sich die Projektion wieder an den ursprünglichen Datensatz anhängen, um so die einfache Visualisierung anzureichern.
+
+```{r}
+btw21 |> 
+  add_column(as_tibble(btw21_tsne$Y)) |> 
+  ggplot(aes(x=V1,y=V2)) +
+    geom_point(aes(color=NeuAlt,size = `Gemeinden am 31.12.2019 (Anzahl)`))
+```
+
+Es zeigt sich, dass zwischen den neuen Bundesländern untereinander Ähnlichkeiten bestehen. Der bei der PCA gefundene Unterschied zwischen Stadt und Land lässt sich nicht mehr so eindeutig feststellen. Hier liegen die urbanen Wahlkreise eher am Rand und die ländlichen in der Mitte und rechts - was auch immer rechts und links in diesem Kontext bedeutet.
+
+
+## Clustering {.tabset}
+
+Das Ziel des Clustering ist es, die Beobachtungen in Gruppen einzuteilen, sodass 
+
+* Beobachtungen innerhalb einer Gruppe zueinander möglichst ähnlich sind und
+* Beobachtungen verschiedener Gruppen sich möglichst unterscheiden.
+
+Ergebnis des Clusterings sind damit Gruppenzuschreibungen.
+
+Im Gegensatz zur Dimensionsreduktion lässt sich Clustering nicht nur auf metrischen Merkmalen problemslos durchführen, sondern auch auf nominalen oder ordinalen Merkmalen. Für unseren Anwendungsfall belassen wir es aber bei den metrischen Merkmalen. Das einzig sinnvoll zu verwendende nominalen Merkmal wäre hier das Bundesland. Und dieses verwenden wir lieber nachher zur Qualitätskontrolle der gefundenen Cluster.
+
+### k-means Clustering
+
+Beim k-means Clustering wird die Anzahl der zu bildenden Gruppen zu Beginn durch Wahl der Zahl `k`vorgegeben. Dann werden alle Beobachtungen im Datensetz zufällig einer der `k` Gruppen zugeordnet. Anschließend werden solange Beobachtungen zwischen den Gruppen hin- und hergeschoben, bis die Gruppenmitglieder untereinander sich möglichst ähnlich sind.
+
+Da die anfängliche Zuteilung zufällig erfolgt, halten wir zu Beginn des Clustering den Zufallszahlengenerator auf einem bestimmten Wert fest, um vergleichbarere Ergebnisse zu erhalten. Dazu verwenden wir die Funktion `set.seed()`.
+
+
+#### k-means auf den ursprünglichen Merkmalen
+
+In R lässt sich das k-means Clustering durch die Funktion `kmeans()`aufrufen. Wir starten mit `k=3`.
+
+```{r , echo = T}
+set.seed(142)
+btw21_kM <- select_if(btw21,is.numeric) |> kmeans(centers = 3)
+print(btw21_kM)
+```
+
+Der Algorithmus ordnet den drei vorgegebenen Clustern unterschiedlich viele Beobachtungen zu. Man kann erkennen, dass sich die Cluster in den Merkmalen unterscheiden, zum Teil sehr deutlich z.B. in der Anzahl der Gemeinden oder X36 (`r Langnamen_btw21[36]`).
+
+Zudem wird angegeben, wie stark sich die Boebachtungen innerhalb der Cluster unterscheiden ("Within cluster sum of squares") und wie hoch der Anteil der Unterschiede zwischen den Clustern an den gesamten Unterschieden ist ("between SS / total SS"). Dieser fällt hier mit 80% relativ hoch aus, so dass man von einer guten Gruppenaufteilung sprechen kann.
+
+Wir überprüfen die Clusterzuordnung zunächst im Vergleich zur Zugehörigkeit zu den Bundesländern, der Einteilung nach neuen und alten Bundesländern sowie nach urbanem oder ländlichem Wahlkreis:
+
+```{r}
+table(btw21_kM$cluster, btw21$Land)
+table(btw21_kM$cluster, btw21$MehrereGemeinden)
+table(btw21_kM$cluster, btw21$NeuAlt)
+
+```
+
+Es zeigt sich, mit Ausnahme von den Berliner Wahlkreisen, die alle im dritten Cluster gelandet sind, kein klarer Zusammenhang zwischen Clusterzuordnung und politischer Gruppenzuordnung. In der Tendenz sind ländliche Wahlkreise eher in den Clustern 2 und 3 und die neuen Bundesländer eher in Cluster 2.
+
+
+#### k-means auf standardisierten Merkmalen
+
+Auch für das Clustering können grundsätzlich Probleme durch die unterschiedlichen Skalen entstehen, in denen die ursprünglichen Merkmale gemessen wurden (Euro, Prozent, Personen,...). Wir wiederholen damit die auch schon für die PCA durchgeführte Standardisierung.
+
+
+```{r , echo = T}
+set.seed(142)
+btw21_kM <- select_if(btw21,is.numeric) |> 
+  mutate(across(everything(),~./sd(.))) |> 
+  kmeans(centers = 3)
+```
+
+
+Wir überprüfen die Clusterzuordnung erneut im Vergleich zur Zugehörigkeit zu den Bundesländern, der Einteilunf nach neuen und alten Bundesländern sowie nach urbanem oder ländlichem Wahlkreis:
+
+```{r}
+table(btw21_kM$cluster, btw21$Land)
+table(btw21_kM$cluster, btw21$MehrereGemeinden)
+table(btw21_kM$cluster, btw21$NeuAlt)
+
+```
+
+Es zeigt sich - abgesehen von einer unterschiedlichen Reihenfolge der Cluster - ein ähnliches Muster wie bei Verwendung der ursprünglichen Merkmale.
+
+Nun verändern wir zusätzlich noch die Anzahl der zu erzeugenden Cluster.
+
+```{r , echo = T}
+set.seed(142)
+btw21_kM <- select_if(btw21,is.numeric) |> 
+  mutate(across(everything(),~./sd(.))) |> 
+  kmeans(centers = 6)
+table(btw21_kM$cluster, btw21$MehrereGemeinden)
+table(btw21_kM$cluster, btw21$NeuAlt)
+```
+
+Erhöhen wir die Anzahl der Cluster auf 6, so erhalten wir nun eine stärkere Trennung der Cluster in eher urbane Cluster (Nummer 1) und ländliche Cluster (Nummer 2,4,5 und 6). Sowie eine Trennung in Cluster der neuen Bundesländer (Nummer 6) und der alten Bundesländer (Nummer 1,2,4 und 5).
+
+```{r , echo = T}
+set.seed(142)
+btw21_kM16 <- select_if(btw21,is.numeric) |> 
+  mutate(across(everything(),~./sd(.))) |> 
+  kmeans(centers = 16)
+table(btw21_kM16$cluster, btw21$MehrereGemeinden)
+table(btw21_kM16$cluster, btw21$NeuAlt)
+table(btw21_kM16$cluster, btw21$Land)
+
+```
+
+Diese Durchmischung bleibt auch bei einer weiteren Erhöhung der Anzahl der Cluster bestehen. Zudem zeigt sich auch, dass die 16 Cluster nicht den 16 Bundesländern entsprechen.
+
+#### Bestimmen einer optimalen Anzahl an Clustern
+
+Um eine optimale Anzahl an Clustern zu bestimmen rufen wir den Clustering Algorithmus wiederholt auf. Einerseits für vverschiedene Werte von `k` und andererseits bestimmen wir auch  für denselben Wert von `k` mehrfach zufällige Anfangswerte.
+
+Wir berechnen für jede Wahl von `k` das durchschnittliche Verhältnis von Unterschieden zwischen den Gruppen zu den Gesamtunterschieden ("between SS / total SS") sowie die gesamten Unterschiede innerhalb der Gruppen und geben diese anschließend graphisch aus.
+
+
+```{r , echo = T}
+bettot <- within <- numeric(16)
+
+btw21_stand <- select_if(btw21,is.numeric) |> 
+  mutate(across(everything(),~./sd(.)))
+
+for(k in 2:16){
+  within_k <- numeric(10)
+  bettot_k <- numeric(10)
+
+  for(i in 1:10){
+    btw21_kM.ki <-  kmeans(btw21_stand,centers = k, nstart = 20)
+    within_k[i] <-  btw21_kM.ki$withinss
+    bettot_k[i] <-  btw21_kM.ki$betweenss/btw21_kM.ki$totss
+
+  }
+  within[k] <- mean(within_k)
+  bettot[k] <- mean(bettot_k)
+}
+plot(bettot, type = "b", xlab="k",ylab="Between/Total - Sum of Squares")
+plot(within, type = "b", xlab="k",ylab="Within Sum of Squares")
+
+```
+
+Mit zunehmender Gruppenanzahl steigt das Verhältnis von Unterschieden zwischen den Gruppen zu den gesamten Unterschieden. Das ist nicht verwunderlich. Im Extrem, wenn jede Beobachtung ihre eigene Gruppe darstellt, ist das Verhältnis gleich 1.
+
+Mit zunehmender Gruppenzahl sinken auch die Unterschiede innerhalb der Gruppen. Auch das ist nicht verwunderlich. Im Extrem, wenn jede Beobachtung ihre eigene Gruppe darstellt, sind die Unterschiede innerhalb der Gruppe gleich 0.
+
+Welches `k` soll man nun wählen?
+Zunächst sollte man bedenken, wozu man überhaupt das Clustering durchführt. In der Regel führen sehr kleine `k` noch zu zu wenig Differenzierung, um sinnvoll zu unterteilen, und zu große Werte für `k` zu unüberschaubar vielen Clustern. 
+Rein statistisch gibt es hier nur allgemeine Vorschläge. Man kann versuchen, einen Punkt von `k`zu finden, an dem die weiteren Verbesserungen nicht mehr so groß ausfallen. Manche sprechen von der Ellbogenregel, d.h. man sucht nach einer Zahl von `k`bei der der Plot der Unterschiede innerhalb der Gruppen einen Knick macht. Leider ist diese Regel nicht immer einfach anzuwenden. In dem obigen Fall wäre ein derartiger Wert für `k`vielleicht `k=6`. 
+Am besten man kombiniert beide Vorgehensweisen und sucht nach einer für den Anwendungsfall sinnvollen und statistisch geeigneten Zahl.
+
+ 
+#### Kombination k-means mit PCA
+
+Zur Veranschaulichung der Cluster kombinieren wir im Folgenden das Clustering in 6 Gruppen mit einer Projektion auf die ersten beiden Hauptkomponenten.
+
+
+```{r , echo = T}
+btw21 |> 
+  add_column(as_tibble(btw21_PCA$scores)) |> 
+  add_column("Cluster" = factor(btw21_kM$cluster)) |> 
+  ggplot(aes(x=Comp.1,y=Comp.2)) +
+    geom_point(aes(color = Cluster, shape=NeuAlt,size = `Gemeinden am 31.12.2019 (Anzahl)`))
+
+```
+
+Es zeigt sich, dass die gefunden Gruppen sich hinsichtlich der zwei ersten Hauptkomponenten deutlich unterscheiden. So gibt es einen Cluster rechts oben (Nummer 6, ländlich, neue Bundesländer), zwei Cluster rechts unten (Nummer 2 und 4, ländlich, alte Bundesländer), einen Cluster links unten (Nummer 1, urban, alte Bundesländer), einen Cluster links oben (Nummer 3, urban, Berlin und gemischt) und einen mittigen Cluster (Nummer 5).
+
+Die Trennung zwischen den Clustern in den Hauptkomponenten ist nicht überraschend. Die Hauptkomponenten wurden so ermittelt, dass sie den Großteil der Unterschiede zwischen den Wahlkreisen erfassen. Das Clustering gruppiert Beobachtungen, die wenig Unterschiede zueinander haben. Entsprechend haben Sie auch wenig Unterschiede in den Hauptkomponenten. 
+
+Durch die Kombination von Hauptkomponentenanalyse und Clustering erzielt man allerdings eine anschauliche Repräsentation der Daten mit einem hohen Informationsgehalt. 
+
+### Hierarchisches Clustering
+
+Beim hierarchischen Clustering werden schrittweise Beobachtungen zusammen geführt. Zu Beginn ist jede Beobachtung ein eigener Cluster. Die Unterschiede zwischen den Clustern entsprechen damit den Unterschieden zwischen den Beobachtungen. Ausganspunkt für das hierarchische Clustering sind damit die paarweisen Unterschiede bzw. Entfernungen der Beobachtungen voneinander. 
+Anschließend werden die Cluster bzw. Beobachtungen anhand der Entfernungen zueinander zusammen geführt. Dazu gibt es verschiedene Strategien (sog. linkages):
+
+* Single Linkage: Minimaler Abstand zwischen Elementen von Clustern
+* Average Linkage: Durchschnittlicher Abstand zwischen Elementen von Clustern
+* Complete Linkage: Maximaler Abstand zwischen Elementen von Clustern
+* Ward: Minimierung der Varianz innerhalb von Clustern
+
+In R lässt sich das hierarchische CLustering mit der Funktion `hclust()` durchführen. Dieses verwendet als Eingangsargument eine Matrix der paarweisen Unterschiede, erzeugt durch die Funktion `dist()`.
+
+#### Paarweise Unterschiede
+
+```{r}
+btw21_dist <-  dist(btw21_stand,diag=T, upper=T)
+
+btw21_dist |> boxplot()
+
+btw21_distm <- as.matrix(btw21_dist)
+ggcorrplot(btw21_distm/max(btw21_distm),hc.order = FALSE, type = "lower",tl.cex = 8, legend.title = "Dist (scaled to 0-1)") 
+
+```
+
+Die Unterschiede zwischen den 299 Wahlkreisen bewegen sich im Wertebereich von knapp über 0 bis zu etwas über 20. Für eine detaillierte Betrachtung der paarweisen Unterschiede ist die Anzahl der Beobachtungen bereits zu groß.
+
+
+#### Dendrogramm
+
+Wir verwenden hier nur die standardisierten Merkmale und starten mit single linkage. Das Clustering lässt sich am Besten durch ein Dendrogramm (Baumdiagramm) veranschaulichen.
+
+```{r}
+btw21_hc_single <- hclust(btw21_dist,method="single")
+plot(btw21_hc_single,cex=.4)
+
+```
+
+Im Dendrogramm sind auf der x-Achse die einzelnen Beobachtungen dargestellt. Und auf der y-Achse die Unterschiede zwischen den Clustern.  In diesem Fall gibt es sehr viele paarweise ähnliche Beobachtungen und einige größere ähnliche Gruppen. Diese lassen sich dadurch erkennen, dass zwischen ihnen nur wenig Unterschiede bestehen, die Verbindungen schon bei niedrigen y-Werten liegen.
+
+Einige Wahlkreise sind allerdings eher außergewöhnlich und unterscheiden sich deutlich von allen anderen. Sie finden sich weiter oben im Diagramm. (Nummer 51 und 221).
+
+```{r}
+btw21$`Wahlkreis-Name`[c(51,221)]
+```
+
+
+#### Unterschiede bei der Wahl des Linkage
+
+
+Wir erzeugen die Cluster-Dendrogramme für die vier o.g. Linkage Methoden und vergleichen.
+
+```{r}
+
+layout(matrix(1:4,2,2))
+
+btw21_hc_single <- hclust(btw21_dist,method="single")
+plot(btw21_hc_single,cex=.4, main="Single Linkage")
+
+btw21_hc_av <- hclust(btw21_dist,method="average")
+plot(btw21_hc_av,cex=.4, main="Average Linkage")
+
+btw21_hc_co <- hclust(btw21_dist,method="complete")
+plot(btw21_hc_co,cex=.4, main="Complete Linkage")
+
+btw21_hc_wa <- hclust(btw21_dist,method="ward.D")
+plot(btw21_hc_wa,cex=.4, main="Ward Linkage")
+
+```
+
+
+Grundsätzlich lässt sich (auch hier) folgendes beobachten:
+
+* Single Linkage neigt dazu, ausgehend von einer ersten Beobachtung bzw. einem Beobachtungspaar immer wieder einzelne Beobachtungen hinzuzufügen. Es ergeben sich "lange, dünne, gestreckte, kettenartige" Büschel.
+* Complete Linkage neigt dazu, zunächst Beobachtungen zu vielen, verschiedenen kleinen Gruppen zusammen zu fassen, bevor größere Gruppen erzeugt werden. Es ergeben sich "kompakte, in etwasgleich große" Cluster.
+* Average Linkage liegt in der Vorgehensweise zwischen Single Linkage und Complete Linkage.
+* Ward Linkage neigt dazu, ähnlich wie Complete Linkage zunächst viele kleine Gruppen zu erstellen und diese dann schrittweise zusammen zu fassen. Der Unterschied zu Complete Linkage besteht vor allem darin, dass das Zusammenfassen zu großen Gruppen noch seltener bzw. später passiert.
+
+#### Einteilung in Gruppen
+
+Aus dem Dendrogramm lassen sich nun mit Hilfe der Funktion `cutree` auf zwei verschiedene Arten Cluster definieren:
+
+* Man legt eine spezifische Höhe (d.h. ein Ausmaß an Unterschieden) fest. Dann trennt man die Beobachtungen in alle Gruppen, die sich bis zu dieser Höhe hin gebildet haben. Dies geschieht mit dem Argument `h= ...` 
+* Man legt eine feste Anzahl an Gruppen fest. Dann berechnet der Algorithmus die entsprechende Höhe an der diese Anzahl realisiert wird und trennt entsprechend. Dies geschieht mit dem Argument `k= ...`.
+
+Wir erstellen aus den oben gewonnenen Dendrogrammen nun jeweils `k=3`Gruppen und vergleichen mit den bekannten Einteilungen nach urban vs. ländlich  sowie alte und neue Bundesländer.
+
+
+```{r , echo = T}
+# Single Linkage
+btw21_hc_single_c <- cutree(btw21_hc_single,k=3)
+table(btw21_hc_single_c, btw21$MehrereGemeinden)
+table(btw21_hc_single_c, btw21$NeuAlt)
+
+# Average Linkage
+btw21_hc_av_c <- cutree(btw21_hc_av,k=3)
+table(btw21_hc_av_c, btw21$MehrereGemeinden)
+table(btw21_hc_av_c, btw21$NeuAlt)
+
+# Complete Linkage
+btw21_hc_co_c <- cutree(btw21_hc_co,k=3)
+table(btw21_hc_co_c, btw21$MehrereGemeinden)
+table(btw21_hc_co_c, btw21$NeuAlt)
+
+# Ward Linkage
+btw21_hc_wa_c <- cutree(btw21_hc_wa,k=3)
+table(btw21_hc_wa_c, btw21$MehrereGemeinden)
+table(btw21_hc_wa_c, btw21$NeuAlt)
+
+```
+
+Es lässt sich folgendes beobachten:
+
+* Single Linkage erzeugt nur drei Cluster: Einen riesigen Cluster mit 297 Beobachtungen und zwei Cluster mit je einer Beobachtung für die beiden Wahlkreise `r btw21$`Wahlkreis-Name`[which(btw21_hc_single_c!=1)]`. Es ist daher für diesen Fall völlig unbrauchbar.
+* Average Linkage erzeugt einen sehr großen Cluster mit 217 ländlichen Wahlkreisen, einen mittelgroßen Cluster mit eher urbanen Wahlkreisen und einen kleinen Cluster mit nur 9 Beobachtungen. Diese ungleiche Aufteilung ist für die weitere Analyse auch nur bedingt tauglich.
+* Complete Linkage erzeugt ebenfalls einen großen Cluster mit ländlichen Wahlkreisen, einen mittelgroßen Cluster mit eher urbanen Wahlkreisen und einen stark urbanen Cluster in den alten Bundesländern. Diese Einteilung scheint erfolgsversprechend.
+* Ward Linkage erzeugt einen großen Cluster mit ländlichen Wahlkreisen fast ausschließlich aus den alten Bundesländern, einen mittelgroßen Cluster mit eher urbanen Wahlkreisen aus den alten und neuen Bundesländern und einen kleinen Cluster mit ländlichen Wahlkreisen aus den neuen Bundesländern. Auch diese Einteilung erscheint erfolgsversprechend.
+
+
+#### Kombination mit PCA und Visualisierung
+
+Zur Veranschaulichung der Cluster kombinieren wir im Folgenden das Clustering mit Complete Linkage und Ward Linkage mit einer Projektion auf die ersten beiden Hauptkomponenten.
+
+
+```{r , echo = T}
+
+btw21 |> 
+  add_column(as_tibble(btw21_PCA$scores)) |> 
+  add_column("Cluster" = factor(btw21_hc_co_c)) |> 
+  ggplot(aes(x=Comp.1,y=Comp.2)) +
+    geom_point(aes(color = Cluster, shape=NeuAlt,size = `Gemeinden am 31.12.2019 (Anzahl)`)) +
+  labs(title="Complete Linkage")
+
+btw21 |> 
+  add_column(as_tibble(btw21_PCA$scores)) |> 
+  add_column("Cluster" = factor(btw21_hc_wa_c)) |> 
+  ggplot(aes(x=Comp.1,y=Comp.2)) +
+    geom_point(aes(color = Cluster, shape=NeuAlt,size = `Gemeinden am 31.12.2019 (Anzahl)`)) +
+  labs(title="Ward Linkage")
+```
+
+In der Visualisierung zeigen sich die Unterschiede zwischen den beiden Clustering-Verfahren. Während beim Complete Linkage die Bestandteile der ersten Hautpkomponente dominieren und die Einteilung damit vorwiegend von rechts nach links ersichtlich wird, spielen beim Ward Clustering die Bestandteile der ersten beiden Hauptkomponenten eine Rolle und wir erhalten eine komplexere Einteilung. 
