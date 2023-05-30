@@ -13,7 +13,9 @@ editor_options:
 ```{r setup, include=FALSE}
 library(learnr)
 library(tidyverse)
+library(mlr)
 knitr::opts_chunk$set(echo = T, warning = FALSE)
+load(file="./www/shiny.RData")
 ```
 
 ## Einleitung
