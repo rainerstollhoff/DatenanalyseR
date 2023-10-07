@@ -1,0 +1,480 @@
+---
+title: "Regression in R"
+output: learnr::tutorial
+runtime: shiny_prerendered
+
+author: Rainer Stollhoff
+description: "Eine interaktive Einführung in lineare Regressionsmodelle in R"
+editor_options: 
+  chunk_output_type: inline
+# Regression in R  © 2023 by Rainer Stollhoff is licensed under CC BY-SA 4.0. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/
+---
+ <p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="https://git.th-wildau.de/r3/MaschinellesLernenR">Maschinelles Lernen in R mit mlr</a> by <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://www.th-wildau.de/rainer-stollhoff/">Rainer Stollhoff</a> is licensed under <a href="http://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY-SA 4.0<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1"></a></p> 
+
+```{r setup, include=FALSE}
+library(learnr)
+library(tidyverse)
+knitr::opts_chunk$set(echo = T, warning = FALSE)
+```
+
+## Einleitung
+
+In diesem Tutorial wird die lineare Regression vorgestellt. Dabei wird vorausgesetzt, dass die theoretischen Grundlagen der univariaten und multivariaten Regression bereits vorhanden sind.  Der Fokus liegt hier auf der konkreten Anwendung der Verfahren in R, der Analyse des Einflusses der Parameter auf das trainierte Modell und der Interpretation der Ergebnisse.
+
+Die Umsetzung findet dabei in R statt. Soweit möglich setzt das Tutorial aber keine vertieften Kenntnisse in R voraus. Insbesondere sind die Übungen durch einfaches Anpassen von Parametern bzw. Argumenten umsetzbar. Für vertiefte Analysen oder im Fall von Fehlern bei der Anwendung sind Kenntnisse in R aber unumgänglich.
+
+### Einbettung: Supervised Learning
+
+Die Aufgabe im Supervised Learning besteht darin, aus unabhängigen Variablen $x$ auf eine abhängige Variable $y$ zu schließen. Man unterscheidet zwischen: 
+
+* Regression: für reellwertige $y$ mit metrischer Skala
+* Klassifikation: für diskrete $y$ mit nominaler Skala
+  + binäre Klassifikation mit $y \in \{0,1\}$
+  + multinomiale Klassifikation mit $y \in \{0,1, \ldots, n\}$
+
+Im Rahmen des Maschinellen Lernens wird mit Hilfe eines Verfahrens bzw. Lern-Algorithmus anhand von Trainingsdaten ein Modell geschätzt, d.h. ein funktionaler Zusammenhang zwischen $x$ und $y$ mit $\hat{y}= f(x;\theta)$. Dabei bezeichnet $\hat{y}$ die Vorhersage für $y$ und $\theta$ die Parameter des Modells.
+
+Sowohl für Regressions- als auch für Klassifikationsaufgaben existiert eine Vielzahl an verschiedenen Verfahren bzw. Lern-Algorithmen. Alle dieser Verfahren haben ihre eigenen Stärken und Schwächen. Im Rahmen dieser Einführung wird für jede der beiden Aufgabentypen eine Auswahl an Verfahren vorgestellt. 
+
+Konkret werden im Laufe des Kurses betrachtet:
+
+* Lineare und Logistische Regression (mit Erweiterung)
+* Klassifikations- und Regressionsbäume
+* Gradient-Boosting und Random Forests
+* Support Vector Machines
+* Neuronale Netzwerke - genauer: Multylayer Feedforward Perceptrons
+
+#### Parametrische und Nicht-Parametrische Verfahren
+Je nach verwendetem Verfahren sind die Parameter nach Art und Anzahl im Vorfeld vollständig bekannt (sog. parametrische Verfahren), teilweise bekannt (sog. semi-parametrische Verfahren) oder ergeben sich erst im Laufe des Trainings (nicht-parametrische Verfahren). Die Übergänge zwischen diesen Typen sind fließend.
+
+#### Modellselektion und Parameteroptimierung
+Im Laufe des Trainings werden die Parameter so bestimmt, dass die Vorhersage eine möglichst gute Qualität aufweist. Die Qualität der Vorhersage wird in der Regel über eine Verlustfunktion gemessen, z.B.
+
+* quadratischer Abstand $(y - \hat{y})^2$ bei einer Regression oder
+* empirische Fehlklassfikationsrate $\frac{\#(i: y_i \neq \hat{y}_i)}{\#i}$ bei einer Klassifikationsaufgabe
+
+Sofern der funktionale Zusammenhang sich als Schätzung der Wahrscheinlichkeit für die Werte von $y$ interpretieren lässt $f(x;\theta) = \hat{p}(y|x,\theta)$, besteht ein allgemeiner Ansatz  in der Maximierung der Likelihood, d.h. der bedingten Wahrscheinlichkeit der im Trainingsdatensatz beobachteten Werte von $y$ gegeben die Werte $x$ und das Modell bzw. die Parameter des Modells $\theta$:
+\[L(\theta) = \prod_i \hat{p}(y_i|x_i,\theta)\]
+Man nennt dies eine Maximum-Likelihood-Schätzung.
+
+#### Modellvalidierung und Resampling-Verfahen
+Die empirische Bestimmung der Qualität der Vorhersage beruht auf Zufallsstichproben von Trainings- und Testdatensätzen und unterliegt damit Schwankungen. Um die statistische Genauigkeit der Qualitätsmessung zu erhöhen, verwendet man daher in der Regel Resampling-Verfahren, bei denen wiederholt Trainings. und Testdatensätze erzeugt, Modelle trainiert und die Vorhersagequalität bestimmt wird. Beispiele dafür sind Hold-Out Verfahren oder Kreuzvalidierung.
+
+#### Überblick 
+Die folgende Graphik gibt einen Überblick über die Zusammenhänge zwischen den in diesem Tutorial verwendeten Konzepten. Sie basiert auf einer Lehrveranstaltung zur Einführung in die Grundlagen des Maschinellen Lernens und stellt damit nur einen Ausschnitt dar.
+
+![Übersicht über Konzepte des Supervised Learning](./www/SupervisedLearning.png){width=100%}
+
+
+## Datensatz
+
+Als Anwendungsfall dient der Datensatz `mpg`. Dieser beinhaltet 234 Beobachtungen von PKW-Modellen mit 11 Merkmalen:
+
+```{r mpg, echo = T}
+str(mpg)
+```
+
+Für die Regressionsaufgaben wird die Variable `cty` als abhängige Variable $y$ dienen.
+
+```{r , echo = T}
+hist(mpg$cty,breaks=10)
+```
+
+Eine einfache Korrelationsanalyse der metrischen Variablen des Datensatzes ergibt:
+
+```{r, echo = T}
+cor(select_if(mpg,is.numeric))
+```
+
+Da die Variable `cty` eine sehr hohe Korrelation zur Variablen `hwy` aufweist, wird diese in der Regressionsanalyse entfernt, um eine Fokussierung der Verfahren auf diesen Zusammenhang zu vermeiden.
+
+```{r, echo = T}
+mpg_reg <- select(mpg,!hwy)
+```
+
+Da lineare Regressionsmodelle vor allem für numerische Merkmale geeignet sind, begrenzen wir uns auf diese.
+
+
+```{r, echo = T}
+mpg_reg <- select(mpg_reg,is.numeric)
+```
+
+Der finale Datensatz hat damit die Dimension:
+
+```{r, echo = T}
+dim(mpg_reg)
+```
+
+und beinhaltet die Variablen
+
+```{r}
+colnames(mpg_reg)
+```
+
+## Lineare Regressionsmodelle {.tabset}
+
+### Aufgabenstellung und Modellspezifikation
+
+Das Ziel einer Regression ist die Vorhersage der abhängigen Variable $y$ mit Hilfe der unabhängigen Variablen $x$. 
+
+Die Vorhersage kann entweder anhand aller im Datensatz enthaltenen unabhängigen Variablen erfolgen. Man spricht dann von einem vollen Modell. Oder anhand einer Auswahl der unabhängigen Variablen. Man spricht von einem Modell mit Variablenselektion. Die Variablenselektion kann entweder von Hand vorgegeben werden oder wird automatisch durch das Modell generiert. 
+
+R erlaubt zwei verschiedene Arten, um das Modell festzulegen: Explizit per Formel oder implizit durch den Datensatz.
+
+#### Modellspezifikation per Formel
+
+Spezifiziert man das Modell über eine Formel, so geht man davon aus, dass stets der vollständige Datensatz verwendet wird. Die Formel nimmt auf die Variablen im Datensatz Bezug und gibt an, welche Variablen für das Modell verwendet werden und wie die Variablen zusammen wirken.
+
+Im einfachen Fall einer (multivariaten) linearen Regression werden die Variablen nicht transformiert und wirken additiv zusammen. Die Formel für ein derartiges Regressionsmodell mit zwei unabhängigen Variablen ($x1$ und $x2$) hat folgende Form:
+$$y \sim x1 + x2$$ 
+
+Als Sonderfall lässt sich das volle Model spezifizieren durch den Platzhalter $.$:
+$$y \sim .$$
+
+#### Modellspezifikation über den Datensatz
+
+Spezifiziert man ein Modell über den Datensatz, so wählt man zuerst die Variablen im Datensatz aus und passt dann an den ausgewählten Datensatz stets das volle Model an. 
+
+### Modelle anpassen mit `lm()`
+
+In R lassen sich lineare Regressionsmodelle über die Funktion `lm()` erzeugen. Notwendige Argumente der Funktion sind:
+
+* `formula = ` die Spezifikation des Modells (siehe oben)
+* `data = ` der Datensatz
+
+Darüber hinaus lassen sich noch weitere Parameter festlegen z.B.
+
+* `subset = ` Auswahl von Beobachtungen
+* `weights = ` Gewichtungsvektor für die Beobachtungen
+
+Der Rückgabewert des Funktionsaufrufs ist ein Objekt der Klasse `lm`. Dies beinhaltet unter anderem die folgenden Elemente
+
+* `coefficients`: Die Koeffizienten (Achsenabschnitt und Steigungsparameter)
+* `fitted.values`: Die Modellvorhersagen $\hat{y_i} = \beta \cdot x_i$ für die Beobachtungen $i$ aus dem Datensatz.
+
+#### Schätzen eines univariaten linearen Regressionsmodells
+
+Wir verwenden die Funktion `lm()` um ein univariates Regressionsmodell zwischen der Variablen `cty` und der Variablen `displ` anzupassen.
+
+Zunächst in der Spezifikation mit Formel
+
+```{r }
+mpg_lm_displ <- lm(formula = cty ~ displ,data = mpg_reg) 
+mpg_lm_displ
+
+```
+
+Das Ergebnis der  Modellanpassung liefert ein einfaches lineares Regressionsmodell. Die ermittelten Koeffizienten lassen sich wie folgt interpretieren:
+
+* `(Intercept)` : Der Achsenabschnitt
+* `displ` : Der Koeffizient bzw. Steigungsparameter für `displ`
+
+Alternativ könnten wir auch die Spezifikation über den Datensatz verwenden und erhalten das identische Ergebnis - wir verwenden dabei den Pipe-Operator und geben das Ergebnis direkt aus:
+
+```{r}
+mpg_reg |> select(cty,displ) |> 
+  lm(formula = cty ~ .)
+
+```
+
+#### Schätzen eines multivariaten, vollen Modells
+
+
+Wir verwenden erneut die Funktion `lm()` um ein multivairates Regressionsmodell zwischen der Variablen `cty` und den anderen im Datensatz enthaltenen unabhängigen Variablen anzupassen.
+
+```{r }
+mpg_lm_full <- lm(formula = cty ~ .,data = mpg_reg) 
+mpg_lm_full
+
+```
+
+Das Modell beinhaltet nun neben dem Achsenabschnitt je einen eigenen Steigungsparameter für jede der verwendeten unabhängigen Variablen.
+
+
+#### Übungsaufgabe
+
+Schätzen Sie ein univariates lineares Regressionsmodell mit der abhängigen Variable $displ$ und der unabhängigen Variable $cty$.
+
+Verwenden Sie dazu zuerst die formelbasierte Spezifikation und anschließend der Spezifikation über den Datensatz.
+
+Vergleichen Sie die Ergebnisse.
+
+```{r lmform, exercise=TRUE, , exercise.lines = 10}
+
+
+
+```
+
+```{r lmform-hint-1, exercise.lines = 10}
+lm(formula =     , data=mpg_reg)
+
+
+```
+
+```{r lmform-hint-2, exercise.lines = 10}
+lm(formula =displ ~ cty, data=mpg_reg)
+
+
+```
+
+```{r lmform-hint-3, exercise.lines = 10}
+lm(formula =displ ~ cty, data=mpg_reg)
+mpg_reg |> 
+  select(displ,cty) |> 
+
+```
+
+```{r lmform-solution}
+lm(formula = displ ~ cty, data = mpg_reg)
+mpg_reg |> 
+  select(displ,cty) |> 
+  lm(formula = displ ~ .)
+```
+
+### Modelle analysieren 
+
+#### Modellüberblick mit `summary()`
+
+Um zu beurteilen, wie gut ein Regressionsmodell geeignet ist, um die abhängige Variable vorherzusagen, und welchen Einfluss die verwendeten Variablen auf die Vorhersage haben, erstellen wir mit dem Befehl `summary()` eine Übersicht.
+
+Die Übersicht enthält folgende Ausgabe:
+* `Call`:  Modellspezifikation als Formel
+* `Residuals`: Statistische Kennzahlen zu den Vorhersagefehlern
+* `Coefficients`: Schätzwerte der Koeffizienten und Testergebnisse
+* Angaben zur Modellgüte
+  * `Residual Standard Error`: Standardabweichung der Vorhersagefehler
+  * `degrees of freedom`: Freiheitsgrade (i.d.R. Anzahl Beobachtungen - Anzahl Parameter)
+  * `R-Squared`: $R^2$ (einfach - multiple und an die Anzahl an Parameter angepasst - adjusted)
+  * `F-statistic`: Ergebnisse eines F-Tests, ob die Vorhersage besser als Zufall ist
+
+
+```{r}
+summary(mpg_lm_displ)
+```
+
+Für das einfache univariate Modell sind beide Koeffizienten signifikant von Null verschieden, dass Modell trifft eine bessere Vorhersage als der Zufall und die Vorhersage lässt sich mit einer Modellgüte ($adj. R^2$) von rund 0,64 als OK bezeichnen.
+
+```{r}
+summary(mpg_lm_full)
+```
+
+Für das volle, multivariate Modell sind nur noch die Koeffizienten für `displ`, `year`und `cty` signifikant von Null verschieden, dass Modell trifft ebenfalls eine bessere Vorhersage als der Zufall und die Vorhersage lässt sich mit einer Modellgüte bei rund 0,67 ebenfalls als OK bezeichnen.
+
+Vergleicht man die beiden Modelle, so zeigt sich, dass die zusätzlichen Variablen `year`und `cyl` die Modellgüte nur ein wenig verbessert haben. Der Grundsatz `viel hilft viel` gilt hier offensichtlich nicht.
+
+#### Graphische Analyse mit plot()
+
+Für die graphsiche Analyse lässt sich über die Funktion `plot()` eine vogefertigte Reihe von speziellen Plots erstellen. Die Funktion `plot()` genauer `plot.lm()` verhält sich dabei anders als wir sie bisher kennen gelernt haben. Man nennt dies eine Anpassung der Methode (hier: `plot`) an die Objektklasse (hier: `lm`).
+
+Ruft man die Funktion auf, erzeugt sie vier Plots:
+
+* `Residuals vs. Fitted`
+* `Normal Q-Q`
+* `Scale-Location`
+* `Residuals vs. Leverage`
+
+Diese sogenannten diagnostischen Plots dienen dazu, die Modellqualität zu überprüfen. Sie korrekt zu interpretieren ist eine Kust für sich. Wir beschränken uns auf die ersten beiden.
+
+```{r}
+par(mfrow=c(1,2))  # Trennt die Ausgabe in ein Gitter auf
+plot(mpg_lm_full, 
+     which=1:2, # beschränkt die Ausgabe auf die ersten beiden Plots
+     ask=F) # Erstellt die Plots ohne weiter Rückfrage
+
+```
+
+Der Residuenplot zeigt uns, dass in diesem Modell kein Zusammenhang besteht zwischen der Größe des vorhergesagten Wertes (Fitted Value) und dem Fehler (Residual) - abgesehen von ein paar Ausreissern auf die wir später eingehen. Das ist ein gutes Zeichen. Würde sich hier ein Zusammenhang zeigen, so wäre das ein Hinweis darauf, dass die Vorhersage für besonders große (oder kleine) Vorhersagen schlechter (oder besser) funktioniert als für durchschnittliche. Anstelle eines linearen Zusammenhang wäre dann ein nicht-lineare (z.B. quadratischer) Zusammenhang vermutlich besser geeignet.
+
+Der Q-Q Plot stellt die Quantile der Vorhersagefehler den Quantilen einer Normalverteilung (mit gleicher Standardabweichung und Mittelwert) gegenüber. Hier liegen die meisten Punkte auf einer Geraden durch den Nullpunkt. Das ist erstmal ein gutes Zeichen. Die Abweichung der Punkte rechts oben zeigt aber eine problematische Richtung auf: Die großen Vorhersagefehler sind größer als dies bei Vorliegen normalverteilter Fehler der Fall wäre. Das heißt, es gibt ein paar extreme Ausreisser. 
+
+#### Ausreisseranalyse
+
+Wir wollen uns die mittels graphischer Analyse entdeckten Ausreisser etwas genauer ansehen.
+
+```{r}
+cbind(mpg,mpg_lm_full$fitted.values)[c(213,222,223),]
+```
+
+Es zeigt sich, dass die Vorhersage von `cty` (innerstädtische Reichweite in miles per gallon) bei Kleinwägen von VW deutlich geringer ausfällt als die tatsächliche Reichweite. Anscheinend sind diese Modelle besonders effizient. Dies ist durchaus denkbar: Unser Datensatz beschreibt ein Auto nur über wenige Merkmale. Die Vorhersage mittels linearer Regression kann daher nicht alle Besonderheiten abdecken.
+
+#### Übungsaufgabe
+
+Wiederholen Sie die Modellanalyse für ein volles multivariates lineares Regressionsmodell mit `displ` als der abhängigen Variable. 
+Erstellen Sie dazu zunächst das Regressionsmodel mit `lm()` und führen Sie anschließend die Analyseschritte durch.
+
+```{r lmana, exercise=TRUE, , exercise.lines = 10}
+mpg_lm_displ <- lm(  ..... )
+
+
+```
+
+```{r lmana-hint-1, exercise.lines = 10}
+mpg_lm_displ <- lm(formula =displ ~ cty, data=mpg_reg)
+
+
+```
+
+```{r lmana-hint-2, exercise.lines = 10}
+mpg_lm_displ <- lm(formula =displ ~ cty, data=mpg_reg)
+
+summary(mpg_lm_displ)
+
+
+```
+
+```{r lmana-hint-3, exercise.lines = 10}
+
+mpg_lm_displ <- lm(formula =displ ~ ., data=mpg_reg)
+
+summary(mpg_lm_displ)
+
+par(mfrow=c(1,2))  
+plot(        )
+
+```
+
+```{r lmana-solution}
+mpg_lm_displ <- lm(formula =displ ~ ., data=mpg_reg)
+
+summary(mpg_lm_displ)
+
+par(mfrow=c(1,2))  
+plot(mpg_lm_displ, which=1:2, ask=F)
+
+```
+### Modell- und Variablenselektion
+
+Wie wir oben gesehen haben, weisen in der Regel nicht alle unabhängigen Variablen in einem vollen Modell einen signifikanten Zusammenhang zur abhängigen Variable auf. Kurz gesagt: Wir könnten diese meistens auch weglassen, ohne dass die Vorhersage an Qualität verliert. Umgekehrt würde das Modell an Übersichtlichkeit gewinnen, wenn nur die Variablen enthalten wären, die einen signifikanten Zusammenhang aufweisen.
+
+Das Ziel der Modellselektion bzw Variablenselektion ist es, ein Modell zu erstellen, in dem nur Variablen mit signifikantem Zusammenhang zur abhängigen Variable enthalten sind. 
+
+Man spricht dabei von einer Variablenselektion, wenn wir die Entscheidung, ob eine unabhängige Variable im Modell enthalten sein soll, dadurch treffen, dass wir den Zusammenhang der unabhängigen Variablen mit der abhängigen Variablen untersuchen - entweder ohne ein Modell als bivariaten Zusammenhang oder innerhalb eines Modells über den Koeffizienten bzw. dessen Signifikanz.
+
+Man spricht von einer Modellselektion, wenn die Entscheidung immer anhand einer Verbesserung bzw. Verschlechterung des gesamten (verbliebenen) Modells getroffen wird. Hierzu verwendet man zwingend Gütemaße, die die Anzahl der verwendeten unabhängigen Variablen bzw. Parameter berücksichtigen z.B. das adjustierte $R^2$. 
+
+#### Variablenselektion
+
+Ausgangspunkt einer Variablenselektion sind die bivariaten Zusammenhänge bzw. paarweisen Korrelationen der abhängigen Variable mit den unabhängigen Variablen. 
+
+In Abhängigkeit von einem vorab gewählten Schwellwert für die Signifikanz des Zusammenhangs (z.B. $5\%$), wählt man nur diejenigen unabhängigen Variablen aus, für die die Signifikanz des Zusammenhangs unterhalb des Schwellwerts liegt.
+
+Die Variablenselektion in R lässt sich umsetzen mit den Funktionen `cor()` bzw. `cor.test()`. 
+Diese wenden wir auf den Datensatz bzw. die Spalten des Datensatzes an.
+
+```{r}
+cor(mpg_reg$cty,mpg_reg)
+p <- list()
+for(var in colnames(mpg_reg)){
+  p[var] <- cor.test(mpg_reg$cty,pull(mpg_reg,var))$p.value
+  # `cor.test()` liefert eine umfassende Rückgabe, wir benötigen hier nur den p-Wert
+}
+
+p
+```
+
+Bei einem Schwellwert von $5\%$ würden wir nur die Variablen `displ` und `cyl` in das Modell aufnehmen.
+
+#### Modellselektion
+
+Für die Modellselektion gibt es zwei (drei) grundlegende Strategien:
+
+  * Vorwärts-Selektion: Man fängt mit einem leeren Modell an, fügt dann schrittweise immer nur diejenige der unabhängigen Variablen hinzu, welche das Modell größtmöglich verbessert. Das wiederholt man solange, bis keine Verbesserung mehr möglich ist.
+  * Rückwärts-Selektion: Man fängt mit dem vollen Modell an und entfernt dann schrittweise immer die Variable, deren Weglassen das Modell am wenigsten verschlechtert (deren Koeffizient die geringste Signifikanz unterhalb einer vorher festgelegten Schwelle aufweist). 
+Man kann die Modellselektion in R von Hand umsetzen durch die Wiederholte Anwendung von `lm()` und `summary()`.
+
+Im folgenden das Beispiel der Rückwärtsselektion.
+
+Ausgangspunkt bildet das volle Modell.
+
+```{r}
+summary(mpg_lm_full)
+```
+
+Wir bilden nun alls Modell mit nur zwei der drei unabhängigen Variablen und vergleichen das adjustierte $R^2$,
+
+```{r}
+mpg_lm_full_cyl <- lm(formula = cty ~ displ + year,data = mpg_reg) 
+mpg_lm_full_year <- lm(formula = cty ~ displ + cyl,data = mpg_reg) 
+mpg_lm_full_displ <- lm(formula = cty ~ year + cyl,data = mpg_reg) 
+
+summary(mpg_lm_full)$adj.r.squared
+summary(mpg_lm_full_cyl)$adj.r.squared
+summary(mpg_lm_full_year)$adj.r.squared
+summary(mpg_lm_full_displ)$adj.r.squared
+
+```
+
+Es zeigt sich, dass das Modell ohne `year` das adjustierte $R^2$ nur geringfügig verschlechtert. Wir verwenden es als neue Ausgangsbasis und untersuchen, ob noch eine weitere Variable weggelassen werden kann.
+
+```{r}
+mpg_lm_full_year_cyl <- lm(formula = cty ~ displ,data = mpg_reg)
+mpg_lm_full_year_displ <- lm(formula = cty ~ cyl,data = mpg_reg) 
+
+summary(mpg_lm_full_year)$adj.r.squared
+summary(mpg_lm_full_year_cyl)$adj.r.squared
+summary(mpg_lm_full_year_displ)$adj.r.squared
+
+```
+
+Bei beiden Variablen würde das Weglassen zu einer deutlichen Verschlechterung des $R^2$ führen. Wir belassen es also dabei und erhalten das finale Modell:
+
+```{r}
+summary(mpg_lm_full_year)
+```
+
+#### Automatisierte Modellselektion
+
+Die manuelle Modellselektion ist etwas aufwändig. In R existieren daher eigene Funktionen, die für ein vorhandenes Modell prüfen, ob sich das Modell durch 
+
+* das Hinzufügen einer Variable verbessert: `add1()`
+* das Weglassen einer Variable verbessert: `drop1()`
+* durch schrittweises Hinzufügen- oder Weglassen verbessert `step()`
+
+Diese Funktionen verwenden anstelle des adjustierten $R^2$ das Ergebnis eines F-Tests (`add1()` und `drop1()`) bzw. das AIC (`step()`). Die FUnktionen haben die folgenden notwendigen Argumente:
+
+* `object`: Ein Modell (z.B. das Ergebnis des Aufrufs von `lm()`)
+* `scope`: Modellbereich bzw. maximale Formel 
+
+Beispiel für eine Vorwärtsselektion mit `add1()` ausgehend von einem Nullmodel ohne unabhängige Variablen:
+
+```{r}
+mpg_lm_null <- lm(formula = cty ~ 0,data = mpg_reg)
+add1(mpg_lm_null, scope = cty ~ displ + year + cyl, test="F")
+
+```
+
+Beispiel für eine Rückwärtsselektion mit `drop1()` ausgehend von einem vollen Model:
+
+```{r}
+mpg_lm_full 
+drop1(mpg_lm_full, scope = cty ~ displ + year + cyl, test="F")
+
+```
+
+
+Beispiel für eine schrittweise Selektion mit `step()` ausgehend von einem vollen Modell:
+
+```{r}
+mpg_lm_full 
+step(mpg_lm_full, scope = cty ~ displ + year + cyl)
+```
+
+#### Übungsaufgabe
+
+Führen Sie eine Vorwärtsselektion durch mit `displ`als der abhängigen Variable.
+
+Verwenden Sie als Ausgangspunkt ein Nullmodell ohne unabhängige Variablen. Selektieren Sie anschließend manuell, mit `add1()` und mit `step()`. Vergleichen Sie die Ergebnisse.
+
+```{r lmselect, exercise=TRUE, , exercise.lines = 20}
+
+
+
+```
+
+
+<!-- ### Quiz -->
+
+<!-- * Aussagen zu Supervised Learning -->
+<!-- * Formel/Modellaufruf lm -->
+<!-- * summary enthält Aussagen zu -->
+<!-- * Modellselektion mit $R^2$ -->

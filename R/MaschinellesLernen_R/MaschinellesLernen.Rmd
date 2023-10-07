@@ -15,6 +15,7 @@ editor_options:
 library(learnr)
 library(tidyverse)
 library(mlr)
+library(rpart.plot) # Plot trees
 knitr::opts_chunk$set(echo = T, warning = FALSE)
 ```
 
@@ -286,7 +287,7 @@ Die Konstruktionsweise des Baumes führt zu einer endlichen, diskreten Anzahl an
 Das dem Baum zugrunde liegende Paket `rpart` ermöglicht eine einfache Visualisierung des erzeugten Baummodells. Dafür muss das trainierte `rpart`-Modell aus dem `mlr`-Model extrahiert werden. Auf diese Weise kann die Entscheidungsfindung des Baums leicht nachvollzogen werden. Wir verwenden hier die erweiterten Darstellungsmöglichkeiten aus dem Paket `rpart.plot`. 
 
 ```{r , echo = T}
-library(rpart.plot) # Plot trees
+
 rpart.plot(model_tree$learner.model, roundint = FALSE) # Same like: rpart.plot(getLearnerModel(model_tree), roundint = FALSE)
 ```
 
